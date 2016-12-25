@@ -13,12 +13,23 @@
     </nav>
 
     <a href="{{ "/" | prepend: site.baseurl }}" class="author-thumb">
-      <img src="{{ "/images/author.jpg" | prepend: site.baseurl }}" alt="Author thumbnail" class="dot">
+      <img src="{{ "/images/author.png" | prepend: site.baseurl }}" alt="Author thumbnail" class="dot">
     </a>
-    <h1>Hi, I'm Lora <small>and I'm free Jekyll theme :)</small></h1>
-    <a class="btn" href="{{ site.repository }}/archive/master.zip" target="_blank">download</a>
+    <h1>Hi, I'm Kevin <small>and I write code :)</small></h1>
+
+    <nav class="navbar">
+      <ul>
+        {% for category in site.categories %}
+          {% capture category_url %}/{{ category | first | slugify }}/index.html{% endcapture %}
+          <li><a href="{{ category_url | prepend: site.baseurl }}">{{ category | first }}</a></li>
+          {% if forloop.last == false %}
+            <li class="divider">&bull;</li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </nav>
+
     <hr class="hr">
 
   </div>
-
 </header>
