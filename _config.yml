@@ -1,10 +1,12 @@
-permalink   : /:categories/:year/:title/
+permalink   : pretty
 markdown    : kramdown
 highlighter : pygments
 
-paginate: 2 #6
+paginate: 4 #6
 comments: true
 paginate_path: "/page/:num"
+
+gems: [jekyll-paginate]
 
 source: source
 destination: _site
@@ -13,30 +15,27 @@ sass:
   style: compressed
 
 # Site settings
-title: Lora
-description: "A free Jekyll theme"
-email: your-email@domain.com
+title: Kevin Farst's Blog
+description: "Ramblings about code and stuff"
+email: farst.6@gmail.com
 baseurl: "" # the subpath of your site, e.g. /blog/
 #url: "http://yourdomain.com"
-url: "http://nandomoreira.me/lora"
-repository: "https://github.com/nandomoreirame/lora"
-disqus_shortname: "fernandomoreira"
-google_analytics: UA-52446115-1
+url: "http://github.com/kfarst"
+repository: "http://github.com/kfarst"
+disqus_shortname: "kfarst"
+google_analytics: UA-89422990-1
 
 # social footer
 social:
   github:
     slug: github
-    link: http://github.com/nandomoreirame
-  facebook:
-    slug: facebook
-    link: http://facebook.com/fernando.dev
+    link: http://github.com/kfarst
   twitter:
     slug: twitter
-    link: http://twitter.com/nandomoreirame
-  instagram:
-    slug: instagram
-    link: http://instagram.com/nandomoreira.me
+    link: http://twitter.com/kevinfarst
   linkedin:
     slug: linkedin
-    link: http://linkedin.com/in/nandomoreirame
+    link: https://www.linkedin.com/in/kevin-farst-14a63914
+
+category_archive:
+  slugify: true
