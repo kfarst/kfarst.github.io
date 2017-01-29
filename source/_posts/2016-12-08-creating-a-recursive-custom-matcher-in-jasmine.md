@@ -1,9 +1,10 @@
 ---
 layout: post
 title: "Creating a Recursive Custom Matcher in Jasmine"
+description: "Creating a Recursive Custom Matcher in Jasmine"
 date: 2016-12-08 12:00:00
 comments: true
-keywords: ""
+keywords: "jasmine,es5,javascript,unit test,testing"
 categories:
 - Jasmine
 tags:

@@ -1,9 +1,10 @@
 ---
 layout: post
 title: "Subscribing to Form Value Changes in Angular 2"
+description: "Subscribing to Form Value Changes in Angular 2"
 date: 2016-12-12 20:00:00
 comments: true
-keywords: ""
+keywords: "angular,angular2,observables,forms,typescript"
 categories:
 - Angular
 tags:

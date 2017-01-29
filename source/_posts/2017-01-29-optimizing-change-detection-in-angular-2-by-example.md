@@ -1,10 +1,10 @@
 ---
 layout: post
 title: "Optimizing Change Detection in Angular 2 By Example"
+description: "Optimizing Change Detection in Angular 2 By Example"
 date: 2017-01-29 13:18:52
 comments: true
-description: ""
-keywords: ""
+keywords: "angular,angular2,change detection,typescript"
 categories:
 - Angular
 tags:

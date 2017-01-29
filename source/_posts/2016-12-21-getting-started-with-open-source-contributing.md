@@ -1,9 +1,10 @@
 ---
 layout: post
 title: "Getting Started with Open Source Contributing"
+description: "Getting Started with Open Source Contributing"
 date: 2016-12-21 10:00:00
 comments: true
-keywords: ""
+keywords: "open source,open source contributing,contributing,git,github"
 categories:
 - Open Source
 tags:
