@@ -7,6 +7,7 @@ group :development do
   gem 'sass', '~> 3.4.10'
   gem 'jekyll', '~> 3.3'
   gem 'jekyll-paginate'
+  gem 'jekyll-seo-tag'
   gem 'pygments.rb'
   gem 'byebug'
   gem 'rb-readline'

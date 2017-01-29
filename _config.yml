@@ -6,7 +6,7 @@ paginate: 4 #6
 comments: true
 paginate_path: "/page/:num"
 
-gems: [jekyll-paginate]
+gems: [jekyll-paginate, jekyll-seo-tag]
 
 source: source
 destination: _site
