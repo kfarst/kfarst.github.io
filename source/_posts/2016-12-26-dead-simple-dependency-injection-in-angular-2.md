@@ -1,10 +1,10 @@
 ---
 layout: post
 title: "Dead Simple Dependency Injection in Angular 2"
+description: "Dead Simple Dependency Injection in Angular 2"
 date: 2016-12-26 13:00:00
 comments: true
-description: ""
-keywords: ""
+keywords: "angular,angular2,dependency injection,typescript"
 categories:
 - Angular
 tags:
