@@ -19,7 +19,8 @@
 
     <nav class="navbar">
       <ul>
-        {% for category in site.categories %}
+        {% assign sorted_categories = site.categories | sort %}
+        {% for category in sorted_categories %}
           {% capture category_url %}/{{ category | first | slugify }}/index.html{% endcapture %}
           <li><a href="{{ category_url | prepend: site.baseurl }}">{{ category | first }}</a></li>
           {% if forloop.last == false %}
