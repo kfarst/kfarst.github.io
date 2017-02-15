@@ -11,6 +11,8 @@ tags:
 - android
 ---
 
+*NOTE: I've refactored this walkthrough in a subsequent blog post [here](http://kfarst.github.io//android/2017/02/22/refactoring-a-twitter-style-text-counter-in-android/)*
+
 A little while back I attended an [Android bootcamp](http://codepath.com/) in which we built a handful of apps
 as we learned. One of the apps we were tasked with building was a [Twitter](http://twitter.com) app, and one of
 the features I wanted to build was the almost iconic character counter for tweet composition, as they are of course limited
