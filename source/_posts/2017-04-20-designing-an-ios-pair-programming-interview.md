@@ -3,7 +3,7 @@ layout: post
 title: "Designing an iOS Pair Programming Interview"
 date: 2017-04-20 09:54:22
 comments: true
-description: "Novo post"
+description: "Designing an iOS Pair Programming Interview"
 keywords: "ios,interviewing,swift,objective-c"
 categories:
 - iOS
