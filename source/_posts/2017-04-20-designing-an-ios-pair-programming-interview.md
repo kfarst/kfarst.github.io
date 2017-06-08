@@ -389,7 +389,7 @@ the return value of the `fetchMovieList` method in the `MovieClient` class was i
 
 ## Conclusion
 
-Putting together a code pairing excercise for potential job candidates was both a difficult and enjoyable experience. I felt it helped me make better decisions about how to structure functionality
+Putting together a code pairing exercise for potential job candidates was both a difficult and enjoyable experience. I felt it helped me make better decisions about how to structure functionality
 around technical requirements and best practices according to the project at hand, not just meeting business requirements. Though my company's app was a good guide for how and what I wanted to test against,
 it was a productive challenge trying to put myself in the shoes of the candidate, how they would think about coming up with a solution for each step, and finding a balance between skill testing and time constraints.
 
