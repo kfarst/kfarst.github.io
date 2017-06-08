@@ -6,7 +6,7 @@ permalink: /about/
 
 I am a software engineer in Silicon Valley with over 6 years of experience in web development. Working primarily as a full-stack Ruby on Rails developer, I've since switched to AngularJS, helping to build a large production application from the ground up.
 
-On the mobile side of things, I've attend both the iOS For Engineers and the Android for Engineers bootcamps through [Codepath](http://codepath.com/).
+On the mobile side of things, I've attend both the *iOS For Engineers* and the *Android For Engineers* bootcamps through [Codepath](http://codepath.com/).
 
 I really enjoy helping others and try to dedicate myself to "paying back" those who have helped me develop my career by building the skills of others as a mentor and teacher.
 
