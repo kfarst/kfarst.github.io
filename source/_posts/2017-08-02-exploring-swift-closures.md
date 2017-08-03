@@ -171,6 +171,13 @@ extension Then where Self: AnyObject {
 }
 {% endhighlight %}
 
+From there, we can create extensions for our classes that simply inherit from our `Then` extension. Let's take `UIControl` for example,
+which components like `UIButton` and `UILabel` subclass.
+
+{% highlight swift %}
+extension UIControl: Then {}
+{% endhighlight %}
+
 Our code now looks much cleaner, as we are encapsulating the configuration within the initialization of the object before we even
 assign it to a variable.
 
