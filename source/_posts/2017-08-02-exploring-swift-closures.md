@@ -92,7 +92,7 @@ class Api {
 {% endhighlight %}
 
 Just a slight disclaimer, it's good to alias types when you will be using the same type in a lot of places, but can quickly get out of hand if you type alias *every* closure you define.
-The idea is to have a small amount of closure type aliases referenced multiple times in functions, not the other way around. We want to simplify and make our code less 
+The idea is to have a small amount of closure type aliases referenced multiple times in functions, not the other way around. We want to simplify and make our code less
 confusing, and with many type aliases and fewer function definitions using them, the result can lead to misdirection and confusion.
 
 ## Injecting Custom Code into a Common Paradigm
@@ -106,9 +106,11 @@ In a `UIViewController` we would probably define the code for this like so:
 
 {% highlight swift %}
 let alert = UIAlertController(title: "Error", message: "Email address correctly formatted", preferredStyle: .alert)
+// add OK button
 alert.addAction(
     UIAlertAction(title: "OK", style: .default, handler: nil)
 )
+// show alert
 self.present(alert, animated: true, completion: nil)
 {% endhighlight %}
 
@@ -122,13 +124,16 @@ class Utilities {
   ...
   static func messageAlert(title: String, message: String, caller: UIViewController, afterConfirm: (() -> ())? = nil) {
     let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+    // add OK button
     alert.addAction(
         UIAlertAction(title: "OK", style: .default, handler: { _ in
+            // conditionally execute passed in closure
             if let action = afterConfirm {
                 action()
             }
         })
     )
+    // show alert
     caller.present(alert, animated: true, completion: nil)
   }
 }
@@ -147,10 +152,38 @@ Utilities.messageAlert(title: "Error", message: "Passwords do not match", caller
 There is always a balance between making a piece of functionality reusable and avoiding making it too complicated, so if you further need to customize this example, be careful not to sacrifice readability
 for reusability, both for your future self's sake and any other developers that will be touching your code.
 
-## Syntactic Sugar
+## Immediately Invoked Closures
 
-One really neat way I've seen closures used in projects is to "clean up" initialization code a bit. Often times when declaring a new instance of a class, after assigning it to a variable the first calls you make
-are to customize the properties of that instance. Using `UILabel` as an example, you will almost *always* be customizing an instance you create.
+Closures can be "executed" by appending argument parentheses after the closing curly brace. It can be done either inline
+
+{% highlight swift %}
+let test = {
+  print("Hello world!")
+}()
+{% endhighlight %}
+
+or as separate calls.
+
+{% highlight swift %}
+// define the closure
+let test = {
+  print("Hello world!")
+}
+// execute the closure
+test()
+{% endhighlight %}
+
+Really, you don't even need to assign it to a variable at all if you don't want or need to.
+
+{% highlight swift %}
+{
+  print("Hello world!")
+}()
+{% endhighlight %}
+
+What context might we use this? Often times when declaring a new instance of a class, after assigning it
+to a variable the first calls you make are to customize the properties of that instance. Using `UILabel`
+as an example, you will almost *always* be customizing an instance you create.
 
 {% highlight swift %}
 let label = UILabel()
@@ -159,39 +192,98 @@ label.textColor = .black
 label.text = "Hello, World!"
 {% endhighlight %}
 
-We can write an extension to add an instance method that *passes in* our new instance as an argument by means of a closure.
+With our handy new syntax, we can clean this up like so.
 
 {% highlight swift %}
-extension Then where Self: AnyObject {
-  public func then(_ block: (Self) -> Void) -> Self {
-    block(self)
-    return self
+let label = {
+  let l = UILabel()
+  // set properties
+  l.textAlignment = .center
+  l.textColor = .black
+  l.text = "Hello, World!"
+  // return instance to assign to `label` variable
+  return l
+}()
+{% endhighlight %}
+
+It adds a little nice syntactic sugar, but what if we need to declare a property on a `UIViewController`?
+Let's use Swift 4's new [JSONDecoder](https://developer.apple.com/documentation/foundation/jsondecoder), which
+can help us map raw JSON to an object in a much improved way.
+
+{% highlight swift %}
+class ViewController: UIViewController {
+  ...
+  var decoder: JSONDecoder = JSONDecoder()
+  ...
+}
+{% endhighlight %}
+
+We'll be mapping a JSON object to a simple struct called `Foo`.
+
+{% highlight swift %}
+  struct Foo: Codable {
+    let dateTime: Date
+    ...
+    enum CodingKeys : String, CodingKey {
+      case dateTime
+    }
   }
+{% endhighlight %}
 
+Don't worry too much about the syntax above, just note that we have a `Date` field on our `Foo` struct. You can find a
+great guide that lays out this new JSON mapping technique [here](http://benscheirman.com/2017/06/ultimate-guide-to-json-parsing-with-swift-4/).
+The `JSONDecoder` instance can have certain options set for configuration, and we want to automatical convert the `dateTime` field
+on our object to an ISO 8601 format when mapped. However, the date formatting is configured on the `JSONDecoder` instance itself, so we need to set that property
+on our `decoder` instance variable. We can't do this immediately after, since that would be invalid Swift.
+
+{% highlight swift %}
+class ViewController: UIViewController {
+  ...
+  var decoder: JSONDecoder = JSONDecoder()
+  decoder.dateEncodingStrategy = .iso8601
+  ...
 }
 {% endhighlight %}
 
-From there, we can create extensions for our classes that simply inherit from our `Then` extension. Let's take `UIControl` for example,
-which components like `UIButton` and `UILabel` subclass.
+We can however neatly package the instance declaration and any configuration together using an immediately invoked closure.
 
 {% highlight swift %}
-extension UIControl: Then {}
-{% endhighlight %}
-
-Our code now looks much cleaner, as we are encapsulating the configuration within the initialization of the object before we even
-assign it to a variable.
-
-{% highlight swift %}
-let label = UILabel().then {
-  $0.textAlignment = .center
-  $0.textColor = .black
-  $0.text = "Hello, World!"
+class ViewController: UIViewController {
+  ...
+  var decoder: JSONDecoder = {
+    let d = JSONDecoder()
+    d.dateEncodingStrategy = .iso8601
+    return d
+  }()
+  ...
 }
 {% endhighlight %}
 
-I figured someone had already packaged this up into a nice plugin, and sure enough a quick Google search allowed me to discover [Then](https://github.com/devxoul/Then),
-from which I got these examples and source code. If you don't want to have to implement this yourself, **Then** is available for projects with both Carthage and CocoaPods.
+This will immediately execute the closure and assign the instance to the `decoder` variable, but if there's a certain context in the `ViewController`
+where the `decoder` isn't used, it would be nice to not have to instantiate it until absolutely necessary. If we prepend the `lazy` keyword
+to it, it will only be executed the first time the variable is referenced.
 
+{% highlight swift %}
+class ViewController: UIViewController {
+  ...
+  lazy var decoder: JSONDecoder = {
+    let d = JSONDecoder()
+    d.dateEncodingStrategy = .iso8601
+    return d
+  }()
+  ...
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    ...
+    do {
+      // `decoder` variable not set until it is called here
+      let foo: Foo = try decoder.decode(Foo.self, from: fooJson)
+    } catch let error {
+      ...
+    }
+  }
+}
+{% endhighlight %}
 
 ## Conclusion
 
