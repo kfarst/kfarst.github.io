@@ -1,0 +1,109 @@
+---
+layout: post
+title: "Landing Your Next Gig"
+date: 2017-10-10 18:34:06
+comments: true
+description: "Landing Your Next Gig"
+keywords: "career,general,advice"
+categories:
+- Career
+tags:
+- Career
+---
+
+Earlier this year the startup I was working for unfortunately went the way a lot of startups do and closed its doors.
+I found myself back on the market again, and although I'm now happily employed I wanted to write about my experience
+and offer some potential tips to help others finding themselves in the position I was in. There are already TONS of
+great resources and posts out there giving career advice and suggestions, so I wanted to try and focus on topics or
+aspects of topics you may not find in every article on this subject. Finally, these are only SUGGESTIONS based on my
+experience and may not apply to your specific situation. However, I do hope you can get a few useful tips out of my
+ramblings.
+
+## Unemployment Insurance
+
+If you live in the US and were laid off in one way or another, whether it be like my situation or a company downsizing,
+I absolutely recommend you apply for [unemployment insurance](https://www.dol.gov/general/topic/unemployment-insurance).
+It can definitely ease the stress while you're on your next career quest with supplemental income, and it technically starts
+from your FIRST day of unemployment, not from the first day you signed up. Your bi-weekly payouts are calculated based on your income,
+however it's definitely not an amount large enough to continue the lifestyle you had previously, so be smart about your spending
+and budgeting and only view unemployment insurance (UI) as temporary support to ease any financial stress.
+
+## Updating Your Resume
+
+Obviously this is the next logic step, but really take some time to review your resume. Remember that this is almost always your
+introduction and first impression to potential employers, so you want to put your best foot forward. I won't even try and suggest
+an exact blueprint for your resume, and I would argue there isn't a perfect formula anyways...it really depends on you the applicant,
+the potential employer, and the position. I would like to list out some ideas I found useful though, trying to be as general as possible
+in my suggestions.
+
+1. Most of the time the application page on a website will have a simple upload button for a resume document (except for those that expect
+you to paste everything into a series of textareas, and I hope whoever designed that atrocity steps on a Lego barefoot). Whether it's an upload
+button or attaching your resume to an email, make the file name simple and to the point. I would recommend **[Your Name] Resume**, not just **Resume**
+or **My Resume**. It's much easier for a recruiter or hiring manager to keep track of the document that way.
+
+2. Turn your resume into a PDF before you send it. It may look good on your computer with a **.txt**, **.doc**, or **.rtf** extension, but since
+there are many different applications that can open these file types someone on the hiring side might open it and the formatting with be all messed up
+for them. Sending it as a PDF guarantees the formatting will look the same no matter who opens it.
+
+3. *Please* only list relevant skills on your resume. By that, I mean skills either related to the job you are seeking or listing a language or framework
+you've at least spent a decent amount of time in. I know sometimes recruiters will tell you to beef up your resume with obscure things you may have touched
+here and there, but when I would interview engineers at my last job I would make a point to ask them about one of their listed skills not related to the
+job they were applying for just to verify that had actually spent some amout of time working with the listed technology.
+
+4. Tailor your resume to the job requirement. By that, I do NOT mean make stuff up that matches the job listing, but perhaps you can create a list of bullet
+points highlighting your various skills and accomplishments. Then, based off of what the job asks for, tweak those bullet points on your resume so you
+look like a really good match for the job. Remember that your resume is your introduction (and unfortunately sometimes only interaction) with someone
+who is looking to fill that spot, so catching their eye is key.
+
+5. If you're looking to transition to another technology or platform for your next position, make sure you have something to show for it. Work on projects
+and sample code that shows that even if you haven't had a professional position in said technology, you do have the experience from side projects or work
+done on your own time.
+
+6. If you are looking for something new and different and you've gained the experience on your own, don't use language like *transitioning* or *moving into*
+on your resume. In my experience this can deter hiring managers as they see not having an actual full-time position in that field as not having enough experience.
+For me, I was looking to move from full-stack and front-end engineering into mobile development. On my resume I worded it like this: **Having a wide array
+of experience in full-stack, front-end, and mobile engineering, I would like to continue my career path in mobile development**.
+
+7. To showcase your work, I would recommend listing your projects and contributions somewhere online or on your personal webite. If the person looking at
+your resume is non-technical but looking for experience, they most likely won't be scouring your GitHub account looking for your work. Unfortunately, even
+if that person is technical they probably won't do that either, so I made it a point to consolidate my work on my 
+<a href="http://kfarst.github.io/about" target="_blank">About</a> page of this blog and listing that link on my resume.
+
+
+OK, that was a lot of stuff but I hope it can help you build a resume that really stands out to land the job of your dreams...or at least something
+that really interests you in your career prosects.
+
+## Study Your Algorithms!
+
+I'm a bit salty about this topic, but unfortunately this is the way of the industry. Although I found it a little ridiculous that, after working at a job
+for over 3 years, I had to then immediately begin studying for upcoming interviews, try to view it as a learning opportunity and a chance to "polish up"
+your computer science fundamentals. It doesn't matter how much work you've done or how impressive your resume is, companies are going to ask you to solve
+algorithm problems which you may not have seen since college. To add to that, you may be a bit "rusty" due to the fact that these are not problems most
+of us face on a daily basis, and isn't an accurate reflection of daily work and problem solving.
+
+No matter your view on the issue, having a good command of these computer science fundamentals is critical to your next position. Companies usually view
+the technical interview challenge as a "gatekeeper" to weed out candidates they don't want to spend the time bringing on site, as they feel if you can't solve
+a random algorithm they pull out of the air and put you on the spot to solve, then there's no point moving forward.
+
+OK, enough of the passive aggressiveness. In all fairness a good interviewer wants to use this opportunity to see *how* you problem solve and work with other
+engineers to build solutions. It is a lot of pressure, but most of the time the interviewer understands this and tries to view the technical challenge as
+more of a "conversation" and "working through the problem together". Be honest if you don't know something, and make sure you talk through your process
+the entire way. Even if you feel you didn't do well, it can definitely be a learning opportunity for yourself, and many engineers conducting these interview
+enjoying helping you out and teaching you along the way.
+
+There are a LOT of great resources out there, including sites like [LeetCode](http://leetcode.com) to help you build algorithms in real time and verify the code
+along the way using predefined test cases. If you need to get back to basics, step back, and get familiar with the foundations again, there are some excellent
+books like [Cracking the Coding Interview](https://www.amazon.com/Cracking-Coding-Interview-Programming-Questions/dp/0984782850/ref=sr_1_1?ie=UTF8&qid=1507700914&sr=8-1&keywords=cracking+the+coding+interview)
+to combine both fundamental training and actual code examples.
+
+
+On a happier note, the more you practice the easier it will start to become as you will start to see patterns and different variations of the same problem. All in
+all, most technical questions that are posed can be consolidated to only a handful of algorithms and concepts, so study hard and never stop learning! Even if you
+have a job or get that next position, I would encourage you to continually study and keep yourself sharp for both your daily work and future interviews.
+
+## Conclusion
+
+Thanks for sticking through this giant text wall, and I hope you've been able to gain some good advice for landing your next gig. Again, please use your discretion
+in determining the best course of action for your own career path, as every engineer is different. The goal of this article is to help you brainstorm and develop
+a study and preparation plan for future interviews to come, and even getting a few bits and pieces from my suggestions makes me more than happy to have written it.
+Good luck, be encouraged, and keep on coding!
