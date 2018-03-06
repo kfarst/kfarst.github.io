@@ -22,7 +22,7 @@
         {% assign sorted_categories = site.categories | sort %}
         {% for category in sorted_categories %}
           {% capture category_url %}/{{ category | first | slugify }}/index.html{% endcapture %}
-          <li><a href="{{ category_url | prepend: site.baseurl }}">{{ category | first }}</a></li>
+          <li><a href="{{ category_url | prepend: site.baseurl }}">{{ category | first | titleify }}</a></li>
           {% if forloop.last == false %}
             <li class="divider">&bull;</li>
           {% endif %}

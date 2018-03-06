@@ -1,0 +1,35 @@
+---
+layout: post
+title: "5 Minutes of Code"
+date: 2018-03-06 09:46:45
+comments: true
+description: "5 Minutes of Code"
+keywords: ""
+categories:
+    - 5-mins-of-code
+tags:
+    - 5-mins-of-code
+---
+
+I'll admit it, I've become a little lax in my blogging endeavors. It's been a while since I've posted any
+in-depth articles due to time constraints, lack of brainstorming and research time, and perhaps some sheer laziness. Life gets in the way.
+However, I really do enjoy it both for my own edification as well as sharing (hopefully) useful information to other programmers.
+
+Even though I haven't been blogging, that doesn't mean I haven't been working on a daily basis. In that time we all run into "roadblocks"
+that we might struggle through for a few hours until we find a sometimes not-so-intuitive solution. The amout of work done compared
+to the actual output in terms of code may be greatly disproportionate, but thankfully due to fellow engineers who take the time to provide
+posts, code snippets, and solutions to the problems we encounter, we can sometimes circumvent those times of struggle because he or she
+took maybe even as little as five minutes to provide the information we needed.
+
+After a couple of days of particularly time-consuming roadblocks, I came up with a new idea for "micro-posting" on an almost daily basis solutions
+to problems I run into along the coding path. I'm calling it "5 Minutes of Code", and my desire is for it to not only continue to provide useful
+information to other devs, but also encourage me to write more due to the relatively smaller amount of work compared to larger blog posts. I may encounter
+an interesting tidbit of info or a simple but no-so-straightforward solution to a programming problem but couldn't justify stretching it out into
+a lengthy article here.
+
+Therefore, going forward I will be posting much smaller posts on a much more frequent basis using this new format while still occasionally adding
+a full blog post on various topics. You can find the link for this topic in the header to this page, and each micro-post will be prefixed with the
+"5 Minutes of Code" title for clarification.
+
+As always I will continue to look forward to feedback and lively discussion on these topics, so please don't be shy in letting me know if there's anything
+I can improve on or if these posts are helping, and I look forward to taking this new journey with you!
