@@ -4,7 +4,7 @@ title: "10 Minutes of Code: Fetching Translations For Unit Testing React Compone
 date: 2018-03-07 18:26:07
 comments: true
 description: "5 Minutes of Code: Fetching Translations For Unit Testing React Components"
-keywords: "react,i18n,internationalization,translation,5minsofcode,5minutesofcode"
+keywords: "react,i18n,internationalization,translation,10minsofcode,10minutesofcode"
 categories:
 - 10-mins-of-code
 - React
