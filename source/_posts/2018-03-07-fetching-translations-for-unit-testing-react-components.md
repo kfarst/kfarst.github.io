@@ -7,12 +7,8 @@ description: "5 Minutes of Code: Fetching Translations For Unit Testing React Co
 keywords: "react,i18n,internationalization,translation,10minsofcode,10minutesofcode"
 categories:
 - 10-mins-of-code
-- React
-- i18n
 tags:
 - 10-mins-of-code
-- React
-- i18n
 ---
 
 I am currently implementating [internationalization](https://en.wikipedia.org/wiki/Internationalization_and_localization), often abbreviated as *i18n*, in
