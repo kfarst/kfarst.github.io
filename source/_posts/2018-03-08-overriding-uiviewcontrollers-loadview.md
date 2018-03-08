@@ -7,14 +7,8 @@ description: "10 Minutes of Code: Overriding UIViewController's loadView in Obje
 keywords: "swift,objective-c,ios,uiviewcontroller,10minsofcode,10minutesofcode"
 categories:
 - 10-mins-of-code
-- ios
-- objective-c
-- swift
 tags:
 - 10-mins-of-code
-- ios
-- objective-c
-- swift
 ---
 
 I've really been focusing on building programmatic views lately, and one way of avoiding the
