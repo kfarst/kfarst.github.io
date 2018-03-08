@@ -20,7 +20,7 @@ description: "Ramblings about code and stuff"
 email: farst.6@gmail.com
 baseurl: "" # the subpath of your site, e.g. /blog/
 #url: "http://yourdomain.com"
-url: "http://github.com/kfarst"
+url: "http://kfarst.github.com"
 repository: "http://github.com/kfarst"
 disqus_shortname: "kfarst"
 google_analytics: UA-89422990-1
@@ -29,7 +29,7 @@ google_analytics: UA-89422990-1
 social:
   github:
     slug: github
-    link: http://github.com/kfarst
+    link: http://kfarst.github.com
   twitter:
     slug: twitter
     link: http://twitter.com/kevinfarst
