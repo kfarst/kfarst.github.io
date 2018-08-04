@@ -44,6 +44,7 @@ turn help others as the development landscape changes.
   * [Annotate Models](https://github.com/kfarst/annotate_models) (Ruby)
   * [emaildirect](https://github.com/kfarst/emaildirect-ruby) (Ruby)
   * [openid_connect](https://github.com/kfarst/openid_connect) (Ruby)
+  * [yelp-ios](https://github.com/Yelp/yelp-ios) (Objective-C)
 
 You can find my other work and projects on my [GitHub](http://github.com/kfarst).
 
