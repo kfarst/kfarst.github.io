@@ -1,9 +1,9 @@
 ---
 layout: post
-title: "10 Minutes of Code: Enpoint Testing With Express.js"
+title: "10 Minutes of Code: Enpdoint Testing With Express.js"
 date: 2018-08-22 9:02:48
 comments: true
-description: "10 Minutes of Code: Enpoint Testing With Express.js"
+description: "10 Minutes of Code: Endpoint Testing With Express.js"
 keywords: "node,express,testing,10minutesofcode"
 categories:
 - 10-mins-of-code
