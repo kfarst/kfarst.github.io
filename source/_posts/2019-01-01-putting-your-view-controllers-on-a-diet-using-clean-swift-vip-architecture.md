@@ -12,7 +12,7 @@ tags:
 ---
 
 If you are just getting started in iOS development (or even have a decent amount of experience) you may
-start seeing situations where your view controllers are getting quite large. Maybe you're finding all of the view setup,
+see situations where your view controllers are getting quite large. Maybe you're finding all of the view setup,
 presenting other view controllers, getting the user's current location, and API calls are all defined and executed
 within the view controller.
 
@@ -70,7 +70,7 @@ Even experienced developers who are learning a new language or framework may hav
 
 ## Back to Our Regularly Scheduled Programming....
 
-Now that we've addressed the problem in detail, now the question arises: *How do we solve this?* As the title of this post hinted, we'll be diving in to one particular *design pattern* that has recently gained popularity in the iOS development realm. However, I would be remiss to not first mention the *dozens* of other options as well. In terms of software architecture, the decisions made are largely subjective based on the situation, and even cut-and-dry design patterns or frameworks can often be combined with others to provide a better result.
+Now that we've addressed the problem in detail, the question arises: *How do we solve this?* As the title of this post hinted, we'll be diving in to one particular *design pattern* that has recently gained popularity in the iOS development realm. However, I would be remiss to not first mention the *dozens* of other options as well. In terms of software architecture, the decisions made are largely subjective based on the situation, and even cut-and-dry design patterns or frameworks can often be combined with others to provide a better result.
 
 That being said, the two options you should probably reach for first are the classic design patterns originally introduced in the book [Design Patterns: Elements of Reusable Object-Oriented Software](https://en.wikipedia.org/wiki/Design_Patterns), and the [SOLID](https://en.wikipedia.org/wiki/SOLID) principles. Using these as guides can greatly improve your object-oriented programming experience spanning across multiple languages and frameworks. Additionally, many other programming paradigms have sprung up as popular alternatives to the classic MVC structure that exists in iOS apps. These include (but are definitely not limited to):
 
@@ -140,7 +140,7 @@ class OrderListViewController: ViewController {
   }
 {% endhighlight %}
 
-There are two important points I'd like to point out with this refactor:
+There are two important aspects of this refactor I'd like to point out:
 
 1. There is no longer a need to pass in and manage individual dependencies from the view controller since the interactor will be handling the events and actions coming from the view controller. In fact, you don't even need to pass the dependencies into the interactor either. Instead, one can also extract each unit of "work" along with its dependencies to worker classes that the interactor can call individually, but these will be discussed in part 2 of this post.
 
