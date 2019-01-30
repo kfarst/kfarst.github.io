@@ -4,7 +4,7 @@ title: "Putting Your View Controllers on a Diet Using the Clean Swift (VIP) Arch
 date: 2019-01-01 18:12:41
 comments: true
 description: "Putting Your View Controllers on a Diet Using the Clean Swift (VIP) Architecture, Part 1"
-keywords: "ios,swift,vip,clean-swift,refactoring"
+keywords: "ios,swift,vip,clean-swift,refactoring,design-patterns"
 categories:
 - iOS
 tags:
