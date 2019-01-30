@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+  <head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learning to Mock With Sketch, Part 1 | Kevin Farst&#39;s Blog</title>
+<meta name="description" content="Learning to Mock With Sketch, Part 1">
+<meta name="keywords" content="mock,sketch,ui,design">
+<link rel="stylesheet" href="/css/main.css">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="theme-color" content="#2ecc71">
+<link rel="canonical" href="http://kfarst.github.com/sketch/2017/05/31/learning-to-mock-with-sketch-part1/">
+<link rel="alternate" type="application/rss+xml" title="Kevin Farst's Blog" href="http://kfarst.github.com/feed.xml" />
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-89422990-1']);
+_gaq.push(['_trackPageview']);
+(function() {
+  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+</script>
+<!-- Begin Jekyll SEO tag v2.4.0 -->
+<title>Learning to Mock With Sketch, Part 1 | Kevin Farst’s Blog</title>
+<meta name="generator" content="Jekyll v3.8.0" />
+<meta property="og:title" content="Learning to Mock With Sketch, Part 1" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Learning to Mock With Sketch, Part 1" />
+<meta property="og:description" content="Learning to Mock With Sketch, Part 1" />
+<link rel="canonical" href="http://kfarst.github.com/sketch/2017/05/31/learning-to-mock-with-sketch-part1/" />
+<meta property="og:url" content="http://kfarst.github.com/sketch/2017/05/31/learning-to-mock-with-sketch-part1/" />
+<meta property="og:site_name" content="Kevin Farst’s Blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2017-05-31T10:33:52-07:00" />
+<script type="application/ld+json">
+{"description":"Learning to Mock With Sketch, Part 1","@type":"BlogPosting","url":"http://kfarst.github.com/sketch/2017/05/31/learning-to-mock-with-sketch-part1/","headline":"Learning to Mock With Sketch, Part 1","dateModified":"2017-05-31T10:33:52-07:00","datePublished":"2017-05-31T10:33:52-07:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://kfarst.github.com/sketch/2017/05/31/learning-to-mock-with-sketch-part1/"},"@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+  </head>
+  <body class="">
+    <main class="container">
+        <header class="site-header">
+  <div class="container txt-center">
+    <nav class="navbar">
+      <ul>
+        <li><a href="/">home</a></li>
+        <li class="divider">&bull;</li>
+        <li><a href="/about">about</a></li>
+        <li class="divider">&bull;</li>
+        <li><a href="/feed.xml" target="_blank"><i class="icon icon-feed"></i> feed</a></li>
+      </ul>
+    </nav>
+    <a href="/" class="author-thumb">
+      <img src="/images/author.png" alt="Author thumbnail" class="dot">
+    </a>
+    <h1>Hi, I'm Kevin <small>and I write code :)</small></h1>
+    <nav class="navbar">
+      <ul>
+          <li><a href="/10-mins-of-code/index.html">10 Mins Of Code</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/android/index.html">Android</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/angular/index.html">Angular</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/career/index.html">Career</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/jasmine/index.html">Jasmine</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/open-source/index.html">Open Source</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/react/index.html">React</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/sketch/index.html">Sketch</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/ios/index.html">iOS</a></li>
+      </ul>
+    </nav>
+    <hr class="hr">
+  </div>
+</header>
+        <section class="main-content">
+          <article class="post">
+  <header class="post-header">
+    <h1 class="post-title">Learning to Mock With Sketch, Part 1</h1>
+    <p class="post-meta">May 31, 2017</p>
+  </header>
+  <div class="post-content">
+    <p>Recently I volunteered to help teach a group of engineers how to mock in Sketch, which is a graphic design tool
+mostly used for, surprise surprise, creating web and mobile mocks. Though it has similar tools and concepts as Photoshop or Illustrator,
+Sketch has a bit more focus on mocking and not so much being a massive all-purpose tool. The class more specifically
+is aimed at mobile engineering, so naturally we would be mocking out something for iOS, Android, Windows Phone (really?).
+I and two of my teaching colleagues set out to decide what we should have them do, should we have them come up with their own design?
+Might be a little tough in a structured, time-constrained workshop. How much is too much in terms of work? At what point is
+a design considered “too complex” for an introductory Sketch workshop? We put our heads together, and through the power of
+three engineers’ minds (uh oh?) we came up with…</p>
+<h2 id="the-foursquare-app">The Foursquare App</h2>
+<p>We felt the Foursquare application (at least the one on iOS, I assume it’s probably the same on Android) was a good mix
+of different screens and clean, yet relatively simple design. It would be a good exercise of “reverse engineering” to
+hopefully get the students comfortable with venturing out and coming up with their own mocks and screens. However, before
+we were to teach the material, we obviously had to learn it ourselves! I thought for a fun exercise (and maybe a first mediocre crack
+at teaching this stuff) I would go through my flow and process of learning and building out one of the screens.</p>
+<p>Before getting out the pitchforks, this isn’t the definitive guide to all tools Sketch, I wanted to go through my discovery
+of techniques, tools, and search material to show how you (as a fellow engineer?) might go about your search for “how do to
+something in Sketch”. I guarantee some of these approaches aren’t the best, but hey you gotta start somewhere right? So, please
+withold judgement, and here we go…</p>
+<h2 id="getting-started">Getting Started</h2>
+<p>Since it’s probably good to set up a frame of reference, I wanted mock out the home screen of the Foursquare app. STILL needing a frame
+of reference, here’s the actual image of the home screen:</p>
+<p><img src="http://imgur.com/T6BZqKt.png" width="50%" /></p>
+<p>Ohhhh fancy! Like I said, clean and pleasant design, not too complicated. OK hopping into Sketch, I do know that there is a template
+with predefined iOS (also one for Android) UI components from which we can work from, so that should save us some time.</p>
+<p><img src="http://imgur.com/5S7nt66.png" width="100%" /></p>
+<p>Here’s the template we have to work from:</p>
+<p><img src="http://imgur.com/sF9Tops.png" width="100%" /></p>
+<p>If you scroll up and out inside the window you’ll see you have this huge blank space all around the UI template list. We need to use this space
+to start adding screens. I know there’s a way to add a new “blank iPhone screen” as a starting point, so in the upper left corner
+I try <strong>Insert &gt; Artboard</strong> and sure enough, on the right I have a list of options to choose from, so I chose one of the <em>iPhone</em> templates.</p>
+<p><img src="http://imgur.com/xrJTKQ5.png" width="100%" /></p>
+<p>So far so good! I click on the template and zoom in, and first I see I need to make the background a little grayer to match the mock.
+On the right toolbar you can check the <strong>Background color</strong> option, then we’ll change it to a light gray.</p>
+<p><img src="http://imgur.com/pf4fHyF.png" width="100%" /></p>
+<p>Next, we see there’s an image at the top of the screen, so I just Googled <em>hd food</em> and grabbed an image from there. Then I choose
+<strong>Insert &gt; Image</strong>, choose my image, then simply drag and resize it into place.</p>
+<p><img src="http://imgur.com/7JxSMA0.png" width="100%" /></p>
+<p>If you look at the actual screenshot of the app though, you’ll see that the image kind of fades away at the bottom. A quick search of
+<em>sketch fading image</em> gave me the answer. You’ll want to choose <strong>Insert &gt; Shape &gt; Rectangle</strong>, then click and drag your mouse to create 
+a rectangle completely covering the image. On the left hand side, hold the <em>shift</em> key and choose both the image and the rectangle. Then, right
+click and choose <strong>Mask</strong>. The rectangle will disappear and the two selections will be grouped into a folder.</p>
+<p><img src="http://imgur.com/eiNVGbl.gif" width="100%" /></p>
+<p>Open the newly created folder, select the <em>Mask</em>, then go to <strong>Layer &gt; Mask Mode &gt; Alpha Mask</strong>.</p>
+<p><img src="http://imgur.com/bN5JpZ5.png" width="100%" /></p>
+<p>On the right toolbar, click the gray color swatch under <strong>Fills</strong>, choose the second option from the left (<strong>Linear Gradient</strong>), then change
+one side of the gradient to transparent, and the other side to black. You’ll see the fade effect we were looking for, but it’s flipped. No problem,
+under <strong>Rotate</strong> on the top right, change the value to <strong>180</strong>.</p>
+<p><img src="http://imgur.com/5Umg3Py.gif" width="100%" /></p>
+<p>Hey, now we’re getting somewhere!</p>
+<h2 id="adding-ios-ui-components">Adding iOS UI Components</h2>
+<p>Now it’s time to make it start looking like a real app. Below our iPhone Artboard, we still have our template UI components. Choose the white status bar,
+copy it, then paste it up near our mock and place it at the top. Do the same with the tab bar, placing it at the bottom. Since the Foursquare app has
+four options on the tab bar, choose the bar with 4 tabs on it.</p>
+<p><img src="http://imgur.com/V6gx1rr.gif" width="100%" /></p>
+<p>We’re already halfway there! Next time we’ll add the search bar and category buttons.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>I decided to break this up into two different posts. Although not too text heavy, there are a TON of visuals, and I didn’t want the post to get too long 
+(hopefully not a lame excuse, page load speeds right?). There’s nothing groundbreaking here, but if anything I would hope if you’ve ever had a desire to try Sketch that demonstrating
+how easy it is to get even this far would be enough of a reason to give it a shot. Maybe you can do the same with another app and write your own blog post? ;)
+Either way, good luck and see you next time!</p>
+    <aside class="share">
+      <span>Share this: </span>
+      <a href="http://twitter.com/share?text=Learning to Mock With Sketch, Part 1&amp;url=http://kfarst.github.com/sketch/2017/05/31/learning-to-mock-with-sketch-part1/&amp;hashtags=web,dev,blog&amp;via=kevinfarst"
+      onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <i class="icon icon-twitter-rounded"></i>
+      </a>
+      <a href="https://www.facebook.com/sharer/sharer.php?u=http://kfarst.github.com/sketch/2017/05/31/learning-to-mock-with-sketch-part1/"
+      onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <i class="icon icon-facebook-rounded"></i>
+      </a>
+    </aside>
+  </div>
+  <hr>
+  <aside id="comments" class="disqus">
+    <h3>Comments</h3>
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname, disqus_config;
+      var disqus_script_tag = setTimeout(function () {
+        if ('/sketch/2017/05/31/learning-to-mock-with-sketch-part1') {
+          disqus_shortname = 'kfarst';
+          disqus_config = function () {
+            this.page.identifier = 'http://kfarst.github.com/sketch/2017/05/31/learning-to-mock-with-sketch-part1';
+            this.page.title = 'Learning to Mock With Sketch, Part 1';
+            this.page.url = 'http://kfarst.github.com/sketch/2017/05/31/learning-to-mock-with-sketch-part1';
+            /*var disqus_developer = 1;*/
+          };
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        } else {
+          disqus_script_tag();
+        }
+      }, 1000);
+    </script>
+    <noscript>
+      Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
+    </noscript>
+  </aside>
+</article>
+        </section>
+<div class="clearfix"></div>
+<footer class="site-footer txt-center">
+  <hr>
+  <ul class="social">
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="http://kfarst.github.com" target="_blank"><i class="icon icon-github"></i></a></li>
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="http://twitter.com/kevinfarst" target="_blank"><i class="icon icon-twitter"></i></a></li>
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="https://www.linkedin.com/in/kevin-farst-14a63914" target="_blank"><i class="icon icon-linkedin"></i></a></li>
+  </ul>
+  <small>&copy; 2019 All rights reserved. Made with <a href="http://jekyllrb.com" target="_blank">Jekyll</a> and <i class="icon icon-heart"></i></small>
+  <small>by <a href="http://nandomoreira.me" target="_blank">nandomoreira.me</a></small>
+</footer>
+    </main>
+    <a href="http://github.com/kfarst" target="_blank" class="github-corner"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#2ecc71; color:#f7f8f9; position: absolute; top: 0; border: 0; right: 0;"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+  </body>
+</html>

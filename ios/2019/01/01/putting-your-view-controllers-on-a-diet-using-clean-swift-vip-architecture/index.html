@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+  <head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Putting Your View Controllers on a Diet Using the Clean Swift (VIP) Architecture, Part 1 | Kevin Farst&#39;s Blog</title>
+<meta name="description" content="Putting Your View Controllers on a Diet Using the Clean Swift (VIP) Architecture, Part 1">
+<meta name="keywords" content="ios,swift,vip,clean-swift,refactoring,design-patterns">
+<link rel="stylesheet" href="/css/main.css">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="theme-color" content="#2ecc71">
+<link rel="canonical" href="http://kfarst.github.com/ios/2019/01/01/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture/">
+<link rel="alternate" type="application/rss+xml" title="Kevin Farst's Blog" href="http://kfarst.github.com/feed.xml" />
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-89422990-1']);
+_gaq.push(['_trackPageview']);
+(function() {
+  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+</script>
+<!-- Begin Jekyll SEO tag v2.4.0 -->
+<title>Putting Your View Controllers on a Diet Using the Clean Swift (VIP) Architecture, Part 1 | Kevin Farst’s Blog</title>
+<meta name="generator" content="Jekyll v3.8.0" />
+<meta property="og:title" content="Putting Your View Controllers on a Diet Using the Clean Swift (VIP) Architecture, Part 1" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Putting Your View Controllers on a Diet Using the Clean Swift (VIP) Architecture, Part 1" />
+<meta property="og:description" content="Putting Your View Controllers on a Diet Using the Clean Swift (VIP) Architecture, Part 1" />
+<link rel="canonical" href="http://kfarst.github.com/ios/2019/01/01/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture/" />
+<meta property="og:url" content="http://kfarst.github.com/ios/2019/01/01/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture/" />
+<meta property="og:site_name" content="Kevin Farst’s Blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-01-01T10:12:41-08:00" />
+<script type="application/ld+json">
+{"description":"Putting Your View Controllers on a Diet Using the Clean Swift (VIP) Architecture, Part 1","@type":"BlogPosting","url":"http://kfarst.github.com/ios/2019/01/01/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture/","headline":"Putting Your View Controllers on a Diet Using the Clean Swift (VIP) Architecture, Part 1","dateModified":"2019-01-01T10:12:41-08:00","datePublished":"2019-01-01T10:12:41-08:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://kfarst.github.com/ios/2019/01/01/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture/"},"@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+  </head>
+  <body class="">
+    <main class="container">
+        <header class="site-header">
+  <div class="container txt-center">
+    <nav class="navbar">
+      <ul>
+        <li><a href="/">home</a></li>
+        <li class="divider">&bull;</li>
+        <li><a href="/about">about</a></li>
+        <li class="divider">&bull;</li>
+        <li><a href="/feed.xml" target="_blank"><i class="icon icon-feed"></i> feed</a></li>
+      </ul>
+    </nav>
+    <a href="/" class="author-thumb">
+      <img src="/images/author.png" alt="Author thumbnail" class="dot">
+    </a>
+    <h1>Hi, I'm Kevin <small>and I write code :)</small></h1>
+    <nav class="navbar">
+      <ul>
+          <li><a href="/10-mins-of-code/index.html">10 Mins Of Code</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/android/index.html">Android</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/angular/index.html">Angular</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/career/index.html">Career</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/jasmine/index.html">Jasmine</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/open-source/index.html">Open Source</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/react/index.html">React</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/sketch/index.html">Sketch</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/ios/index.html">iOS</a></li>
+      </ul>
+    </nav>
+    <hr class="hr">
+  </div>
+</header>
+        <section class="main-content">
+          <article class="post">
+  <header class="post-header">
+    <h1 class="post-title">Putting Your View Controllers on a Diet Using the Clean Swift (VIP) Architecture, Part 1</h1>
+    <p class="post-meta">Jan 1, 2019</p>
+  </header>
+  <div class="post-content">
+    <p>If you are just getting started in iOS development (or even have a decent amount of experience) you may
+see situations where your view controllers are getting quite large. Maybe you’re finding all of the view setup,
+presenting other view controllers, getting the user’s current location, and API calls are all defined and executed
+within the view controller.</p>
+<p>Not only are the view controllers getting unruly to update, if you were asked to write unit or UI tests, you might
+be scratching your head trying to figure out how in the world to swap out your API and geolocation calls to use mocks
+instead of the real thing. This can be especially daunting for someone just getting into the realm of testing their code,
+and you can see from this example something needs to be done to make cleaner and easier to test code.</p>
+<p>As you probably know, iOS apps are build using the <a href="https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller">Model-View-Controller</a> (MVC) architecture. If your views are storyboards
+or programmatic UI code presented to the user, and models are for business logic, it seems like the only place left
+to put “everything else” would be the controller (or view controller in the case of iOS). There is a joke in the iOS community
+that MVC actually stands for <em>Massive View Controller</em>, so you can see this is something that tends to naturally happen as
+you level up your dev skills in this mobile platform.</p>
+<h3 id="its-not-your-fault">It’s Not Your Fault</h3>
+<p>Before diving into one way of mitigating this situation, I wanted to take a second to talk about <em>how</em> and <em>why</em> this happens.
+Now, there are a countless number of reasons which leards to this antipattern, but I wanted to highlight 3 to briefly address: <em>definition</em>, <em>education</em>, and <em>experience</em>.</p>
+<h5 id="definition">Definition</h5>
+<p>A <em>view controller</em>, or more simply a controller, can be described in the most basic terms as the “glue” between view logic and business domain logic. More formal definitions can be much more specific and detailed, but unless you really delve into the topic,
+the explanation of what a view controller does it actually pretty vague. If we think about it in on a high level, perhaps you
+could say it does conform to the <a href="https://en.wikipedia.org/wiki/Single_responsibility_principle">single responsibility principle</a>.
+However, digging just a little deeper, we see that modern usage of the view controller in iOS is actually MUCH more complex. Just a few examples:</p>
+<ul>
+  <li>Not only is it responsible for presenting the UI, but needs to accept and process user input also.</li>
+  <li>View setup can include composing subviews and how they interact, adjusting the constraints to fit the screen, passing any actual content to those views from the business logic, and updating those views based on events.</li>
+  <li>Any protocols the view controller must conform to for services or features.</li>
+  <li>Presenting or dismissing other view controllers.</li>
+  <li>Direct access to its parent <code>UINavigationController</code>, <code>UITabBarController</code>, or some other container view controller.</li>
+</ul>
+<p>These examples aren’t custom, rare use-cases for an application either. Quite the opposite, you could find every single one of these examples in even the most trivial projects.</p>
+<h5 id="education">Education</h5>
+<p>Learning iOS development (including Swift and/or Objective-C) can be a daunting task. Because of this, often times beginner tutorials and even Apple’s own documentation and code examples take “shortcuts” for the sake of brevity, ease of explanation,
+or keeping a tutorial/video at a reasonable length. Many times these written or recorded references will come with a disclaimer
+that the approach they are taking may not be using best practices, but this can unfortunately lead developers into composing
+things in a less-than-ideal manner, especially if he or she is new to programming also.</p>
+<p>What’s worse, these problems may start to become larger and larger “pain points” as the application grows, and usually at that point
+cleaning up the technical debt would require a large and time-consuming refactor. I don’t disagree with keeping teaching material and documentation as straight forward as possible so as to not cause confusion the reader and “get right to the point” of helping to solve
+a problem, however it can lead to an unfortunate and unintended side effect.</p>
+<h5 id="experience">Experience</h5>
+<p>Elaborating on the section above, even senior engineers are constantly Googling things on a daily basis. However, what you do with that information is more of the intention I’m trying to convey when talking about <em>experience</em> rather than the number of years someone has been programming. This discernment isn’t even a matter of one search result being “wrong” and another one being “right”, but moreso:</p>
+<ul>
+  <li>Knowing what solution would work best in one sitatuion compared to another.</li>
+  <li>Understanding the concept of the solution and being able to apply best practices or refactoring to fit the need.</li>
+  <li>Sharpened “Google-fu” skills of how to structure the search query to narrow the search to the specific use case.</li>
+</ul>
+<p>Even experienced developers who are learning a new language or framework may have trouble at first if he or she doesn’t know the “lingo” or terminology. With that understanding, it’s easy to see that even with the “experience to discern”, if you aren’t familiar with the subject material you don’t have a basis to judge what is best for a situation.</p>
+<h2 id="back-to-our-regularly-scheduled-programming">Back to Our Regularly Scheduled Programming….</h2>
+<p>Now that we’ve addressed the problem in detail, the question arises: <em>How do we solve this?</em> As the title of this post hinted, we’ll be diving in to one particular <em>design pattern</em> that has recently gained popularity in the iOS development realm. However, I would be remiss to not first mention the <em>dozens</em> of other options as well. In terms of software architecture, the decisions made are largely subjective based on the situation, and even cut-and-dry design patterns or frameworks can often be combined with others to provide a better result.</p>
+<p>That being said, the two options you should probably reach for first are the classic design patterns originally introduced in the book <a href="https://en.wikipedia.org/wiki/Design_Patterns">Design Patterns: Elements of Reusable Object-Oriented Software</a>, and the <a href="https://en.wikipedia.org/wiki/SOLID">SOLID</a> principles. Using these as guides can greatly improve your object-oriented programming experience spanning across multiple languages and frameworks. Additionally, many other programming paradigms have sprung up as popular alternatives to the classic MVC structure that exists in iOS apps. These include (but are definitely not limited to):</p>
+<ul>
+  <li><a href="https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93presenter">Model-View-Presenter</a> (MVP)</li>
+  <li><a href="https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93viewmodel">Model-View-ViewModel</a> (MVVM)</li>
+  <li><a href="https://www.objc.io/issues/13-architecture/viper/">View-Interactor-Presenter-Entity-Router</a> (VIPER)</li>
+</ul>
+<h2 id="clean-swift">Clean Swift</h2>
+<p>The <a href="https://clean-swift.com/">Clean Swift</a> architecture, or View-Interactor-Presenter (VIP) is one such design pattern that has risen from the ashes of the broken MVC implementation of the iOS ecosystem. It frees up the view controller to do just that: <em>control the view</em>. As mentioned above, that includes two main responsibilities:</p>
+<ol>
+  <li>Responding to events (third-party, user interaction, view lifecycle hooks)</li>
+  <li>Control what is shown on the screen (initial view setup and subsequent updates to that view)</li>
+</ol>
+<p>The problem of the <em>massive view controller</em> creeps in because it’s usually just easier to include the various dependencies of the controller directly in the class itself. Let’s say I want to kick off an API request when the <code>viewDidAppear(...)</code> method is called. I know that I need to provide a separate class or interface for the API, but then I just include the API interface directly in the view controller.</p>
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span></span>  <span class="kd">init</span><span class="p">(</span><span class="n">myApiClient</span><span class="p">:</span> <span class="n">ApiClient</span> <span class="p">=</span> <span class="n">ApiClient</span><span class="p">())</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+  <span class="n">viewDidAppear</span><span class="p">(</span><span class="kc">_</span> <span class="n">animated</span><span class="p">:</span> <span class="nb">Bool</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kc">super</span><span class="p">.</span><span class="n">viewDidAppear</span><span class="p">(</span><span class="n">animated</span><span class="p">)</span>
+    <span class="n">myApiClient</span><span class="p">.</span><span class="n">getList</span><span class="p">()</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+  <span class="p">}</span></code></pre></figure>
+<p>This example is simple, but there are two important points to make:</p>
+<ol>
+  <li>
+    <p>We are exposing implementation details to the view controller that it doesn’t need to know about. There isn’t too much more I can do for refactoring in this case, but if the API request had a more complicated setup it would continue exposing more and more implementation details that the view controller doesn’t need to know about.</p>
+  </li>
+  <li>
+    <p>Including the API client in the view controller is just another dependency in the potentially large list of dependencies being pulled in to the same class. Even if the dependencies are included by way of optional properties, testing becomes more and more difficult as each dependency needs to either be included in such a way as to not conflict with other dependencies, or would need to be mocked or stubbed.</p>
+  </li>
+</ol>
+<p>It would be much cleaner if every event the view controller had to handle could be passed off to an <strong>output</strong> to handle, and every time the view needed to be updated could be handled by a single <strong>input</strong>. Essentially, that’s what the View-Interactor-Presenter combination does. Events are passed off from the view controller to the interactor, the presenter takes the result of that work done and tells the view controller what should be updated in its view and how.</p>
+<p><img src="https://imgur.com/xMDeTsR.png" width="100%" /></p>
+<p>The view controller’s <strong>output</strong> is the interactor, the interactor’s <strong>output</strong> is the presenter, and finally the presenter’s <strong>output</strong> is the view controller again. In the way same, the ineractor’s <strong>input</strong> is the view controller, the presenter’s <strong>input</strong> is the interactor, and the view controller’s <strong>input</strong> is the presenter.</p>
+<p>This loop of a connected controller-interactor-presenter is often called a <em>scene</em>, and each class in the scene is connected to its <strong>input</strong> and <strong>output</strong> through a <em>protocol</em>. Keep in mind with the example below, I named the protocol <code>OrdersViewControllerOutput</code> and the variable storing the interactor in the view controller <code>output</code>. However, feel free to name these as you see fit to avoid confusion. You could name them, for example, <code>OrdersBusinessLogic</code> and <code>interactor</code> if that would be clearer.</p>
+<p><em>OrdersInteractor.swift</em></p>
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span></span><span class="kd">protocol</span> <span class="nc">OrderListViewControllerOutput</span> <span class="p">{</span>
+  <span class="kd">func</span> <span class="nf">getOrderList</span><span class="p">()</span>
+<span class="p">}</span>
+<span class="kd">class</span> <span class="nc">OrderListInteractor</span><span class="p">:</span> <span class="n">OrderListViewControllerOutput</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">getOrderList</span><span class="p">()</span> <span class="p">{</span>
+    <span class="p">...</span>
+  <span class="p">}</span></code></pre></figure>
+<p><em>OrdersViewController.swift</em></p>
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span></span><span class="kd">class</span> <span class="nc">OrderListViewController</span><span class="p">:</span> <span class="n">ViewController</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nv">output</span><span class="p">:</span> <span class="n">OrdersViewControllerOutput</span>
+  <span class="kd">init</span><span class="p">(</span><span class="n">output</span><span class="p">:</span> <span class="n">OrdersViewControllerOutput</span> <span class="p">=</span> <span class="n">OrdersInteractor</span><span class="p">())</span> <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="kc">self</span><span class="p">.</span><span class="n">output</span> <span class="p">=</span> <span class="n">output</span>
+  <span class="p">}</span>
+  <span class="n">viewDidAppear</span><span class="p">(</span><span class="kc">_</span> <span class="n">animated</span><span class="p">:</span> <span class="nb">Bool</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="n">output</span><span class="p">.</span><span class="n">getOrderList</span><span class="p">()</span>
+  <span class="p">}</span></code></pre></figure>
+<p>There are two important aspects of this refactor I’d like to point out:</p>
+<ol>
+  <li>
+    <p>There is no longer a need to pass in and manage individual dependencies from the view controller since the interactor will be handling the events and actions coming from the view controller. In fact, you don’t even need to pass the dependencies into the interactor either. Instead, one can also extract each unit of “work” along with its dependencies to worker classes that the interactor can call individually, but these will be discussed in part 2 of this post.</p>
+  </li>
+  <li>
+    <p>Having an interactor that conforms to a protocol makes mocking it for the sake of testing much easier. The mocked interactor class can be passed into the view controller, and validating that each method of the interactor is called by the view controller becomes trivial.</p>
+  </li>
+</ol>
+<p><em>OrderListInteractorMock.swift</em></p>
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span></span><span class="kd">class</span> <span class="nc">OrderListInteractorMock</span><span class="p">:</span> <span class="n">OrderListViewControllerOutput</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nv">getOrdersListCalled</span> <span class="p">=</span> <span class="kc">false</span>
+  <span class="kd">var</span> <span class="nv">getSomeOtherFunctionCalled</span> <span class="p">=</span> <span class="kc">false</span>
+  <span class="kd">func</span> <span class="nf">getOrdersList</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">getOrdersListCalled</span> <span class="p">=</span> <span class="kc">true</span>
+  <span class="p">}</span>
+  <span class="kd">func</span> <span class="nf">someOtherFunction</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">getSomeOtherFunctionCalled</span> <span class="p">=</span> <span class="kc">true</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+<h3 id="passing-data-in-the-vip-cycle">Passing Data In The VIP Cycle</h3>
+<p>We still have a lot to cover in upcoming articles, but the last thing I’d lke to talk about in part 1 is how data is passed between the various methods in the VIP cycle. Rather than passing each argument into a method, we can build <em>models</em> for our <em>scene</em>. These models are just basic <em>structs</em> for the purpose of “packaging” the arguments into a single data structure. The view controller passes a <strong>request</strong> to the interactor, the interactor passes a <strong>response</strong> to the presenter, and finaly the presenter passes a <strong>view model</strong> back to the view controller.</p>
+<p><img src="https://imgur.com/L5ioLcf.png" width="100%" /></p>
+<p>In code, the models look something like this:</p>
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span></span><span class="kd">class</span> <span class="nc">OrderList</span> <span class="p">{</span>
+  <span class="kd">struct</span> <span class="nc">Request</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nv">start</span><span class="p">:</span> <span class="nb">Int</span>
+    <span class="kd">var</span> <span class="nv">end</span><span class="p">:</span> <span class="nb">Int</span>
+    <span class="kd">var</span> <span class="nv">count</span><span class="p">:</span> <span class="nb">Int</span>
+  <span class="p">}</span>
+  <span class="kd">struct</span> <span class="nc">Response</span> <span class="p">{</span>
+    <span class="p">...</span>
+  <span class="p">}</span>
+  <span class="kd">struct</span> <span class="nc">ViewModel</span> <span class="p">{</span>
+    <span class="p">...</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+<p>Now the <code>OrderListViewControllerOutput</code> can update its method signature to accept a <code>OrderList.Request</code> struct.</p>
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span></span>  <span class="kd">protocol</span> <span class="nc">OrdersViewControllerOutput</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">getOrderList</span><span class="p">(</span><span class="kc">_</span> <span class="n">request</span><span class="p">:</span> <span class="n">OrderList</span><span class="p">.</span><span class="n">Request</span><span class="p">)</span>
+  <span class="p">}</span></code></pre></figure>
+<p>Passing data in this way provides two key advantages:</p>
+<ol>
+  <li>
+    <p>If an additional argument is needed, you only need to update the <code>OrderList</code> models instead of the method signature and protocol definitions.</p>
+  </li>
+  <li>
+    <p>Having to mock a simple data structure compared to multiple argument objecs is much simpler when writing tests.</p>
+  </li>
+</ol>
+<h2 id="to-be-continued">To Be Continued…</h2>
+<p>As I mentioned above, in upcoming articles we will also be examining presenters, workers, routers, unit testing, and much more. I hope learning about Clean Swift has been an intriguing and exciting topic, and I look forward to expanding on it in my next few posts. Happy New Year, and happy coding!</p>
+    <aside class="share">
+      <span>Share this: </span>
+      <a href="http://twitter.com/share?text=Putting Your View Controllers on a Diet Using the Clean Swift (VIP) Architecture, Part 1&amp;url=http://kfarst.github.com/ios/2019/01/01/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture/&amp;hashtags=web,dev,blog&amp;via=kevinfarst"
+      onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <i class="icon icon-twitter-rounded"></i>
+      </a>
+      <a href="https://www.facebook.com/sharer/sharer.php?u=http://kfarst.github.com/ios/2019/01/01/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture/"
+      onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <i class="icon icon-facebook-rounded"></i>
+      </a>
+    </aside>
+  </div>
+  <hr>
+  <aside id="comments" class="disqus">
+    <h3>Comments</h3>
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname, disqus_config;
+      var disqus_script_tag = setTimeout(function () {
+        if ('/ios/2019/01/01/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture') {
+          disqus_shortname = 'kfarst';
+          disqus_config = function () {
+            this.page.identifier = 'http://kfarst.github.com/ios/2019/01/01/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture';
+            this.page.title = 'Putting Your View Controllers on a Diet Using the Clean Swift (VIP) Architecture, Part 1';
+            this.page.url = 'http://kfarst.github.com/ios/2019/01/01/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture';
+            /*var disqus_developer = 1;*/
+          };
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        } else {
+          disqus_script_tag();
+        }
+      }, 1000);
+    </script>
+    <noscript>
+      Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
+    </noscript>
+  </aside>
+</article>
+        </section>
+<div class="clearfix"></div>
+<footer class="site-footer txt-center">
+  <hr>
+  <ul class="social">
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="http://kfarst.github.com" target="_blank"><i class="icon icon-github"></i></a></li>
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="http://twitter.com/kevinfarst" target="_blank"><i class="icon icon-twitter"></i></a></li>
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="https://www.linkedin.com/in/kevin-farst-14a63914" target="_blank"><i class="icon icon-linkedin"></i></a></li>
+  </ul>
+  <small>&copy; 2019 All rights reserved. Made with <a href="http://jekyllrb.com" target="_blank">Jekyll</a> and <i class="icon icon-heart"></i></small>
+  <small>by <a href="http://nandomoreira.me" target="_blank">nandomoreira.me</a></small>
+</footer>
+    </main>
+    <a href="http://github.com/kfarst" target="_blank" class="github-corner"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#2ecc71; color:#f7f8f9; position: absolute; top: 0; border: 0; right: 0;"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+  </body>
+</html>

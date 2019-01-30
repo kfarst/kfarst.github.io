@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+  <head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creating a Recursive Custom Matcher in Jasmine | Kevin Farst&#39;s Blog</title>
+<meta name="description" content="Creating a Recursive Custom Matcher in Jasmine">
+<meta name="keywords" content="jasmine,es5,javascript,unit test,testing">
+<link rel="stylesheet" href="/css/main.css">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="theme-color" content="#2ecc71">
+<link rel="canonical" href="http://kfarst.github.com/jasmine/2016/12/08/creating-a-recursive-custom-matcher-in-jasmine/">
+<link rel="alternate" type="application/rss+xml" title="Kevin Farst's Blog" href="http://kfarst.github.com/feed.xml" />
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-89422990-1']);
+_gaq.push(['_trackPageview']);
+(function() {
+  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+</script>
+<!-- Begin Jekyll SEO tag v2.4.0 -->
+<title>Creating a Recursive Custom Matcher in Jasmine | Kevin Farst’s Blog</title>
+<meta name="generator" content="Jekyll v3.8.0" />
+<meta property="og:title" content="Creating a Recursive Custom Matcher in Jasmine" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Creating a Recursive Custom Matcher in Jasmine" />
+<meta property="og:description" content="Creating a Recursive Custom Matcher in Jasmine" />
+<link rel="canonical" href="http://kfarst.github.com/jasmine/2016/12/08/creating-a-recursive-custom-matcher-in-jasmine/" />
+<meta property="og:url" content="http://kfarst.github.com/jasmine/2016/12/08/creating-a-recursive-custom-matcher-in-jasmine/" />
+<meta property="og:site_name" content="Kevin Farst’s Blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2016-12-08T04:00:00-08:00" />
+<script type="application/ld+json">
+{"description":"Creating a Recursive Custom Matcher in Jasmine","@type":"BlogPosting","url":"http://kfarst.github.com/jasmine/2016/12/08/creating-a-recursive-custom-matcher-in-jasmine/","headline":"Creating a Recursive Custom Matcher in Jasmine","dateModified":"2016-12-08T04:00:00-08:00","datePublished":"2016-12-08T04:00:00-08:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://kfarst.github.com/jasmine/2016/12/08/creating-a-recursive-custom-matcher-in-jasmine/"},"@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+  </head>
+  <body class="">
+    <main class="container">
+        <header class="site-header">
+  <div class="container txt-center">
+    <nav class="navbar">
+      <ul>
+        <li><a href="/">home</a></li>
+        <li class="divider">&bull;</li>
+        <li><a href="/about">about</a></li>
+        <li class="divider">&bull;</li>
+        <li><a href="/feed.xml" target="_blank"><i class="icon icon-feed"></i> feed</a></li>
+      </ul>
+    </nav>
+    <a href="/" class="author-thumb">
+      <img src="/images/author.png" alt="Author thumbnail" class="dot">
+    </a>
+    <h1>Hi, I'm Kevin <small>and I write code :)</small></h1>
+    <nav class="navbar">
+      <ul>
+          <li><a href="/10-mins-of-code/index.html">10 Mins Of Code</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/android/index.html">Android</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/angular/index.html">Angular</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/career/index.html">Career</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/jasmine/index.html">Jasmine</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/open-source/index.html">Open Source</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/react/index.html">React</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/sketch/index.html">Sketch</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/ios/index.html">iOS</a></li>
+      </ul>
+    </nav>
+    <hr class="hr">
+  </div>
+</header>
+        <section class="main-content">
+          <article class="post">
+  <header class="post-header">
+    <h1 class="post-title">Creating a Recursive Custom Matcher in Jasmine</h1>
+    <p class="post-meta">Dec 8, 2016</p>
+  </header>
+  <div class="post-content">
+    <p>I’ve been writing units tests using Jasmine for quite a while now, and one of the matchers I’ve wanted would
+validate not only that a subset of properties exist on an object, but the property values match the expected
+values. Something along the lines of:</p>
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span></span>  <span class="nx">expect</span><span class="p">(</span><span class="nx">actualObj</span><span class="p">).</span><span class="nx">toIncludeValues</span><span class="p">({</span>
+    <span class="nx">foo</span><span class="o">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+    <span class="nx">baz</span><span class="o">:</span> <span class="s1">&#39;blah&#39;</span><span class="p">,</span>
+    <span class="nx">another</span><span class="o">:</span> <span class="s1">&#39;value&#39;</span>
+   <span class="p">});</span></code></pre></figure>
+<h2 id="working-around-it">Working around it</h2>
+<p>Here are some of the alternatives I tried with the matchers I had available to me.</p>
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span></span>  <span class="nx">it</span><span class="p">(</span><span class="s1">&#39;has the expected properties&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">expect</span><span class="p">(</span><span class="nx">actualObj</span><span class="p">.</span><span class="nx">foo</span><span class="p">).</span><span class="nx">toBe</span><span class="p">(</span><span class="nx">expectedObj</span><span class="p">.</span><span class="nx">foo</span><span class="p">);</span>
+    <span class="nx">expect</span><span class="p">(</span><span class="nx">actualObj</span><span class="p">.</span><span class="nx">baz</span><span class="p">).</span><span class="nx">toBe</span><span class="p">(</span><span class="nx">expectedObj</span><span class="p">.</span><span class="nx">baz</span><span class="p">);</span>
+    <span class="nx">expect</span><span class="p">(</span><span class="nx">actualObj</span><span class="p">.</span><span class="nx">another</span><span class="p">).</span><span class="nx">toBe</span><span class="p">(</span><span class="nx">expectedObj</span><span class="p">.</span><span class="nx">another</span><span class="p">);</span>
+  <span class="p">});</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span></span>  <span class="nx">it</span><span class="p">(</span><span class="s1">&#39;has the expected properties&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="p">[</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="s1">&#39;baz&#39;</span><span class="p">,</span> <span class="s1">&#39;another&#39;</span><span class="p">].</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">prop</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">expect</span><span class="p">(</span><span class="nx">actualObj</span><span class="p">[</span><span class="nx">prop</span><span class="p">]).</span><span class="nx">toBe</span><span class="p">(</span><span class="nx">expectedObj</span><span class="p">[</span><span class="nx">prop</span><span class="p">]);</span>
+    <span class="p">});</span>
+  <span class="p">});</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span></span>  <span class="nx">it</span><span class="p">(</span><span class="s1">&#39;has the expected value for foo&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">expect</span><span class="p">(</span><span class="nx">actualObj</span><span class="p">.</span><span class="nx">foo</span><span class="p">).</span><span class="nx">toBe</span><span class="p">(</span><span class="nx">expectedObj</span><span class="p">.</span><span class="nx">foo</span><span class="p">);</span>
+  <span class="p">});</span>
+  <span class="nx">it</span><span class="p">(</span><span class="s1">&#39;has the expected value for baz&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">expect</span><span class="p">(</span><span class="nx">actualObj</span><span class="p">.</span><span class="nx">baz</span><span class="p">).</span><span class="nx">toBe</span><span class="p">(</span><span class="nx">expectedObj</span><span class="p">.</span><span class="nx">baz</span><span class="p">);</span>
+  <span class="p">});</span>
+  <span class="nx">it</span><span class="p">(</span><span class="s1">&#39;has the expected value for another&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">expect</span><span class="p">(</span><span class="nx">actualObj</span><span class="p">.</span><span class="nx">another</span><span class="p">).</span><span class="nx">toBe</span><span class="p">(</span><span class="nx">expectedObj</span><span class="p">.</span><span class="nx">another</span><span class="p">);</span>
+  <span class="p">});</span></code></pre></figure>
+<p>The first two go against the idea that <a href="http://betterspecs.org/#single">each test should only have one assertion</a>,
+and the third can quickly balloon into too many tests and slow down your test suite. Not to mention, these solutions
+aren’t quite as elegant as the matcher I first described. Needless to say, they didn’t really measure up to what I wanted.</p>
+<h2 id="building-the-matcher">Building the matcher</h2>
+<p>If I dug around the Googles enough I’m sure I could find something similar to what I was looking for, but I wanted to
+try it myself. First, I needed to spec out exactly what I wanted the matcher to do. I wanted the matcher to do
+two checks:</p>
+<ol>
+  <li>Ensure that the property being checked in the expected object also exists on the actual object</li>
+  <li>Validate the property being checked in the expected object has the same value as the matching
+  property in the actual object</li>
+</ol>
+<p>The project I created this matcher for uses <a href="https://karma-runner.github.io">Karma</a>, Angular’s command line test runner.
+I mention this because the setup for the custom matcher may vary based on the configuration you have for your environment.
+I created a new file for custom matchers, aply named <code>spec/customMatchers.js</code>, and made sure to include the file in my
+Karma configuration file. We want the the matcher to be set up before the tests will run, so we’ll wrap the matcher in a
+<code>beforeAll()</code> function.</p>
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span></span>  <span class="nx">beforeAll</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">jasmine</span><span class="p">.</span><span class="nx">Matchers</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">toIncludeValues</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">expected</span><span class="p">)</span> <span class="p">{</span>
+      <span class="p">...</span>
+    <span class="p">};</span>
+  <span class="p">});</span></code></pre></figure>
+<p>We get access to the <code>jasmine</code> global object, and we’ll add a new function to its <code>Matchers</code> by adding it to the object’s
+<code>prototype</code>. The subset of properties we’re expecting are passed into the function as the <code>expected</code> argument. We get access
+to the actual object through <code>this</code>.</p>
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span></span>  <span class="nx">beforeEach</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">jasmine</span><span class="p">.</span><span class="nx">Matchers</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">toIncludeValues</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">expected</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">self</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+      <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">expected</span><span class="p">).</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="p">{</span>
+        <span class="p">...</span>
+      <span class="p">});</span>
+    <span class="p">};</span>
+  <span class="p">});</span></code></pre></figure>
+<p>We need to assign <code>this</code> to the variable <code>self</code> since it will lose context within the <code>forEach()</code> function. We’ll then
+iterate over each of the keys in the <code>expected</code> object. The first check we’ll do within the <code>forEach()</code> loop is to make
+sure each expected property is also present in the actual object.</p>
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span></span>  <span class="p">...</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">self</span><span class="p">.</span><span class="nx">actual</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">key</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;Expected &quot;</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">self</span><span class="p">.</span><span class="nx">actual</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; to have key &#39;&quot;</span> <span class="o">+</span> <span class="nx">key</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="p">...</span></code></pre></figure>
+<p>If it doesn’t find a property, we need to throw a descriptive error indicating what key we’re missing. An example test failure
+on the command line would look like this:</p>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>  Error: Expected <span class="o">{</span><span class="s2">&quot;an&quot;</span>:<span class="s2">&quot;example&quot;</span>,<span class="s2">&quot;object&quot;</span>:<span class="s2">&quot;definition&quot;</span><span class="o">}</span> to have key <span class="s1">&#39;missing&#39;</span></code></pre></figure>
+<p>For the second check, we need to make sure the expected property value equals the actual property value.</p>
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span></span>  <span class="p">...</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">expected</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">!==</span> <span class="nx">self</span><span class="p">.</span><span class="nx">actual</span><span class="p">[</span><span class="nx">key</span><span class="p">])</span> <span class="p">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;Expected &#39;&quot;</span> <span class="o">+</span> <span class="nx">self</span><span class="p">.</span><span class="nx">actual</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;&#39; to match &#39;&quot;</span> <span class="o">+</span> <span class="nx">expected</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;&#39; for &#39;&quot;</span> <span class="o">+</span> <span class="nx">key</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="p">...</span></code></pre></figure>
+<p>Again, in keeping with good error messages, an example of the above failure would look like this:</p>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>  Error: Expected <span class="s1">&#39;expectedVal&#39;</span> to match <span class="s1">&#39;actualVal&#39;</span> <span class="k">for</span> <span class="s1">&#39;testProp&#39;</span></code></pre></figure>
+<p>Putting it all together, we have</p>
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span></span>  <span class="nx">beforeEach</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">jasmine</span><span class="p">.</span><span class="nx">Matchers</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">toIncludeValues</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">expected</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">self</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+      <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">expected</span><span class="p">).</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">self</span><span class="p">.</span><span class="nx">actual</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">key</span><span class="p">))</span> <span class="p">{</span>
+          <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;Expected &quot;</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">self</span><span class="p">.</span><span class="nx">actual</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; to have key &#39;&quot;</span> <span class="o">+</span> <span class="nx">key</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">);</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">expected</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">!==</span> <span class="nx">self</span><span class="p">.</span><span class="nx">actual</span><span class="p">[</span><span class="nx">key</span><span class="p">])</span> <span class="p">{</span>
+          <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;Expected &#39;&quot;</span> <span class="o">+</span> <span class="nx">self</span><span class="p">.</span><span class="nx">actual</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;&#39; to match &#39;&quot;</span> <span class="o">+</span> <span class="nx">expected</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;&#39; for &#39;&quot;</span> <span class="o">+</span> <span class="nx">key</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">});</span>
+    <span class="p">};</span>
+  <span class="p">});</span></code></pre></figure>
+<h2 id="wheres-the-recursion">Where’s the recursion?</h2>
+<p>This matcher worked just fine until I needed to test the properties of a nested object. If I had</p>
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span></span>  <span class="p">{</span>
+    <span class="nx">foo</span><span class="o">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+    <span class="nx">baz</span><span class="o">:</span> <span class="s1">&#39;blah&#39;</span><span class="p">,</span>
+    <span class="nx">nested</span><span class="o">:</span> <span class="p">{</span>
+      <span class="nx">object</span><span class="o">:</span> <span class="kc">true</span>
+    <span class="p">}</span>
+  <span class="p">}</span></code></pre></figure>
+<p>the <code>nested</code> property would fail validation since object equality is checked by reference, not value. We need to dig down into
+the nested object to test each property in that object as well. Wrapping the existing <em>if-else if</em> in another <em>if-else</em>
+conditional, we need to check if the current property being tested is an object or not.</p>
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span></span>  <span class="p">...</span>
+  <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="nx">actual</span><span class="p">[</span><span class="nx">key</span><span class="p">])</span> <span class="o">===</span> <span class="s1">&#39;object&#39;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">self</span><span class="p">.</span><span class="nx">toIncludeValues</span><span class="p">(</span><span class="nx">expected</span><span class="p">[</span><span class="nx">key</span><span class="p">]);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">actual</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">key</span><span class="p">))</span> <span class="p">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;Expected &quot;</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">actual</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; to have key &#39;&quot;</span> <span class="o">+</span> <span class="nx">key</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">expected</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">!==</span> <span class="nx">actual</span><span class="p">[</span><span class="nx">key</span><span class="p">])</span> <span class="p">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;Expected &#39;&quot;</span> <span class="o">+</span> <span class="nx">actual</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;&#39; to match &#39;&quot;</span> <span class="o">+</span> <span class="nx">expected</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;&#39; for &#39;&quot;</span> <span class="o">+</span> <span class="nx">key</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="p">...</span></code></pre></figure>
+<p>Recursively passing the nested object into the matcher again allows the property and value matching to continue in
+each level of nested objects. This still isn’t quite complete, because in each recursive call of the matcher, <code>this.actual</code>
+will still be the top level object we’re testing against. As we pass in each expected nested object, we’ll need to pass in
+the actual nested object to test against as well. Our final matcher implementation is</p>
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span></span>  <span class="nx">jasmine</span><span class="p">.</span><span class="nx">Matchers</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">toIncludeValues</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">expected</span><span class="p">,</span> <span class="nx">nestedActual</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">self</span> <span class="o">=</span> <span class="k">this</span><span class="p">,</span>
+      <span class="nx">actual</span> <span class="o">=</span> <span class="nx">nestedActual</span> <span class="o">||</span> <span class="nx">self</span><span class="p">.</span><span class="nx">actual</span><span class="p">;</span>
+    <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">expected</span><span class="p">).</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="nx">actual</span><span class="p">[</span><span class="nx">key</span><span class="p">])</span> <span class="o">===</span> <span class="s1">&#39;object&#39;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">self</span><span class="p">.</span><span class="nx">toIncludeValues</span><span class="p">(</span><span class="nx">expected</span><span class="p">[</span><span class="nx">key</span><span class="p">],</span> <span class="nx">actual</span><span class="p">[</span><span class="nx">key</span><span class="p">]);</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">actual</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">key</span><span class="p">))</span> <span class="p">{</span>
+          <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;Expected &quot;</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">actual</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; to have key &#39;&quot;</span> <span class="o">+</span> <span class="nx">key</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">);</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">expected</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">!==</span> <span class="nx">actual</span><span class="p">[</span><span class="nx">key</span><span class="p">])</span> <span class="p">{</span>
+          <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;Expected &#39;&quot;</span> <span class="o">+</span> <span class="nx">actual</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;&#39; to match &#39;&quot;</span> <span class="o">+</span> <span class="nx">expected</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;&#39; for &#39;&quot;</span> <span class="o">+</span> <span class="nx">key</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">});</span>
+  <span class="p">};</span></code></pre></figure>
+<p>In the first pass of the matcher, the <code>nestedActual</code> argument is <code>undefined</code> and the <code>actual</code> variable is set from
+<code>self.actual</code>. Each time <code>toIncludeValues()</code> is recursively called again, it passes in the <code>nestedActual</code> argument,
+so the <code>actual</code> variable will be set to that instead of the top level <code>self.actual</code> object.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>The one thing that really tripped me up getting started was figuring out the correct syntax for a custom matcher in
+my particular Jasmine configuration. While searching the interwebs for the setup code, I saw a few different ways of
+doing so. If you’re having trouble with the syntax I used, keep searching and I’m sure you’ll be able to find the proper
+custom matcher definition you’re looking for. Happy coding!</p>
+    <aside class="share">
+      <span>Share this: </span>
+      <a href="http://twitter.com/share?text=Creating a Recursive Custom Matcher in Jasmine&amp;url=http://kfarst.github.com/jasmine/2016/12/08/creating-a-recursive-custom-matcher-in-jasmine/&amp;hashtags=web,dev,blog&amp;via=kevinfarst"
+      onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <i class="icon icon-twitter-rounded"></i>
+      </a>
+      <a href="https://www.facebook.com/sharer/sharer.php?u=http://kfarst.github.com/jasmine/2016/12/08/creating-a-recursive-custom-matcher-in-jasmine/"
+      onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <i class="icon icon-facebook-rounded"></i>
+      </a>
+    </aside>
+  </div>
+  <hr>
+  <aside id="comments" class="disqus">
+    <h3>Comments</h3>
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname, disqus_config;
+      var disqus_script_tag = setTimeout(function () {
+        if ('/jasmine/2016/12/08/creating-a-recursive-custom-matcher-in-jasmine') {
+          disqus_shortname = 'kfarst';
+          disqus_config = function () {
+            this.page.identifier = 'http://kfarst.github.com/jasmine/2016/12/08/creating-a-recursive-custom-matcher-in-jasmine';
+            this.page.title = 'Creating a Recursive Custom Matcher in Jasmine';
+            this.page.url = 'http://kfarst.github.com/jasmine/2016/12/08/creating-a-recursive-custom-matcher-in-jasmine';
+            /*var disqus_developer = 1;*/
+          };
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        } else {
+          disqus_script_tag();
+        }
+      }, 1000);
+    </script>
+    <noscript>
+      Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
+    </noscript>
+  </aside>
+</article>
+        </section>
+<div class="clearfix"></div>
+<footer class="site-footer txt-center">
+  <hr>
+  <ul class="social">
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="http://kfarst.github.com" target="_blank"><i class="icon icon-github"></i></a></li>
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="http://twitter.com/kevinfarst" target="_blank"><i class="icon icon-twitter"></i></a></li>
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="https://www.linkedin.com/in/kevin-farst-14a63914" target="_blank"><i class="icon icon-linkedin"></i></a></li>
+  </ul>
+  <small>&copy; 2019 All rights reserved. Made with <a href="http://jekyllrb.com" target="_blank">Jekyll</a> and <i class="icon icon-heart"></i></small>
+  <small>by <a href="http://nandomoreira.me" target="_blank">nandomoreira.me</a></small>
+</footer>
+    </main>
+    <a href="http://github.com/kfarst" target="_blank" class="github-corner"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#2ecc71; color:#f7f8f9; position: absolute; top: 0; border: 0; right: 0;"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+  </body>
+</html>

@@ -1,0 +1,588 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/ios/2019/01/01/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture/</loc>
+      
+        <lastmod>2019-01-01T10:12:41-08:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/10-mins-of-code/2018/08/22/endpoint-testing-with-express-js/</loc>
+      
+        <lastmod>2018-08-22T02:02:48-07:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/react/2018/04/25/flow-types-with-react-relay-and-graphql/</loc>
+      
+        <lastmod>2018-04-25T12:38:34-07:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/10-mins-of-code/2018/03/22/using-i18next-in-react-without-react-i18next/</loc>
+      
+        <lastmod>2018-03-22T04:54:10-07:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/10-mins-of-code/2018/03/08/overriding-uiviewcontrollers-loadview/</loc>
+      
+        <lastmod>2018-03-08T03:27:54-08:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/10-mins-of-code/2018/03/07/fetching-translations-for-unit-testing-react-components/</loc>
+      
+        <lastmod>2018-03-07T10:26:07-08:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/10-mins-of-code/2018/03/06/10-mins-of-code/</loc>
+      
+        <lastmod>2018-03-06T01:46:45-08:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/ios/2017/10/30/map-location-in-multiple-apps-from-mkmapview/</loc>
+      
+        <lastmod>2017-10-30T02:50:45-07:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/career/2017/10/10/landing-your-next-gig/</loc>
+      
+        <lastmod>2017-10-10T11:34:06-07:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/ios/2017/09/13/designing-a-button-bar-style-uisegmentedcontrol-in-swift/</loc>
+      
+        <lastmod>2017-09-13T05:47:11-07:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/ios/2017/08/02/exploring-swift-closures/</loc>
+      
+        <lastmod>2017-08-02T06:24:10-07:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/ios/2017/07/26/bringing-behavior-driven-development-to-xcode/</loc>
+      
+        <lastmod>2017-07-26T05:06:25-07:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/sketch/2017/06/05/learning-to-mock-with-sketch-part2/</loc>
+      
+        <lastmod>2017-06-05T18:08:33-07:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/sketch/2017/05/31/learning-to-mock-with-sketch-part1/</loc>
+      
+        <lastmod>2017-05-31T10:33:52-07:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/ios/2017/04/20/designing-an-ios-pair-programming-interview/</loc>
+      
+        <lastmod>2017-04-20T02:54:22-07:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/angular/2017/03/29/component-interaction-in-angular/</loc>
+      
+        <lastmod>2017-03-29T05:07:00-07:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/android/2017/02/22/refactoring-a-twitter-style-text-counter-in-android/</loc>
+      
+        <lastmod>2017-02-22T00:00:00-08:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/angular/2017/02/14/improving-the-model-layer-in-angular-1/</loc>
+      
+        <lastmod>2017-02-14T13:08:14-08:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/android/2017/02/04/creating-a-user-input-text-counter-in-android/</loc>
+      
+        <lastmod>2017-02-04T16:02:12-08:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/angular/2017/01/29/optimizing-change-detection-in-angular-2-by-example/</loc>
+      
+        <lastmod>2017-01-29T05:18:52-08:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/angular/2016/12/26/dead-simple-dependency-injection-in-angular-2/</loc>
+      
+        <lastmod>2016-12-26T05:00:00-08:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/open%20source/2016/12/21/getting-started-with-open-source-contributing/</loc>
+      
+        <lastmod>2016-12-21T02:00:00-08:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/angular/2016/12/12/subscribing-to-form-value-changes-in-angular-2/</loc>
+      
+        <lastmod>2016-12-12T12:00:00-08:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/jasmine/2016/12/08/creating-a-recursive-custom-matcher-in-jasmine/</loc>
+      
+        <lastmod>2016-12-08T04:00:00-08:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+    
+    <url>
+      <loc>http://kfarst.github.com/angular/2016/11/28/extending-ui-router-functionality-in-angular-1/</loc>
+      
+        <lastmod>2016-11-28T23:43:19-08:00</lastmod>
+      
+      
+        <changefreq>monthly</changefreq>
+      
+      
+        <priority>0.5</priority>
+      
+    </url>
+    
+  
+  
+    
+      
+      <url>
+        <loc>http://kfarst.github.com/about/</loc>
+        
+          <lastmod>2019-01-30T11:35:05-08:00</lastmod>
+        
+        
+          <changefreq>monthly</changefreq>
+        
+        
+          <priority>0.3</priority>
+        
+      </url>
+      
+    
+  
+    
+      
+      <url>
+        <loc>http://kfarst.github.com/feed.xml</loc>
+        
+          <lastmod>2019-01-30T11:35:05-08:00</lastmod>
+        
+        
+          <changefreq>monthly</changefreq>
+        
+        
+          <priority>0.3</priority>
+        
+      </url>
+      
+    
+  
+    
+      
+      <url>
+        <loc>http://kfarst.github.com/</loc>
+        
+          <lastmod>2019-01-30T11:35:05-08:00</lastmod>
+        
+        
+          <changefreq>monthly</changefreq>
+        
+        
+          <priority>0.3</priority>
+        
+      </url>
+      
+    
+  
+    
+      
+      <url>
+        <loc>http://kfarst.github.com/css/main.css</loc>
+        
+          <lastmod>2019-01-30T11:35:05-08:00</lastmod>
+        
+        
+          <changefreq>monthly</changefreq>
+        
+        
+          <priority>0.3</priority>
+        
+      </url>
+      
+    
+  
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      <url>
+        <loc>http://kfarst.github.com/page/2/</loc>
+        
+          <lastmod>2019-01-30T11:35:05-08:00</lastmod>
+        
+        
+          <changefreq>monthly</changefreq>
+        
+        
+          <priority>0.3</priority>
+        
+      </url>
+      
+    
+  
+    
+      
+      <url>
+        <loc>http://kfarst.github.com/page/3/</loc>
+        
+          <lastmod>2019-01-30T11:35:05-08:00</lastmod>
+        
+        
+          <changefreq>monthly</changefreq>
+        
+        
+          <priority>0.3</priority>
+        
+      </url>
+      
+    
+  
+    
+      
+      <url>
+        <loc>http://kfarst.github.com/page/4/</loc>
+        
+          <lastmod>2019-01-30T11:35:05-08:00</lastmod>
+        
+        
+          <changefreq>monthly</changefreq>
+        
+        
+          <priority>0.3</priority>
+        
+      </url>
+      
+    
+  
+    
+      
+      <url>
+        <loc>http://kfarst.github.com/page/5/</loc>
+        
+          <lastmod>2019-01-30T11:35:05-08:00</lastmod>
+        
+        
+          <changefreq>monthly</changefreq>
+        
+        
+          <priority>0.3</priority>
+        
+      </url>
+      
+    
+  
+    
+      
+      <url>
+        <loc>http://kfarst.github.com/page/6/</loc>
+        
+          <lastmod>2019-01-30T11:35:05-08:00</lastmod>
+        
+        
+          <changefreq>monthly</changefreq>
+        
+        
+          <priority>0.3</priority>
+        
+      </url>
+      
+    
+  
+    
+      
+      <url>
+        <loc>http://kfarst.github.com/page/7/</loc>
+        
+          <lastmod>2019-01-30T11:35:05-08:00</lastmod>
+        
+        
+          <changefreq>monthly</changefreq>
+        
+        
+          <priority>0.3</priority>
+        
+      </url>
+      
+    
+  
+</urlset>

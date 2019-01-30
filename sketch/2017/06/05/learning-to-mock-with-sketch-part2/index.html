@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+  <head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learning to Mock With Sketch, Part 2 | Kevin Farst&#39;s Blog</title>
+<meta name="description" content="Learning to Mock With Sketch, Part 2">
+<meta name="keywords" content="mock,sketch,ui,design">
+<link rel="stylesheet" href="/css/main.css">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="theme-color" content="#2ecc71">
+<link rel="canonical" href="http://kfarst.github.com/sketch/2017/06/05/learning-to-mock-with-sketch-part2/">
+<link rel="alternate" type="application/rss+xml" title="Kevin Farst's Blog" href="http://kfarst.github.com/feed.xml" />
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-89422990-1']);
+_gaq.push(['_trackPageview']);
+(function() {
+  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+</script>
+<!-- Begin Jekyll SEO tag v2.4.0 -->
+<title>Learning to Mock With Sketch, Part 2 | Kevin Farst’s Blog</title>
+<meta name="generator" content="Jekyll v3.8.0" />
+<meta property="og:title" content="Learning to Mock With Sketch, Part 2" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Learning to Mock With Sketch, Part 2" />
+<meta property="og:description" content="Learning to Mock With Sketch, Part 2" />
+<link rel="canonical" href="http://kfarst.github.com/sketch/2017/06/05/learning-to-mock-with-sketch-part2/" />
+<meta property="og:url" content="http://kfarst.github.com/sketch/2017/06/05/learning-to-mock-with-sketch-part2/" />
+<meta property="og:site_name" content="Kevin Farst’s Blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2017-06-05T18:08:33-07:00" />
+<script type="application/ld+json">
+{"description":"Learning to Mock With Sketch, Part 2","@type":"BlogPosting","url":"http://kfarst.github.com/sketch/2017/06/05/learning-to-mock-with-sketch-part2/","headline":"Learning to Mock With Sketch, Part 2","dateModified":"2017-06-05T18:08:33-07:00","datePublished":"2017-06-05T18:08:33-07:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://kfarst.github.com/sketch/2017/06/05/learning-to-mock-with-sketch-part2/"},"@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+  </head>
+  <body class="">
+    <main class="container">
+        <header class="site-header">
+  <div class="container txt-center">
+    <nav class="navbar">
+      <ul>
+        <li><a href="/">home</a></li>
+        <li class="divider">&bull;</li>
+        <li><a href="/about">about</a></li>
+        <li class="divider">&bull;</li>
+        <li><a href="/feed.xml" target="_blank"><i class="icon icon-feed"></i> feed</a></li>
+      </ul>
+    </nav>
+    <a href="/" class="author-thumb">
+      <img src="/images/author.png" alt="Author thumbnail" class="dot">
+    </a>
+    <h1>Hi, I'm Kevin <small>and I write code :)</small></h1>
+    <nav class="navbar">
+      <ul>
+          <li><a href="/10-mins-of-code/index.html">10 Mins Of Code</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/android/index.html">Android</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/angular/index.html">Angular</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/career/index.html">Career</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/jasmine/index.html">Jasmine</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/open-source/index.html">Open Source</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/react/index.html">React</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/sketch/index.html">Sketch</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/ios/index.html">iOS</a></li>
+      </ul>
+    </nav>
+    <hr class="hr">
+  </div>
+</header>
+        <section class="main-content">
+          <article class="post">
+  <header class="post-header">
+    <h1 class="post-title">Learning to Mock With Sketch, Part 2</h1>
+    <p class="post-meta">Jun 5, 2017</p>
+  </header>
+  <div class="post-content">
+    <p>Welcome back! Last time we started <a href="http://kfarst.github.io/sketch/2017/05/31/learning-to-mock-with-sketch-part1/">mocking out the Foursquare mobile app</a> in Sketch, and when we stopped
+it was just starting to come together to look like the real thing. However, we were still missing some critical
+parts, including the logo, search input, and category tiles, as we see from the screenshot we orignally looked at
+last time.</p>
+<p><img src="http://imgur.com/T6BZqKt.png" width="50%" /></p>
+<p>I’m not, however, going to complete the mock by working from top to bottom. I’ll tackle each of the three remaining sections
+in the order I originally did it, and explain why I did so. One small tip before we get started, since our layer
+list in the left sidebar is going to start getting crowded, hold the <em>shift</em> key and select layers and components that can be combined
+into their own folders; that way, we’ll keep things nice and tidy. From there, right-click and choose <strong>Group Selection</strong>.
+You can rename the folders, giving them descriptive names of what’s inside them.</p>
+<p><img src="http://imgur.com/EmZlc4W.png" width="50%" /></p>
+<h2 id="search-input">Search Input</h2>
+<p>From where we left off, I next added the search input instead of starting with the logo. I did this because it really
+seems to be the “anchor point” for the screen. Being roughly in the vertical center, it immediately draws your eye to it
+(as intended I’m sure). Once we place this anchor point, it becomes much easier to gauge how much screen real estate we have
+to determine how we want to roughly estimate our measurements for the logo above and category tiles below. Taking a look
+at our iOS UI Design template below the screen mock, we’ll find a search input that looks very close to what we need.</p>
+<p><img src="http://imgur.com/bT7tu2V.png" width="100%" /></p>
+<p>However, when we select the layer, make a copy, paste it into place, and finally increase the height to make it slightly
+taller to match the original app screen, we clearly see it’s not quite what we’re looking for. There’s a gray background
+surrounding it, and the magnifying glass icon and placeholder text are located in the center of the input.</p>
+<p><img src="http://imgur.com/gYb04oj.png" width="50%" /></p>
+<p>Not to worry, we have the ability to customize it! In the left sidebar, find the search input layer, right-click, and choose
+<strong>Detach from Symbol</strong> in the menu. The selected layer will change to a folder, which we can open and select the individual
+parts that make up the template component. Neat!</p>
+<p><img src="http://imgur.com/aSNchUe.png" width="100%" /></p>
+<p>From there, we can delete the gray background and select the magnify glass and placeholder text, moving them to the left. On the
+right sidebar, we’ll also add a <strong>Shadow</strong> to the bar. You’ll see below it’s not an exact science, it definitely takes some tweaking
+and adjusting to get it looking “just right”.</p>
+<p><img src="http://imgur.com/fEqgQLy.gif" width="100%" /></p>
+<p>Speaking of tweaking, it can be difficult to position elements in relation to each other and the artboard by hand, so if you look in the
+top right corner of the Sketch window, you’ll see a set of buttons dealing with alignment. Try holding <em>shift</em> and selecting multiple
+items in the left sidebar, then clicking the different buttons to see how it affects positioning. I’ll be using this frequently to position
+things without explicitly stating it, so definitely use it to your advantage to get things looking the way you expect them to.</p>
+<p><img src="http://imgur.com/GQH8oHs.png" width="100%" /></p>
+<h2 id="the-logo">The Logo</h2>
+<p>Now that we have our anchor point in the middle of the screen, let’s add our logo at the top. From the <strong>Insert</strong> menu, choose <strong>Shape &gt; Rectangle</strong>
+and, after sizing, positioning, and changing the color of the rectangle (settings in the right sidebar), choose <strong>Insert &gt; Text</strong> and add the text
+<em>FOURSQUARE</em> on top of the rectangle.</p>
+<p><img src="http://imgur.com/ujbHj27.png" width="100%" /></p>
+<p><img src="http://imgur.com/3iJ2pNg.png" width="100%" /></p>
+<p>You’ll also notice from the original screenshot that the text seems to be a “cutout” from the rectangle below it. On the left sidebar, right-click the text selection and choose <strong>Convert to Outlines</strong>.
+This will convert it into <em>vector paths</em> instead of Sketch treating it like a text object.</p>
+<p><img src="http://imgur.com/0yLhF6S.png" width="50%" /></p>
+<p>Next, hold the <em>shift</em> key and choose both the rectangle and the text on the left sidebar, then click the big <strong>Subtract</strong> button at the top.</p>
+<p><img src="http://imgur.com/lGcOXjL.png" width="100%" /></p>
+<p>That did the trick, but some pieces of the letters are missing, like the centers of the “O”, “R”, “A”, etc. You’ll have to expand the <strong>Combined Shape</strong> layer in the left
+sidebar and move those missing pieces out from the hierarchy underneath the <strong>Combined Shape</strong> option and place them at the same level, so they are <em>siblings</em> of the
+<strong>Combined Shape</strong> selection rather than under it. You can see what I mean below:</p>
+<p><img src="http://imgur.com/PVqlt35.gif" width="100%" /></p>
+<p>You’ll repeat the same process for the <em>CITY GUIDE</em> text below it. After you’re done, you should probably select the entire group and combine it into a folder, calling it something
+like <em>Logo</em> (at least that’s what I did). Even after adding the <em>CITY GUIDE</em> text, the logo still doesn’t quite look right. Especially if the background image is lighter, it can
+be hard to see the actual text (even though it’s a cutout). If you look at the original screenshot carefully, you’ll see the text cutout isn’t completely transparent, but has
+a bit of a blur effect to emphasize the letters.</p>
+<p><img src="http://imgur.com/T6BZqKt.png" width="50%" /></p>
+<p>To accomplish this, we’ll need to copy and paste the original white rectangle (but not the cutout text above it) and move it outside of and below the <strong>Combined Shape</strong> inside the <em>Logo</em> folder.
+We’ll then change <strong>Gaussian Blur</strong> on the right sidebar to <strong>Background Blur</strong> and check the checkbox next to it. From there we need to make the <strong>Fill</strong> of the rectangle transparent.
+If you don’t notice much of a difference, try adjusting the <strong>Amount</strong> slider for the <strong>Background Blur</strong> and you’ll definitely see how much the change helps. It doesn’t need to be set very high,
+just enough to blur the background and make the text more noticeable.</p>
+<p><img src="http://imgur.com/DP9plMI.gif" width="100%" /></p>
+<h2 id="category-tiles">Category Tiles</h2>
+<p>Hang in there! We’re in the home stretch. To construct the category tiles, use the line tool (<strong>Insert &gt; Shape &gt; Line</strong>) to draw one of the vertical lines. You can then copy/paste it and position
+them parallel to one another. Then, add a third line horizontally and voilà! We have our six category tiles. You can hold <em>shift</em> to select them all and position them relative to one another using
+the positioning buttons in the top right corner of the Sketch window.</p>
+<p><img src="http://imgur.com/sYiCkUi.gif" width="100%" /></p>
+<p>Ugh, don’t judge me please. Clearly I still have a long way to go myself, but hey close enough right? Next, you’ll notice the borders of the tiles fade away at the ends, so let’s tackle that too.</p>
+<p>For this next step, I would recommend hiding the surrounding layers, especially to prevent overlap of the fading effect. Hovering over each layer on the left sidebar, you’ll see a little eye icon
+you can click to hide the tab bar, search input, and header.</p>
+<p><img src="http://imgur.com/t67Q2TU.png" width="50%" /></p>
+<p>From there, choose <strong>Insert &gt; Shape &gt; Oval</strong>, and, holding the <em>shift</em> key, draw a circle on top of the tiles we just created with the line tool. Remove the <strong>Border</strong>, hold <em>shift</em> again selecting
+the <em>Tiles</em> folder (if you grouped the lines constructing the tiles into a folder) and the circle you just created, right-click and choose <strong>Mask</strong>. It will merge the circle into the <em>Tiles</em> folder,
+so open the folder and pull the circle layer out of and below the folder. After that, choose <strong>Layer &gt; Mask Mode &gt; Alpha Mask</strong> to make the circle an <em>alpha mask</em>.</p>
+<p>Now, under <strong>Fills</strong> with the circle selected, choose the third option from the left (which is a <em>circular gradient</em>) and make one end of the gradient spectrum transparent, and the other black.
+You’ll have to move and resize the circular gradient, but pretty soon you should have the matching fade effect you see in the actual app screenshot.</p>
+<p><img src="http://imgur.com/G8I3Wmz.gif" width="100%" /></p>
+<p>For the final step, we need to get ahold of some icons for our category tiles to compliment the tile text, so you can simply search <em>sketch icons</em> to find a lot of great sources for icon sheets. I used
+<a href="https://www.sketchappsources.com/">https://www.sketchappsources.com/</a>, and when you download a sheet or sheets, it would roughly look like this:</p>
+<p><img src="http://imgur.com/wcusGqM.png" width="100%" /></p>
+<p>When you want to use an icon, simply copy it, switch back to the Foursquare project, and paste it onto the artboard. From there, you’ll be able to position and resize it inside a category tile, then use the
+text tool (<strong>Insert &gt; Text</strong>) to add a label for the category. This can take a little bit of time, so I opted to not create a huge animated GIF demonstrating it. I’ll leave that as homework for you ;)</p>
+<h2 id="the-tab-bar">The Tab Bar</h2>
+<p>Last thing, promise! If you want to change the label and icons for the tab bar, you’ve already learned how to do so using a combination of downloaded icons and right-clicking the tab bar layer in the left
+sidebar and choosing <strong>Detach from Symbol</strong>.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>After all that, your mock should look roughly like this:</p>
+<p><img src="http://imgur.com/TMTlgmq.png" width="50%" /></p>
+<p>Not bad for your first (maybe?) Sketch mock eh? I’ve really enjoyed going on this journey to start learning Sketch with you! If you’re reading this, thanks for sticking with it, I know these past two blog posts have been
+pretty image and GIF heavy, but I hope if you’re following along you were able to use the images and explanations to build something similar to what you see above.</p>
+<p>To reiterate from <a href="http://kfarst.github.io/sketch/2017/05/31/learning-to-mock-with-sketch-part1/">part 1</a>, the techniques I used may not be the most efficient way to do it, but if these past two posts can encourage someone to start playing around with Sketch, that’s what’s important. Stick with it and keep learning
+as I will, and you’ll be an expert before you know it! I’ve tried to demonstrate that even though learning something like Sketch is indeed a process, if you take one step at a time you can get really far in a short period of time.
+Good luck, happy coding (and now designing?), and catch you in the next post!</p>
+    <aside class="share">
+      <span>Share this: </span>
+      <a href="http://twitter.com/share?text=Learning to Mock With Sketch, Part 2&amp;url=http://kfarst.github.com/sketch/2017/06/05/learning-to-mock-with-sketch-part2/&amp;hashtags=web,dev,blog&amp;via=kevinfarst"
+      onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <i class="icon icon-twitter-rounded"></i>
+      </a>
+      <a href="https://www.facebook.com/sharer/sharer.php?u=http://kfarst.github.com/sketch/2017/06/05/learning-to-mock-with-sketch-part2/"
+      onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <i class="icon icon-facebook-rounded"></i>
+      </a>
+    </aside>
+  </div>
+  <hr>
+  <aside id="comments" class="disqus">
+    <h3>Comments</h3>
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname, disqus_config;
+      var disqus_script_tag = setTimeout(function () {
+        if ('/sketch/2017/06/05/learning-to-mock-with-sketch-part2') {
+          disqus_shortname = 'kfarst';
+          disqus_config = function () {
+            this.page.identifier = 'http://kfarst.github.com/sketch/2017/06/05/learning-to-mock-with-sketch-part2';
+            this.page.title = 'Learning to Mock With Sketch, Part 2';
+            this.page.url = 'http://kfarst.github.com/sketch/2017/06/05/learning-to-mock-with-sketch-part2';
+            /*var disqus_developer = 1;*/
+          };
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        } else {
+          disqus_script_tag();
+        }
+      }, 1000);
+    </script>
+    <noscript>
+      Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
+    </noscript>
+  </aside>
+</article>
+        </section>
+<div class="clearfix"></div>
+<footer class="site-footer txt-center">
+  <hr>
+  <ul class="social">
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="http://kfarst.github.com" target="_blank"><i class="icon icon-github"></i></a></li>
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="http://twitter.com/kevinfarst" target="_blank"><i class="icon icon-twitter"></i></a></li>
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="https://www.linkedin.com/in/kevin-farst-14a63914" target="_blank"><i class="icon icon-linkedin"></i></a></li>
+  </ul>
+  <small>&copy; 2019 All rights reserved. Made with <a href="http://jekyllrb.com" target="_blank">Jekyll</a> and <i class="icon icon-heart"></i></small>
+  <small>by <a href="http://nandomoreira.me" target="_blank">nandomoreira.me</a></small>
+</footer>
+    </main>
+    <a href="http://github.com/kfarst" target="_blank" class="github-corner"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#2ecc71; color:#f7f8f9; position: absolute; top: 0; border: 0; right: 0;"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+  </body>
+</html>

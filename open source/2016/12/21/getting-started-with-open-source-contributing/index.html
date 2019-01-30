@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+  <head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting Started with Open Source Contributing | Kevin Farst&#39;s Blog</title>
+<meta name="description" content="Getting Started with Open Source Contributing">
+<meta name="keywords" content="open source,open source contributing,contributing,git,github">
+<link rel="stylesheet" href="/css/main.css">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="theme-color" content="#2ecc71">
+<link rel="canonical" href="http://kfarst.github.com/open%20source/2016/12/21/getting-started-with-open-source-contributing/">
+<link rel="alternate" type="application/rss+xml" title="Kevin Farst's Blog" href="http://kfarst.github.com/feed.xml" />
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-89422990-1']);
+_gaq.push(['_trackPageview']);
+(function() {
+  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+</script>
+<!-- Begin Jekyll SEO tag v2.4.0 -->
+<title>Getting Started with Open Source Contributing | Kevin Farst’s Blog</title>
+<meta name="generator" content="Jekyll v3.8.0" />
+<meta property="og:title" content="Getting Started with Open Source Contributing" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Getting Started with Open Source Contributing" />
+<meta property="og:description" content="Getting Started with Open Source Contributing" />
+<link rel="canonical" href="http://kfarst.github.com/open%20source/2016/12/21/getting-started-with-open-source-contributing/" />
+<meta property="og:url" content="http://kfarst.github.com/open%20source/2016/12/21/getting-started-with-open-source-contributing/" />
+<meta property="og:site_name" content="Kevin Farst’s Blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2016-12-21T02:00:00-08:00" />
+<script type="application/ld+json">
+{"description":"Getting Started with Open Source Contributing","@type":"BlogPosting","url":"http://kfarst.github.com/open%20source/2016/12/21/getting-started-with-open-source-contributing/","headline":"Getting Started with Open Source Contributing","dateModified":"2016-12-21T02:00:00-08:00","datePublished":"2016-12-21T02:00:00-08:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://kfarst.github.com/open%20source/2016/12/21/getting-started-with-open-source-contributing/"},"@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+  </head>
+  <body class="">
+    <main class="container">
+        <header class="site-header">
+  <div class="container txt-center">
+    <nav class="navbar">
+      <ul>
+        <li><a href="/">home</a></li>
+        <li class="divider">&bull;</li>
+        <li><a href="/about">about</a></li>
+        <li class="divider">&bull;</li>
+        <li><a href="/feed.xml" target="_blank"><i class="icon icon-feed"></i> feed</a></li>
+      </ul>
+    </nav>
+    <a href="/" class="author-thumb">
+      <img src="/images/author.png" alt="Author thumbnail" class="dot">
+    </a>
+    <h1>Hi, I'm Kevin <small>and I write code :)</small></h1>
+    <nav class="navbar">
+      <ul>
+          <li><a href="/10-mins-of-code/index.html">10 Mins Of Code</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/android/index.html">Android</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/angular/index.html">Angular</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/career/index.html">Career</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/jasmine/index.html">Jasmine</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/open-source/index.html">Open Source</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/react/index.html">React</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/sketch/index.html">Sketch</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/ios/index.html">iOS</a></li>
+      </ul>
+    </nav>
+    <hr class="hr">
+  </div>
+</header>
+        <section class="main-content">
+          <article class="post">
+  <header class="post-header">
+    <h1 class="post-title">Getting Started with Open Source Contributing</h1>
+    <p class="post-meta">Dec 21, 2016</p>
+  </header>
+  <div class="post-content">
+    <p>As developers who regularly use open source projects know, those projects need to be updated by the
+open source community itself. This includes new features, bug fixes, and ensuring the extension or plugin plays nicely with
+other dependencies in a project.</p>
+<p>Sometimes it can be hard to know where to start when contributing to open source. Maybe you want to give back and “do your part”
+as a member of the open source community, or maybe you found an issue in a plugin you were using and want to update the project 
+so others won’t have the same problem.</p>
+<p>Contributing to open source can also look really good on your resume, and some companies even specifically look for
+that when hiring. I wanted to share a few tips I’ve learned for how to get started in open source contributing, and you may
+find it’s actually easier than you think!</p>
+<h2 id="i-cant-come-up-with-a-new-project-every-idea-i-have-has-already-been-implemented">I can’t come up with a new project, every idea I have has already been implemented!</h2>
+<p>This is something I’ve struggled with as well. I would love to start something completely from scratch, maybe a new Ruby gem or
+Angular plugin, but a quick Google search will usually help you find an existing project that does exactly what you were thinking
+of creating, or at least something close to it.</p>
+<p>If you really want to start a new project, you may have success in simply “re-inventing the wheel”. I was listening to a podcast
+the other day, and the creator of the <a href="https://github.com/brandonhilkert/sucker_punch">Sucker Punch</a> Ruby gem was explaining how
+he got the idea for this project. Sucker Punch is inspired from another Ruby gem, <a href="https://github.com/mperham/sidekiq">Sidekiq</a>,
+which both handle background job processing. Each gem depends on multi-threaded Ruby to complete their tasks, however Sucker
+Punch came out of a desire to run both the application that was using it and the background jobs on a single processor, whereas 
+Sidekiq requires it’s own processor for background jobs.</p>
+<p>Perhaps digging into an existing project and seeing how it’s implemented can inspire something similar for you? Regardless, checking
+out the source code for the open source projects you use is a good practice to do anyways, and may even be necessary at times. If you
+think you can improve on an existing implementation, give it a shot! If it doesn’t work out in the end, you took a risk and probably
+learned quite a lot from it, plus you could still put it up on GitHub and explain what it was attempting to do. I’ve definitely done
+the same.</p>
+<h2 id="how-can-i-help-on-an-existing-project">How can I help on an existing project?</h2>
+<h3 id="contributing-to-popular-projects">Contributing to popular projects</h3>
+<p>If you’re wanting to contribute to existing projects, the first thing you’ll probably do is look in your <code>Gemfile</code> or <code>package.json</code>
+for a project you’ve been working on, or maybe check out the <a href="http://github.com/trending">trending repositories</a> on GitHub. If you can find
+a bug or feature that you feel that you can tackle, more power to you! However, I’ve noticed the items you find listed under the <code>Issues</code> tab
+are usually very specific bugs related to a very specific project setups, or large and daunting features that require a good amount of existing
+knowledge on the project.</p>
+<p>Occasionally you will find an issue that has recently been opened in the last few hours that no one has addressed yet, so if you feel that it’s 
+something you can work on and submit a pull request for in a reasonable amount of time, that might be the way to get your “foot in the door” for 
+contributing to a popular repository.</p>
+<h3 id="finding-less-trafficked-projects">Finding less-trafficked projects</h3>
+<p>A lot of time plugins you’re using have dependencies on other plugins, so taking a look at what a more popular repo depends on can help you find
+a project that has some feature requests or bugs filed that the contributor(s) of that project haven’t gotten to yet. You can also look through some of
+those projects you stumble upon while Googling solutions to see if you can help in any way.</p>
+<h3 id="updating-documentation">Updating documentation</h3>
+<p>This is probably the easiest way to get started with contributing. Documentation is hard to keep up to date, especially if there’s a lot of it. This can
+include README files, API documentation, code comments, etc. One of the more recent projects I contributed to was simply assisting in updating some of the
+wording for a README file, where it seemed as though the project author may not have spoken English as their first language. Even though I wasn’t using the
+plugin myself (I was just exploring some repos) and was written in a programming language I wasn’t familiar with, it only took about 10 minutes to get a 
+pull request open with some grammatical fixes, and the author gladly merged it in.</p>
+<h3 id="writing-tests">Writing tests</h3>
+<p>There has been a big push over the past decade to write units tests for your projects. You’ll find most open source projects already have unit (and integration) tests,
+but if you feel comfortable writing tests and you find a project doesn’t have them, this would also be a great starting point that both the author and other contributors
+would greatly appreciate.</p>
+<h2 id="contributing-guidelines">Contributing guidelines</h2>
+<p>You’ll find a lot of projects will have documenation to guide you in documentation writing, code writing, pull request formatting, and code styling the way the
+author prefers. You’ll often find Markdown files at the top level of the file structure within a project that have pretty self-explanatory names related to
+contributing guidelines. For example, the <a href="https://github.com/angular/angular">Angular</a> project has a <a href="https://github.com/angular/angular/blob/master/COMMITTER.md">COMMITTER.md</a> file,
+<a href="https://github.com/angular/angular/blob/master/CONTRIBUTING.md">CONTRIBUTING.md</a> file, <a href="https://github.com/angular/angular/blob/master/DEVELOPER.md">DEVELOPER.md</a> file,
+and <a href="https://github.com/angular/angular/blob/master/NAMING.md">NAMING.md</a> file to name a few, all related to helping you contribute to the project.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>I hope this post has given you some ideas on how you can get started in contributing to open source, or at least shown you the bar isn’t necessarily set as high as you think.
+There are challenges out there for any level of developer, and don’t be afraid to reach out to the project author(s) either on how you can help! Most of them are more than
+happy to show you how you can assist them, and may even be open to pair programming with you on some bug fixes and feature requests. Happy coding!</p>
+    <aside class="share">
+      <span>Share this: </span>
+      <a href="http://twitter.com/share?text=Getting Started with Open Source Contributing&amp;url=http://kfarst.github.com/open%20source/2016/12/21/getting-started-with-open-source-contributing/&amp;hashtags=web,dev,blog&amp;via=kevinfarst"
+      onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <i class="icon icon-twitter-rounded"></i>
+      </a>
+      <a href="https://www.facebook.com/sharer/sharer.php?u=http://kfarst.github.com/open%20source/2016/12/21/getting-started-with-open-source-contributing/"
+      onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <i class="icon icon-facebook-rounded"></i>
+      </a>
+    </aside>
+  </div>
+  <hr>
+  <aside id="comments" class="disqus">
+    <h3>Comments</h3>
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname, disqus_config;
+      var disqus_script_tag = setTimeout(function () {
+        if ('/open%20source/2016/12/21/getting-started-with-open-source-contributing') {
+          disqus_shortname = 'kfarst';
+          disqus_config = function () {
+            this.page.identifier = 'http://kfarst.github.com/open%20source/2016/12/21/getting-started-with-open-source-contributing';
+            this.page.title = 'Getting Started with Open Source Contributing';
+            this.page.url = 'http://kfarst.github.com/open%20source/2016/12/21/getting-started-with-open-source-contributing';
+            /*var disqus_developer = 1;*/
+          };
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        } else {
+          disqus_script_tag();
+        }
+      }, 1000);
+    </script>
+    <noscript>
+      Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
+    </noscript>
+  </aside>
+</article>
+        </section>
+<div class="clearfix"></div>
+<footer class="site-footer txt-center">
+  <hr>
+  <ul class="social">
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="http://kfarst.github.com" target="_blank"><i class="icon icon-github"></i></a></li>
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="http://twitter.com/kevinfarst" target="_blank"><i class="icon icon-twitter"></i></a></li>
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="https://www.linkedin.com/in/kevin-farst-14a63914" target="_blank"><i class="icon icon-linkedin"></i></a></li>
+  </ul>
+  <small>&copy; 2019 All rights reserved. Made with <a href="http://jekyllrb.com" target="_blank">Jekyll</a> and <i class="icon icon-heart"></i></small>
+  <small>by <a href="http://nandomoreira.me" target="_blank">nandomoreira.me</a></small>
+</footer>
+    </main>
+    <a href="http://github.com/kfarst" target="_blank" class="github-corner"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#2ecc71; color:#f7f8f9; position: absolute; top: 0; border: 0; right: 0;"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+  </body>
+</html>

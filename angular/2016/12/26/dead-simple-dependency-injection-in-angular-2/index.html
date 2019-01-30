@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+  <head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dead Simple Dependency Injection in Angular 2 | Kevin Farst&#39;s Blog</title>
+<meta name="description" content="Dead Simple Dependency Injection in Angular 2">
+<meta name="keywords" content="angular,angular2,dependency injection,typescript">
+<link rel="stylesheet" href="/css/main.css">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="theme-color" content="#2ecc71">
+<link rel="canonical" href="http://kfarst.github.com/angular/2016/12/26/dead-simple-dependency-injection-in-angular-2/">
+<link rel="alternate" type="application/rss+xml" title="Kevin Farst's Blog" href="http://kfarst.github.com/feed.xml" />
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-89422990-1']);
+_gaq.push(['_trackPageview']);
+(function() {
+  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+</script>
+<!-- Begin Jekyll SEO tag v2.4.0 -->
+<title>Dead Simple Dependency Injection in Angular 2 | Kevin Farst’s Blog</title>
+<meta name="generator" content="Jekyll v3.8.0" />
+<meta property="og:title" content="Dead Simple Dependency Injection in Angular 2" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Dead Simple Dependency Injection in Angular 2" />
+<meta property="og:description" content="Dead Simple Dependency Injection in Angular 2" />
+<link rel="canonical" href="http://kfarst.github.com/angular/2016/12/26/dead-simple-dependency-injection-in-angular-2/" />
+<meta property="og:url" content="http://kfarst.github.com/angular/2016/12/26/dead-simple-dependency-injection-in-angular-2/" />
+<meta property="og:site_name" content="Kevin Farst’s Blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2016-12-26T05:00:00-08:00" />
+<script type="application/ld+json">
+{"description":"Dead Simple Dependency Injection in Angular 2","@type":"BlogPosting","url":"http://kfarst.github.com/angular/2016/12/26/dead-simple-dependency-injection-in-angular-2/","headline":"Dead Simple Dependency Injection in Angular 2","dateModified":"2016-12-26T05:00:00-08:00","datePublished":"2016-12-26T05:00:00-08:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://kfarst.github.com/angular/2016/12/26/dead-simple-dependency-injection-in-angular-2/"},"@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+  </head>
+  <body class="">
+    <main class="container">
+        <header class="site-header">
+  <div class="container txt-center">
+    <nav class="navbar">
+      <ul>
+        <li><a href="/">home</a></li>
+        <li class="divider">&bull;</li>
+        <li><a href="/about">about</a></li>
+        <li class="divider">&bull;</li>
+        <li><a href="/feed.xml" target="_blank"><i class="icon icon-feed"></i> feed</a></li>
+      </ul>
+    </nav>
+    <a href="/" class="author-thumb">
+      <img src="/images/author.png" alt="Author thumbnail" class="dot">
+    </a>
+    <h1>Hi, I'm Kevin <small>and I write code :)</small></h1>
+    <nav class="navbar">
+      <ul>
+          <li><a href="/10-mins-of-code/index.html">10 Mins Of Code</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/android/index.html">Android</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/angular/index.html">Angular</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/career/index.html">Career</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/jasmine/index.html">Jasmine</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/open-source/index.html">Open Source</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/react/index.html">React</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/sketch/index.html">Sketch</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/ios/index.html">iOS</a></li>
+      </ul>
+    </nav>
+    <hr class="hr">
+  </div>
+</header>
+        <section class="main-content">
+          <article class="post">
+  <header class="post-header">
+    <h1 class="post-title">Dead Simple Dependency Injection in Angular 2</h1>
+    <p class="post-meta">Dec 26, 2016</p>
+  </header>
+  <div class="post-content">
+    <p>Dependency injection in Angular 2 can quickly get confusing if you’re trying to really understand what’s going on “under the hood”.
+Even researching it myself, I’ll be the first to admit I don’t have the entire picture clearly mapped out, but I wanted to share what I’ve learned about
+dependency injection in Angular 2 in hopes that it will help you understand a little better yourself.</p>
+<p>The entire concept of dependency injection in the framework consists of three things.</p>
+<ul>
+  <li><strong>Injector</strong> - The injector object that exposes APIs to us to create instances of dependencies.</li>
+  <li><strong>Provider</strong> - A provider is like a recipe that tells the injector how to create an instance of a dependency. A provider takes a token and maps that to a factory function that creates an object.</li>
+  <li><strong>Dependency</strong> - A dependency is the type of which an object should be created.</li>
+</ul>
+<p><img src="http://blog.thoughtram.io/images/di-in-angular2-5.svg" width="100%" /></p>
+<h2 id="errr-what">Errr, what?</h2>
+<p>The above might be a confusing on the surface, but it may be a little easier to represent in code.</p>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span>  <span class="kr">import</span> <span class="p">{</span> <span class="nx">Injector</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">&#39;@angular/core&#39;</span><span class="p">;</span>
+  <span class="kr">import</span> <span class="p">{</span> <span class="nx">MyService</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">&#39;./my_service&#39;</span><span class="p">;</span>
+  <span class="kr">export</span> <span class="kr">class</span> <span class="nx">MyClass</span> <span class="p">{</span>
+    <span class="nx">myService</span>: <span class="kt">MyService</span><span class="p">;</span>
+    <span class="kr">constructor</span> <span class="p">(</span><span class="nx">injector</span>: <span class="kt">Injector</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">myService</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">injector</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">MyService</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span></code></pre></figure>
+<p>In the scenario above, <code>this.myService</code> is the <strong>dependency</strong>, the <strong>injector</strong> instance is imported and passed into the constructor,
+which we access with <code>this.injector</code>, and the <code>MyService</code> class is the <strong>provider</strong>. Angular usually does this for us (we’ll get to that
+in just a minute), but writing it this way can better explain the diagram and dependency injection description above.</p>
+<p>The dependency is passed in (usually) as a singleton instance, and, if this is the first time the dependency is being fetched by the injector,
+it will instantiate that singleton. Otherwise, it will fetch the the existing object.</p>
+<h2 id="what-angular-does">What Angular does</h2>
+<p>Normally, you’ll declare providers in an <code>NgModule</code> like so:</p>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span>  <span class="kd">@NgModule</span><span class="p">({</span>
+    <span class="p">...</span>
+    <span class="nx">providers</span><span class="o">:</span> <span class="p">[</span><span class="nx">MyProvider</span><span class="p">],</span>
+    <span class="p">...</span>
+  <span class="p">})</span></code></pre></figure>
+<p>The token used inside the array, <code>MyProvider</code> is actually an alias for</p>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span>  <span class="nx">providers</span><span class="o">:</span> <span class="p">[{</span> <span class="nx">provide</span>: <span class="kt">MyProvider</span><span class="p">,</span> <span class="nx">useClass</span>: <span class="kt">MyProvider</span> <span class="p">}]</span></code></pre></figure>
+<p>They key <code>useClass</code> makes it seem like you can give different objects for a provider right? Well, that’s exactly right!
+Here are some other keys you can use:</p>
+<h3 id="useexisting">useExisting</h3>
+<p>This would be used for aliasing one provider to another. An example from the Angular docs uses a hypothetical scenario in which
+an interface, <code>OldLogger</code>, cannot be deleted, but when it’s used we actually want it to call <code>NewLogger</code> instead. As long as the
+two providers have the same interface, the new provider will be called when the old one is called, hence delegating responsibility
+to the new provider.</p>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span>  <span class="nx">providers</span><span class="o">:</span> <span class="p">[</span><span class="nx">NewLogger</span><span class="p">,</span> <span class="p">{</span> <span class="nx">provide</span>: <span class="kt">OldLogger</span><span class="p">,</span> <span class="nx">useExisting</span>: <span class="kt">NewLogger</span><span class="p">}]</span></code></pre></figure>
+<h3 id="usevalue">useValue</h3>
+<p>If you want to use a function, string, etc. as a provider, you can do that with this key. A really good use case I’ve seen for this
+is passing around an API key. In your <code>AppModule</code> you could create a provider using the <code>useValue</code> key.</p>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span>  <span class="nx">providers</span><span class="o">:</span> <span class="p">[{</span>
+    <span class="nx">provide</span><span class="o">:</span> <span class="s1">&#39;apiKey&#39;</span><span class="p">,</span>
+    <span class="nx">useValue</span><span class="o">:</span> <span class="s1">&#39;a07e22bc18f5cb106bfe4cc1f83ad8ed&#39;</span>
+  <span class="p">}]</span></code></pre></figure>
+<p>Then, to inject the key into a service, you can do the following.</p>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span><span class="kr">import</span> <span class="p">{</span> <span class="nx">Inject</span><span class="p">,</span> <span class="nx">Injectable</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">&#39;@angular/core&#39;</span><span class="p">;</span>
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">Http</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">&#39;@angular/http&#39;</span><span class="p">;</span>
+<span class="kd">@Injectable</span><span class="p">()</span>
+<span class="kr">export</span> <span class="kr">class</span> <span class="nx">MyApiService</span> <span class="p">{</span>
+  <span class="nx">apiKey</span>: <span class="kt">string</span><span class="p">;</span>
+  <span class="kr">constructor</span><span class="p">(</span><span class="kr">private</span> <span class="nx">http</span>: <span class="kt">Http</span><span class="p">,</span> <span class="kd">@Inject</span><span class="p">(</span><span class="s1">&#39;apiKey&#39;</span><span class="p">)</span> <span class="nx">apiKey</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">apiKey</span> <span class="o">=</span> <span class="nx">apiKey</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span></code></pre></figure>
+<h3 id="usefactory">useFactory</h3>
+<p>If we need to create the provider value dynamically at the last possible second for whatever reason,
+we can use a factory provider to do so.</p>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span>  <span class="kd">let</span> <span class="nx">heroServiceFactory</span> <span class="o">=</span> <span class="p">(</span><span class="nx">logger</span>: <span class="kt">Logger</span><span class="p">,</span> <span class="nx">userService</span>: <span class="kt">UserService</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="nx">HeroService</span><span class="p">(</span><span class="nx">logger</span><span class="p">,</span> <span class="nx">userService</span><span class="p">.</span><span class="nx">user</span><span class="p">.</span><span class="nx">isAuthorized</span><span class="p">);</span>
+  <span class="p">};</span></code></pre></figure>
+<p>In the example above, we’re declaring the factory as a function and passing in the dependencies. Because of this,
+we need to also pass the dependencies into the provider declaration.</p>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span>  <span class="nx">providers</span><span class="o">:</span> <span class="p">[{</span> <span class="nx">provide</span>: <span class="kt">HeroService</span><span class="p">,</span>
+    <span class="nx">useFactory</span>: <span class="kt">heroServiceFactory</span><span class="p">,</span>
+    <span class="nx">deps</span><span class="o">:</span> <span class="p">[</span><span class="nx">Logger</span><span class="p">,</span> <span class="nx">UserService</span><span class="p">]</span>
+  <span class="p">}]</span></code></pre></figure>
+<h2 id="conclusion">Conclusion</h2>
+<p>I hope this has helped in your understanding of dependency injection in Angular 2. You can find most of this (and more)
+in the <a href="https://angular.io/docs/ts/latest/guide/dependency-injection.html">Angular documentation</a>, and do let me know
+if you have any questions or comments. Happy coding!</p>
+    <aside class="share">
+      <span>Share this: </span>
+      <a href="http://twitter.com/share?text=Dead Simple Dependency Injection in Angular 2&amp;url=http://kfarst.github.com/angular/2016/12/26/dead-simple-dependency-injection-in-angular-2/&amp;hashtags=web,dev,blog&amp;via=kevinfarst"
+      onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <i class="icon icon-twitter-rounded"></i>
+      </a>
+      <a href="https://www.facebook.com/sharer/sharer.php?u=http://kfarst.github.com/angular/2016/12/26/dead-simple-dependency-injection-in-angular-2/"
+      onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <i class="icon icon-facebook-rounded"></i>
+      </a>
+    </aside>
+  </div>
+  <hr>
+  <aside id="comments" class="disqus">
+    <h3>Comments</h3>
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname, disqus_config;
+      var disqus_script_tag = setTimeout(function () {
+        if ('/angular/2016/12/26/dead-simple-dependency-injection-in-angular-2') {
+          disqus_shortname = 'kfarst';
+          disqus_config = function () {
+            this.page.identifier = 'http://kfarst.github.com/angular/2016/12/26/dead-simple-dependency-injection-in-angular-2';
+            this.page.title = 'Dead Simple Dependency Injection in Angular 2';
+            this.page.url = 'http://kfarst.github.com/angular/2016/12/26/dead-simple-dependency-injection-in-angular-2';
+            /*var disqus_developer = 1;*/
+          };
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        } else {
+          disqus_script_tag();
+        }
+      }, 1000);
+    </script>
+    <noscript>
+      Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
+    </noscript>
+  </aside>
+</article>
+        </section>
+<div class="clearfix"></div>
+<footer class="site-footer txt-center">
+  <hr>
+  <ul class="social">
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="http://kfarst.github.com" target="_blank"><i class="icon icon-github"></i></a></li>
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="http://twitter.com/kevinfarst" target="_blank"><i class="icon icon-twitter"></i></a></li>
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="https://www.linkedin.com/in/kevin-farst-14a63914" target="_blank"><i class="icon icon-linkedin"></i></a></li>
+  </ul>
+  <small>&copy; 2019 All rights reserved. Made with <a href="http://jekyllrb.com" target="_blank">Jekyll</a> and <i class="icon icon-heart"></i></small>
+  <small>by <a href="http://nandomoreira.me" target="_blank">nandomoreira.me</a></small>
+</footer>
+    </main>
+    <a href="http://github.com/kfarst" target="_blank" class="github-corner"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#2ecc71; color:#f7f8f9; position: absolute; top: 0; border: 0; right: 0;"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+  </body>
+</html>

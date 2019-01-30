@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+  <head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Component Interaction in Angular | Kevin Farst&#39;s Blog</title>
+<meta name="description" content="Component Communication in Angular">
+<meta name="keywords" content="angular,angular2,components,directives,typescript">
+<link rel="stylesheet" href="/css/main.css">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="theme-color" content="#2ecc71">
+<link rel="canonical" href="http://kfarst.github.com/angular/2017/03/29/component-interaction-in-angular/">
+<link rel="alternate" type="application/rss+xml" title="Kevin Farst's Blog" href="http://kfarst.github.com/feed.xml" />
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-89422990-1']);
+_gaq.push(['_trackPageview']);
+(function() {
+  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+</script>
+<!-- Begin Jekyll SEO tag v2.4.0 -->
+<title>Component Interaction in Angular | Kevin Farst’s Blog</title>
+<meta name="generator" content="Jekyll v3.8.0" />
+<meta property="og:title" content="Component Interaction in Angular" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Component Communication in Angular" />
+<meta property="og:description" content="Component Communication in Angular" />
+<link rel="canonical" href="http://kfarst.github.com/angular/2017/03/29/component-interaction-in-angular/" />
+<meta property="og:url" content="http://kfarst.github.com/angular/2017/03/29/component-interaction-in-angular/" />
+<meta property="og:site_name" content="Kevin Farst’s Blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2017-03-29T05:07:00-07:00" />
+<script type="application/ld+json">
+{"description":"Component Communication in Angular","@type":"BlogPosting","url":"http://kfarst.github.com/angular/2017/03/29/component-interaction-in-angular/","headline":"Component Interaction in Angular","dateModified":"2017-03-29T05:07:00-07:00","datePublished":"2017-03-29T05:07:00-07:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://kfarst.github.com/angular/2017/03/29/component-interaction-in-angular/"},"@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+  </head>
+  <body class="">
+    <main class="container">
+        <header class="site-header">
+  <div class="container txt-center">
+    <nav class="navbar">
+      <ul>
+        <li><a href="/">home</a></li>
+        <li class="divider">&bull;</li>
+        <li><a href="/about">about</a></li>
+        <li class="divider">&bull;</li>
+        <li><a href="/feed.xml" target="_blank"><i class="icon icon-feed"></i> feed</a></li>
+      </ul>
+    </nav>
+    <a href="/" class="author-thumb">
+      <img src="/images/author.png" alt="Author thumbnail" class="dot">
+    </a>
+    <h1>Hi, I'm Kevin <small>and I write code :)</small></h1>
+    <nav class="navbar">
+      <ul>
+          <li><a href="/10-mins-of-code/index.html">10 Mins Of Code</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/android/index.html">Android</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/angular/index.html">Angular</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/career/index.html">Career</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/jasmine/index.html">Jasmine</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/open-source/index.html">Open Source</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/react/index.html">React</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/sketch/index.html">Sketch</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/ios/index.html">iOS</a></li>
+      </ul>
+    </nav>
+    <hr class="hr">
+  </div>
+</header>
+        <section class="main-content">
+          <article class="post">
+  <header class="post-header">
+    <h1 class="post-title">Component Interaction in Angular</h1>
+    <p class="post-meta">Mar 29, 2017</p>
+  </header>
+  <div class="post-content">
+    <p>One of the more interesting topics to delve into in Angular is comparing and contrasting the way directives
+and components communicate with one another in both OG Angular.js (Angular 1.x) and the newer versions (2+).
+For the sake of simplifying things, I’ll refer to Angular 1.x as Angular.js and version 2 and above
+as Angular. In the newer versions of Angular, certain communcation mediums have been carried over, some repackaged
+with the same underlying concepts, and some brand new methods components can use to communicate with one another.
+You can find an overview of most of what this post covers in the <a href="https://angular.io/docs/ts/latest/cookbook/component-communication.html">
+Angular Cookbook</a>, but I wanted to describe each mechanism in further detail, with a
+<a href="https://github.com/kfarst/ng2-intro-movie-app/tree/angular4-upgrade">sample project</a> to back up some of the
+examples used. Let’s take a look at these differing forms of communcation and when to use them.</p>
+<h2 id="input-bindings">Input Bindings</h2>
+<p>This is the primary way to pass values into a component. If you ever dealt with an isolate scope or used the
+<code>bindToController</code> syntax in Angular.js, the concept is the same: values are passed into the directive through
+HTML attributes.</p>
+<p><img src="http://imgur.com/bvwSlwf.png" width="100%" /></p>
+<p>With the Angular.js example above, we had a few options for how we wanted to pass those values into the directive.</p>
+<ul>
+  <li>Two-way binding (<code>=</code>) - changes made to the value inside the directive will be reflected on the object outside of the directive, and vise versa</li>
+  <li>One-way binding (<code>&amp;</code>) - changes to the value can only be passed into the directive, and any changes inside the directive will not affect the
+value outside of the context of the directive</li>
+  <li>Text binding (<code>@</code>) - the value is passed in as a text value</li>
+</ul>
+<p>With the <code>@Input()</code> decorator in later versions of Angular, values passed into HTML attributes are accessible inside
+the component by a variable matching the name of the attribute.</p>
+<p><img src="http://imgur.com/3d1vYXX.png" width="100%" /></p>
+<p>The interface ends up being more straightforward, however keep in mind that this is only a one-way binding, meaning
+in a parent-child component relationship any changes made to the <code>@Input()</code> variable inside the child will not be
+reflected in the parent component. We can establish two-way communication with the parent using an <code>@Output</code> decorator.</p>
+<h2 id="output-bindings">Output Bindings</h2>
+<p>One thing to keep in mind is that when a component is added to the DOM, an instance of its class is instantiated
+corresponding to that tag inserted into HTML. When that happens, the class instance has an API that can be interacted with
+based on the access modifiers attached to the class’s variables and methods. Therefore, if we have a component</p>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span>  <span class="p">...</span>
+  <span class="kr">export</span> <span class="kr">class</span> <span class="nx">ParentComponent</span> <span class="p">{</span>
+    <span class="kr">public</span> <span class="nx">visibleVar</span>: <span class="kt">string</span> <span class="o">=</span> <span class="s1">&#39;variable&#39;</span><span class="p">;</span>
+    <span class="kr">private</span> <span class="nx">hiddenVar</span>: <span class="kt">integer</span> <span class="o">=</span> <span class="mi">23</span><span class="p">;</span>
+    <span class="kr">public</span> <span class="nx">myMethod() {</span>
+      <span class="p">...</span>
+    <span class="p">}</span>
+  <span class="p">}</span></code></pre></figure>
+<p>when an instance of <code>ParentComponent</code> is created, we would be able to access <code>visibleVar</code> and <code>myMethod()</code>, but not <code>hiddenVar</code>
+in an external class, whether that be a service, another component, etc. This brings us to the <code>@Output()</code> decorator, which
+allows us to pass in a (public) method from a parent component down to a child component. From there, the child component can call
+the method when necessary. This is how two-way communication is established between a parent and child component.</p>
+<p>For an example, let’s say we have a <code>MoviesComponent</code> and a <code>MovieDetailsComponent</code>, in which the <code>MovieComponent</code> consists
+of a list of <code>MovieDetailsComponent</code> instances. If we wanted to alert the <code>MoviesComponent</code> when an instance of <code>MovieDetailsComponent</code>
+has been marked as a favorite by the user (perhaps by clicking a button or checkbox), it might look something like this:</p>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span><span class="c1">// Parent component</span>
+<span class="kr">export</span> <span class="kr">class</span> <span class="nx">MoviesComponent</span> <span class="p">{</span>
+  <span class="nx">movies</span>: <span class="kt">Movie</span><span class="p">[];</span>
+  <span class="p">...</span>
+  <span class="nx">toggleAsFavorite</span><span class="p">(</span><span class="nx">detailCmp</span>: <span class="kt">MovieDetailsComponent</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">detailCmp</span><span class="p">.</span><span class="nx">isFavorited</span> <span class="o">=</span> <span class="o">!</span><span class="nx">detailCmp</span><span class="p">.</span><span class="nx">isFavorited</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="c1">// Child component</span>
+<span class="kr">export</span> <span class="kr">class</span> <span class="nx">MovieDetailsComponent</span> <span class="p">{</span>
+  <span class="kd">@Input</span><span class="p">(</span><span class="s1">&#39;movie&#39;</span><span class="p">)</span> <span class="nx">movieData</span>: <span class="kt">Movie</span><span class="p">;</span>
+  <span class="kd">@Output</span><span class="p">()</span> <span class="nx">toggleAsFavorite</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">EventEmitter</span><span class="o">&lt;</span><span class="nx">Movie</span><span class="o">&gt;</span><span class="p">();</span>
+  <span class="p">...</span>
+<span class="p">}</span></code></pre></figure>
+<p>And in the <code>MoviesComponent</code> view template:</p>
+<figure class="highlight"><pre><code class="language-html" data-lang="html"><span></span><span class="p">&lt;</span><span class="nt">movie-details</span>
+  <span class="err">#</span><span class="na">movieDetails</span>
+  <span class="err">[</span><span class="na">movie</span><span class="err">]=&quot;</span><span class="na">movie</span><span class="err">&quot;</span>
+  <span class="err">(</span><span class="na">toggleAsFavorite</span><span class="err">)=&quot;</span><span class="na">toggleAsFavorite</span><span class="err">(</span><span class="na">movieDetails</span><span class="err">)&quot;</span>
+  <span class="err">*</span><span class="na">ngFor</span><span class="o">=</span><span class="s">&quot;let movie of movies&quot;</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">movie-details</span><span class="p">&gt;</span></code></pre></figure>
+<p>Like with the <code>@Input()</code> decorator, we match the <code>@Output()</code> variable name to the HTML attribute, then pass the method from the
+<code>MoviesComponent</code> into the <code>MovieDetailsComponent</code>. The major difference from the <code>@Input()</code> variable declaration is how and what
+we’re instantiating it with. With an <code>@Input()</code> variable, you can choose to give it a default value or simply leave it as an empty
+placeholder (as we did above). With an <code>@Output()</code>, you need to create a new instance of a built-in Angular class called <code>EventEmitter</code>,
+which is used by components to emit custom events.</p>
+<p>In this current example, when we call the method we are also passing an argument in, which is the <code>MovieDetailsComponent</code> instance itself. Because of this,
+I choose to declare <code>EventEmitter&lt;Movie&gt;</code>, however you can simply just use <code>EventEmitter&lt;&gt;</code>, especially if you aren’t passing an argument to
+the method to be called. From here, referencing the variable and calling <code>emit()</code> on it will execute the method, so in our case we are
+doing so inside the <code>MovieDetailsComponent</code> template when a user clicks a link.</p>
+<figure class="highlight"><pre><code class="language-html" data-lang="html"><span></span><span class="p">&lt;</span><span class="nt">a</span> <span class="na">href</span> <span class="err">(</span><span class="na">click</span><span class="err">)=&quot;$</span><span class="na">event</span><span class="err">.</span><span class="na">preventDefault</span><span class="err">();</span><span class="na">toggleAsFavorite</span><span class="err">.</span><span class="na">emit</span><span class="err">()&quot;</span><span class="p">&gt;</span>
+  Mark as Favorite
+<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span></code></pre></figure>
+<p>With the combination of the <code>@Input()</code> and <code>@Output()</code> decorators, this is reflective of the React.js mantra, in which</p>
+<blockquote>Events flow up, data flows down</blockquote>
+<p>Data is passed down by means of an <code>@Input()</code> decorator, while an event is emitted up through an <code>@Output</code> decorator. Exposing part of the
+pubic API from the parent component to the child component is reminiscent of the <em>require</em> key used in Angular.js. From
+the <a href="https://docs.angularjs.org/guide/directive">Angular.js docs</a></p>
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span></span><span class="p">...</span>
+<span class="p">.</span><span class="nx">directive</span><span class="p">(</span><span class="s1">&#39;myTabs&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="nx">controller</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;$scope&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="nx">MyTabsController</span><span class="p">(</span><span class="nx">$scope</span><span class="p">)</span> <span class="p">{</span>
+      <span class="p">...</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">addPane</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pane</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">panes</span><span class="p">.</span><span class="nx">length</span> <span class="o">===</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nx">$scope</span><span class="p">.</span><span class="nx">select</span><span class="p">(</span><span class="nx">pane</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="nx">panes</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">pane</span><span class="p">);</span>
+      <span class="p">};</span>
+    <span class="p">}],</span>
+    <span class="p">...</span>
+  <span class="p">};</span>
+<span class="p">})</span>
+<span class="p">.</span><span class="nx">directive</span><span class="p">(</span><span class="s1">&#39;myPane&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">{</span>
+    <span class="nx">require</span><span class="o">:</span> <span class="s1">&#39;^^myTabs&#39;</span><span class="p">,</span>
+    <span class="p">...</span>
+    <span class="nx">link</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">scope</span><span class="p">,</span> <span class="nx">element</span><span class="p">,</span> <span class="nx">attrs</span><span class="p">,</span> <span class="nx">tabsCtrl</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">tabsCtrl</span><span class="p">.</span><span class="nx">addPane</span><span class="p">(</span><span class="nx">scope</span><span class="p">);</span>
+    <span class="p">},</span>
+    <span class="p">...</span>
+  <span class="p">};</span>
+<span class="p">});</span></code></pre></figure>
+<p>Any function or property set on <code>this</code> in the parent directive’s controller could be accessed in the child directive by a combination of passing
+in the name of the parent directive as the value to the <code>require</code> key in the child’s directive definition object, then passing that controller in
+as the fourth argument to the <code>link</code> function.</p>
+<p>One other thing to note, you probably noticed the <code>#movieDetails</code> attribute on the <code>&lt;movie-details&gt;</code> component tag, and that it’s passed into
+the function that the <code>@Output()</code> decorator will eventually <code>emit()</code>. Let’s take a look at yet another form of component interaction.</p>
+<h2 id="local-template-variable">Local template variable</h2>
+<p>Even though we are passing a <code>movie</code> object from the parent <code>MoviesComponent</code> to an instance of <code>MovieDetailsComponent</code>, that doesn’t give
+the parent component access to any of the rest of the child component’s public API. If <code>MoviesComponent</code> wants access to a public property
+or public method on <code>MovieDetailsComponent</code>, it has to do so by means of a <em>local variable</em>. Therefore, when we add the <code>#movieDetails</code>
+template variable on the <code>&lt;movie-details&gt;</code> tag, and because the tag is located inside the <code>MoviesComponent</code> template, it gives us a reference
+to the child component and the ability to access <em>any of its properties or methods</em> from within the parent template. In this case, we do so by
+passing it into a method on the parent component.</p>
+<figure class="highlight"><pre><code class="language-html" data-lang="html"><span></span><span class="p">&lt;</span><span class="nt">movie-details</span>
+  <span class="err">#</span><span class="na">movieDetails</span>
+  <span class="err">...</span>
+  <span class="err">(</span><span class="na">toggleAsFavorite</span><span class="err">)=&quot;</span><span class="na">toggleAsFavorite</span><span class="err">(</span><span class="na">movieDetails</span><span class="err">)&quot;</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">movie-details</span><span class="p">&gt;</span></code></pre></figure>
+<h2 id="viewchild-and-contentchild">ViewChild and ContentChild</h2>
+<p>The local template variable apporach works well when you only need access to the child component’s public API in the template (we got around that by passing
+the reference into the <code>@Output()</code> function and emitting it as an event). You can’t use the technique if an instance of the <code>MoviesComponent</code> class itself
+(not its template) needs to read or write child component values, or if the parent component needs to be able to call child component methods directly.
+To accomplish this, you can either use a <code>@ViewChild()</code> or <code>@ContentChild()</code> decorator. Even though they are used in slightly different contexts, keep in mind
+that they both allow access to a child component’s public API (properties and methods) in the parent component’s class instance, just like a local variable
+does in the parent component’s template. Let’s take a look at how each decorator differs.</p>
+<h4 id="view-child">View Child</h4>
+<p>This decorator is used when the child component’s HTML tag is declared inside the parent component’s template, meaning the <code>&lt;movie-details&gt;</code> tag would have to
+be added inside the <code>MoviesComponent</code> template. From there, you’ll need to add a variable to reference the child component’s API inside the parent.</p>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span><span class="c1">// Parent component</span>
+<span class="kr">export</span> <span class="kr">class</span> <span class="nx">MoviesComponent</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="kd">@ViewChild</span><span class="p">(</span><span class="nx">MovieDetailsComponent</span><span class="p">)</span>
+  <span class="kr">private</span> <span class="nx">movieDetailsComponent</span>: <span class="kt">MovieDetailsComponent</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+<p>There is one additional caveat compared to the local variable technique in that the <code>moviesDetailsComponent</code> variable will only be set <em>after the view has initialized</em>.
+We’ll need to dive into the list of <a href="https://angular.io/docs/ts/latest/guide/lifecycle-hooks.html" target="_blank">lifecycle hooks</a> and pull out the <code>AfterViewInit</code>
+interface. Once the interface is implemented on our parent component, we can add the <code>ngAfterViewInit()</code> method where we’ll finally have access to the <code>movieDetailsComponent</code> property.</p>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span><span class="c1">// Parent component</span>
+<span class="kr">export</span> <span class="kr">class</span> <span class="nx">MoviesComponent</span> <span class="kr">implements</span> <span class="nx">AfterViewInit</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="kd">@ViewChild</span><span class="p">(</span><span class="nx">MovieDetailsComponent</span><span class="p">)</span>
+  <span class="kr">private</span> <span class="nx">movieDetailsComponent</span>: <span class="kt">MovieDetailsComponent</span><span class="p">;</span>
+  <span class="p">...</span>
+  <span class="nx">ngAfterViewInit</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">movieDetailsComponent</span><span class="p">.</span><span class="nx">someChildMethod</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+<h4 id="content-child">Content Child</h4>
+<p>With the <code>@ContentChild()</code> decorator, we access the child component’s API when the child component’s HTML tag is declared <em>in between</em> the opening and closing tags of the
+parent component’s HTML tag. For our <code>MoviesComponent</code> and <code>MovieDetailsComponent</code>, it would look like</p>
+<figure class="highlight"><pre><code class="language-html" data-lang="html"><span></span>  <span class="p">&lt;</span><span class="nt">movies</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">movie-details</span><span class="p">&gt;&lt;/</span><span class="nt">movie-details</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">movies</span><span class="p">&gt;</span></code></pre></figure>
+<p>and again the child component property isn’t set at the parent component’s initialization. In this case, it will be after the <em>content</em> is initialized, so we’ll use the <code>AfterContentInit</code>
+lifecycle hook instead.</p>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span><span class="c1">// Parent component</span>
+<span class="kr">export</span> <span class="kr">class</span> <span class="nx">MoviesComponent</span> <span class="kr">implements</span> <span class="nx">AfterContentInit</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="kd">@ContentChild</span><span class="p">(</span><span class="nx">MovieDetailsComponent</span><span class="p">)</span>
+  <span class="kr">private</span> <span class="nx">movieDetailsComponent</span>: <span class="kt">MovieDetailsComponent</span><span class="p">;</span>
+  <span class="p">...</span>
+  <span class="nx">ngAfterContentInit</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">movieDetailsComponent</span><span class="p">.</span><span class="nx">someChildMethod</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+<h2 id="viewchildren-and-contentchildren">ViewChildren and ContentChildren</h2>
+<p>These decorators serve the same purpose as their <code>@ViewChild()</code> and <code>@ContentChild()</code> counterparts except they provide access to multiple child components of the same type. This might be used
+in our first <code>MovieDetailsComponent</code> example, where we’re iterating over a list of movies with an <code>ngFor</code> loop to output multiple instances in the view. There is one key difference when defining
+a <code>@ViewChildren()</code> or <code>@ContentChildren()</code> variable in the parent component however, so let’s look at an example.</p>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span><span class="c1">// Parent component</span>
+<span class="kr">export</span> <span class="kr">class</span> <span class="nx">MoviesComponent</span> <span class="kr">implements</span> <span class="nx">AfterViewInit</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="kd">@ViewChildren</span><span class="p">(</span><span class="nx">MovieDetailsComponent</span><span class="p">)</span>
+  <span class="kr">private</span> <span class="nx">movieDetails</span>: <span class="kt">QueryList</span><span class="o">&lt;</span><span class="nx">MovieDetailsComponent</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="p">...</span>
+  <span class="nx">ngAfterViewInit</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">movieDetails</span><span class="p">.</span><span class="nx">changes</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">changes</span> <span class="o">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">changes</span><span class="p">));</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+<p>You’ll notice the variable is of type <code>QueryList</code>, which has a property on it, <code>changes</code>, that can be subscribed to. What makes the <code>QueryList</code> interface so nice is when the application state
+changes, Angular will automatically update the list of child components, and you can subscribe to those changes since the <code>changes</code> property returns an <code>Observable</code>.</p>
+<h2 id="communcating-through-a-service">Communcating Through a Service</h2>
+<p>One of the ways components can communicate with each other that has the same underlying concept as Angular.js, but
+has be repackaged with a slightly different interface is using a service to share data. Services are the utility
+module of Angular, and one of the ways it can be utilized is to provide an observable <code>Subject</code> for which components can send values to,
+and other components that have subscribed to the observable can receive. Example time! Using the movie favoriting use case from above, let’s
+say each <code>MovieDetailsComponent</code> instance has a little star you can click to “favorite” the movie instead of a link. The favorite count will
+then show up in the top right corner as you continue to select movies as favorites.</p>
+<p><img src="http://imgur.com/LIxiFgy.gif" width="100%" /></p>
+<p>First, let’s set up a <code>FavoritesService</code>, where we use a <code>Subject</code> source as a private property, then expose it publicly as an <code>Observable</code>.</p>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span><span class="kr">import</span> <span class="p">{</span> <span class="nx">Injectable</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">&#39;@angular/core&#39;</span><span class="p">;</span>
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">Subject</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">&#39;rxjs/Subject&#39;</span><span class="p">;</span>
+<span class="kd">@Injectable</span><span class="p">()</span>
+<span class="kr">export</span> <span class="kr">class</span> <span class="nx">FavoritesService</span> <span class="p">{</span>
+  <span class="kr">private</span> <span class="nx">countSource</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Subject</span><span class="o">&lt;</span><span class="kt">number</span><span class="o">&gt;</span><span class="p">();</span>
+  <span class="nx">count</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">countSource</span><span class="p">.</span><span class="nx">asObservable</span><span class="p">();</span>
+  <span class="nx">updateCount</span><span class="p">(</span><span class="nx">count</span>: <span class="kt">number</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">countSource</span><span class="p">.</span><span class="nx">next</span><span class="p">(</span><span class="nx">count</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+<p>When a movie is favorited, the event is passed up to the <code>MoviesComponent</code> (sound familiar? that was the output bindings example),
+which has a reference to the <code>FavoritesService</code> instance. From there it collects a count of all movies that have been favorited by way of the <code>QueryList</code>
+reference, then calls <code>updateFavoriteCount()</code> so the <code>Subject</code> will know to send the next value (updated favorited movie count) to all of its subscribers.</p>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span><span class="p">...</span>
+<span class="kr">export</span> <span class="kr">class</span> <span class="nx">MoviesComponent</span> <span class="p">{</span>
+  <span class="kd">@ViewChildren</span><span class="p">(</span><span class="nx">MovieDetailsComponent</span><span class="p">)</span>
+  <span class="kr">private</span> <span class="nx">movieDetails</span>: <span class="kt">QueryList</span><span class="o">&lt;</span><span class="nx">MovieDetailsComponent</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="p">...</span>
+  <span class="kr">constructor</span><span class="p">(</span><span class="kr">private</span> <span class="nx">favoritesService</span>: <span class="kt">FavoritesService</span><span class="p">)</span> <span class="p">{</span> <span class="p">}</span>
+  <span class="p">...</span>
+  <span class="nx">updateFavoriteCount() {</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">favoritesService</span><span class="p">.</span><span class="nx">updateCount</span><span class="p">(</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">movieDetails</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">comp</span> <span class="o">=&gt;</span> <span class="nx">comp</span><span class="p">.</span><span class="nx">isFavorited</span><span class="p">).</span><span class="nx">length</span>
+    <span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+<p>The <code>ToolbarComponent</code> is subscribed to this service, as we see below. Two things to note here:</p>
+<ul>
+  <li>The <code>favSub</code> property is subscribed to the <code>count</code> property, <em>not</em> the <code>countSource</code> property. Since the <code>countSource</code>
+is <code>private</code> we don’t have access to it here anyways, but more importantly the <code>count</code> property is what exposes the
+<code>countSource</code> as an <code>Observable</code> instance</li>
+  <li>Any <code>Subscription</code> instances that you create <em>anywhere</em> should have <code>unsubscribe()</code> called on them when you’re done with it
+so as to not cause a memory leak</li>
+</ul>
+<figure class="highlight"><pre><code class="language-typescript" data-lang="typescript"><span></span><span class="p">...</span>
+<span class="kr">export</span> <span class="kr">class</span> <span class="nx">ToolbarComponent</span> <span class="p">{</span>
+  <span class="nx">favSub</span>: <span class="kt">Subscription</span><span class="p">;</span>
+  <span class="nx">favoritesCount</span>: <span class="kt">number</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kr">constructor</span><span class="p">(</span><span class="kr">private</span> <span class="nx">favoritesService</span>: <span class="kt">FavoritesService</span><span class="p">)</span> <span class="p">{</span> <span class="p">}</span>
+  <span class="nx">ngOnInit() {</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">favSub</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">favoritesService</span><span class="p">.</span><span class="nx">count</span><span class="p">.</span>
+      <span class="nx">subscribe</span><span class="p">(</span><span class="nx">favoritesCount</span> <span class="o">=&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">favoritesCount</span> <span class="o">=</span> <span class="nx">favoritesCount</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="nx">ngOnDestroy() {</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">favSub</span><span class="p">.</span><span class="nx">unsubscribe</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+<h2 id="conclusion">Conclusion</h2>
+<p>Even if you’ve reviewed similar blog posts or material covering component and directive communication in Angular, I hope you’ve found some useful information from this article, or at least
+had some of these concepts described in a new unique way for you. Again, you can find some of the examples used in this <a href="https://github.com/kfarst/ng2-intro-movie-app/tree/angular4-upgrade">
+sample Angular app</a>, which I definitely recommend you do if you are still familiarizing yourself with importing modules, implementing interfaces, etc. I left out all but the necessary code in each snippet
+to demonstrate the concepts, but you’ll find those missing pieces in the repo. Feel free to post any questions or comments below, and as always happy coding!</p>
+    <aside class="share">
+      <span>Share this: </span>
+      <a href="http://twitter.com/share?text=Component Interaction in Angular&amp;url=http://kfarst.github.com/angular/2017/03/29/component-interaction-in-angular/&amp;hashtags=web,dev,blog&amp;via=kevinfarst"
+      onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <i class="icon icon-twitter-rounded"></i>
+      </a>
+      <a href="https://www.facebook.com/sharer/sharer.php?u=http://kfarst.github.com/angular/2017/03/29/component-interaction-in-angular/"
+      onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <i class="icon icon-facebook-rounded"></i>
+      </a>
+    </aside>
+  </div>
+  <hr>
+  <aside id="comments" class="disqus">
+    <h3>Comments</h3>
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname, disqus_config;
+      var disqus_script_tag = setTimeout(function () {
+        if ('/angular/2017/03/29/component-interaction-in-angular') {
+          disqus_shortname = 'kfarst';
+          disqus_config = function () {
+            this.page.identifier = 'http://kfarst.github.com/angular/2017/03/29/component-interaction-in-angular';
+            this.page.title = 'Component Interaction in Angular';
+            this.page.url = 'http://kfarst.github.com/angular/2017/03/29/component-interaction-in-angular';
+            /*var disqus_developer = 1;*/
+          };
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        } else {
+          disqus_script_tag();
+        }
+      }, 1000);
+    </script>
+    <noscript>
+      Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
+    </noscript>
+  </aside>
+</article>
+        </section>
+<div class="clearfix"></div>
+<footer class="site-footer txt-center">
+  <hr>
+  <ul class="social">
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="http://kfarst.github.com" target="_blank"><i class="icon icon-github"></i></a></li>
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="http://twitter.com/kevinfarst" target="_blank"><i class="icon icon-twitter"></i></a></li>
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="https://www.linkedin.com/in/kevin-farst-14a63914" target="_blank"><i class="icon icon-linkedin"></i></a></li>
+  </ul>
+  <small>&copy; 2019 All rights reserved. Made with <a href="http://jekyllrb.com" target="_blank">Jekyll</a> and <i class="icon icon-heart"></i></small>
+  <small>by <a href="http://nandomoreira.me" target="_blank">nandomoreira.me</a></small>
+</footer>
+    </main>
+    <a href="http://github.com/kfarst" target="_blank" class="github-corner"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#2ecc71; color:#f7f8f9; position: absolute; top: 0; border: 0; right: 0;"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+  </body>
+</html>

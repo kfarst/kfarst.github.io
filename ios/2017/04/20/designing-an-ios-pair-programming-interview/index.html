@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+  <head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Designing an iOS Pair Programming Interview | Kevin Farst&#39;s Blog</title>
+<meta name="description" content="Designing an iOS Pair Programming Interview">
+<meta name="keywords" content="ios,interviewing,swift,objective-c">
+<link rel="stylesheet" href="/css/main.css">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="theme-color" content="#2ecc71">
+<link rel="canonical" href="http://kfarst.github.com/ios/2017/04/20/designing-an-ios-pair-programming-interview/">
+<link rel="alternate" type="application/rss+xml" title="Kevin Farst's Blog" href="http://kfarst.github.com/feed.xml" />
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-89422990-1']);
+_gaq.push(['_trackPageview']);
+(function() {
+  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+</script>
+<!-- Begin Jekyll SEO tag v2.4.0 -->
+<title>Designing an iOS Pair Programming Interview | Kevin Farst’s Blog</title>
+<meta name="generator" content="Jekyll v3.8.0" />
+<meta property="og:title" content="Designing an iOS Pair Programming Interview" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Designing an iOS Pair Programming Interview" />
+<meta property="og:description" content="Designing an iOS Pair Programming Interview" />
+<link rel="canonical" href="http://kfarst.github.com/ios/2017/04/20/designing-an-ios-pair-programming-interview/" />
+<meta property="og:url" content="http://kfarst.github.com/ios/2017/04/20/designing-an-ios-pair-programming-interview/" />
+<meta property="og:site_name" content="Kevin Farst’s Blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2017-04-20T02:54:22-07:00" />
+<script type="application/ld+json">
+{"description":"Designing an iOS Pair Programming Interview","@type":"BlogPosting","url":"http://kfarst.github.com/ios/2017/04/20/designing-an-ios-pair-programming-interview/","headline":"Designing an iOS Pair Programming Interview","dateModified":"2017-04-20T02:54:22-07:00","datePublished":"2017-04-20T02:54:22-07:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://kfarst.github.com/ios/2017/04/20/designing-an-ios-pair-programming-interview/"},"@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+  </head>
+  <body class="">
+    <main class="container">
+        <header class="site-header">
+  <div class="container txt-center">
+    <nav class="navbar">
+      <ul>
+        <li><a href="/">home</a></li>
+        <li class="divider">&bull;</li>
+        <li><a href="/about">about</a></li>
+        <li class="divider">&bull;</li>
+        <li><a href="/feed.xml" target="_blank"><i class="icon icon-feed"></i> feed</a></li>
+      </ul>
+    </nav>
+    <a href="/" class="author-thumb">
+      <img src="/images/author.png" alt="Author thumbnail" class="dot">
+    </a>
+    <h1>Hi, I'm Kevin <small>and I write code :)</small></h1>
+    <nav class="navbar">
+      <ul>
+          <li><a href="/10-mins-of-code/index.html">10 Mins Of Code</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/android/index.html">Android</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/angular/index.html">Angular</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/career/index.html">Career</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/jasmine/index.html">Jasmine</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/open-source/index.html">Open Source</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/react/index.html">React</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/sketch/index.html">Sketch</a></li>
+            <li class="divider">&bull;</li>
+          <li><a href="/ios/index.html">iOS</a></li>
+      </ul>
+    </nav>
+    <hr class="hr">
+  </div>
+</header>
+        <section class="main-content">
+          <article class="post">
+  <header class="post-header">
+    <h1 class="post-title">Designing an iOS Pair Programming Interview</h1>
+    <p class="post-meta">Apr 20, 2017</p>
+  </header>
+  <div class="post-content">
+    <p>A little while back, I was asked to put together a small pair programming exercise for iOS candidates to work through
+during an interview to help highlight and demonstrate their skill set in relation to the tools and concepts used in my
+company’s iOS application. I thought it might be interesting to re-hash my though process and steps as I worked through (and
+re-worked) the process of putting it all together.</p>
+<h2 id="getting-started">Getting started</h2>
+<p>Our app pretty much exclusively gets its data by consuming JSON from our API, so I needed to build the exercise based off
+of connecting to endpoints and processing their JSON responses. If you’ve read some of my other blog posts, I’m fond of using
+<a href="https://www.themoviedb.org/documentation/api">The Movie Database</a> API due to its verbose documentation, as well as its
+ease of authentication. All you need to do is register for an account and you’ll get a unique API key that you simply pass
+along as a parameter to each of your requests. Our app also doesn’t use too many third party libraries, so I wanted to limit
+the toolset to (mostly) using built-in Apple libraries, or as least using any outside packages as minimally as possible. Also,
+I had to figure out a way to timebox what I would be working on with the candidate to one hour (the average length of the interviews).</p>
+<h2 id="toolset">Toolset</h2>
+<p>Without going into a ton of detail, some of the concepts and tools my company’s app used which I wanted to incorporate into
+the interview exercise are as follows:</p>
+<ul>
+  <li>The majority of the app is written in Objective-C</li>
+  <li><code>UINavigationController</code></li>
+  <li><code>UITabBarController</code></li>
+  <li>Programmatic views</li>
+  <li>Constraints by way of the Visual Formatting Language</li>
+  <li>CocoaPods</li>
+  <li>Newer features and classes were being written in Swift</li>
+</ul>
+<h2 id="exercise-requirements">Exercise Requirements</h2>
+<p>Taken directly from the <a href="https://github.com/kfarst/ios-code-interview/blob/master/README.md">README</a> in the repo, I put together these requirements:</p>
+<ul>
+  <li>List movie categories as a <code>UITabBar</code>, with the following categories:
+    <ul>
+      <li><a href="https://developers.themoviedb.org/3/movies/get-now-playing">Now Playing</a></li>
+      <li><a href="https://developers.themoviedb.org/3/movies/get-popular-movies">Popular</a></li>
+      <li><a href="https://developers.themoviedb.org/3/movies/get-top-rated-movies">Top Rated</a></li>
+      <li><a href="https://developers.themoviedb.org/3/movies/get-upcoming">Upcoming</a></li>
+    </ul>
+  </li>
+  <li>Display results for each list in a <code>UITableView</code></li>
+  <li>In each table cell, display the <code>title</code>, <code>overview</code>, and <code>posterPath</code> of the movie</li>
+  <li>Load the <code>posterPath</code> image asynchronously</li>
+  <li>Add at least one unit test, written in <em>Swift</em></li>
+</ul>
+<p>Also for clarity, I added these additional specs to give a complete overview of the app</p>
+<ul>
+  <li><strong>Language</strong>: Objective-C (Swift for unit tests)</li>
+  <li><strong>Minimum supported iOS version</strong>: 10.0</li>
+  <li><strong>Orientation support</strong>: Portrait only</li>
+  <li><strong>Device support</strong>: iPhone only</li>
+  <li><strong>Localizations</strong>: Not needed</li>
+  <li><strong>Dependencies</strong> (app is slightly structured toward these packages, however everything can be built with native-only APIs or dependencies of your choice):
+    <ul>
+      <li><a href="https://github.com/jsonmodel/jsonmodel">JSONModel</a></li>
+      <li><a href="https://github.com/rs/SDWebImage">SDWebImage</a></li>
+      <li><a href="https://github.com/JJSaccolo/UIActivityIndicator-for-SDWebImage">UIActivityIndicator-for-SDWebImage</a></li>
+      <li><a href="https://github.com/mxcl/PromiseKit">PromiseKit</a></li>
+    </ul>
+  </li>
+  <li><strong>Dependency management</strong>: <a href="https://github.com/CocoaPods/CocoaPods">CocoaPods</a> (can change to your choice)</li>
+</ul>
+<p><img src="https://camo.githubusercontent.com/d1053ae970565f55ece4dc98c65859035633ae22/68747470733a2f2f692e696d6775722e636f6d2f346a6d5372725a2e706e67" width="50%" /></p>
+<h2 id="initial-thoughts">Initial thoughts</h2>
+<p>While I originally was debating on whether to have the candidate start the interview with a bare bones skeleton or not, I quickly
+realized that the time allowed would need me to restrict the pairing portion of the interview to key areas where the candidate would
+fill in missing portions of code, or perhaps build out very simple classes. You can see for yourself in the <a href="https://github.com/kfarst/ios-code-interview">repo</a> what those areas were,
+but I tried to make them as general as possible so as to not force him or her to write the code <em>exactly</em> how I had, but instead still achieve
+the same result with their own direction.</p>
+<p>Additionally, I felt the dependencies I chose provided enough support during the interview that the interviewee would not get caught up
+in the tedious nitty-gritty of some of the setup, but instead could focus on the high-level feature set to demonstrate their skills. As a bonus,
+I could see how they dissected third-party code and documentation for the information they would need to utilize these packages.</p>
+<h2 id="the-process">The Process</h2>
+<p>I won’t cover every detail of developing the coding exercise, though I’d like to go over some of the highlights of putting together the features that
+make up the codebase, some of the decisions I made, and the process of “fleshing them out”.</p>
+<h4 id="movie-list-categories">Movie list categories</h4>
+<p>One of the first things to note for each of the movie list categories (Now Playing, Popular, Top Rated, and Upcoming) is that the tab name, header title
+and API endpoint all use the same text, albeit it different formats. The tab and header use a title format whereas the endpoints use <a href="https://en.wikipedia.org/wiki/Snake_case">snake case</a>
+for proper URL formatting.</p>
+<p><img src="http://imgur.com/e2buYMJ.png" width="100%" /></p>
+<p>For simplicity’s sake, I hard-coded the endpoints to a lazily-instantiated property</p>
+<figure class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span></span>  <span class="k">@interface</span> <span class="nc">AppDelegate</span> <span class="p">()</span>
+  <span class="p">...</span>
+  <span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">strong</span><span class="p">)</span> <span class="bp">NSArray</span> <span class="o">*</span><span class="n">movieListTypes</span><span class="p">;</span>
+  <span class="k">@end</span>
+  <span class="k">@implementation</span> <span class="nc">AppDelegate</span>
+    <span class="p">...</span>
+    <span class="o">-</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="n">movieListTypes</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">_movieListTypes</span> <span class="o">==</span> <span class="nb">nil</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">_movieListTypes</span> <span class="o">=</span> <span class="l">@[</span>
+                                    <span class="s">@&quot;now_playing&quot;</span><span class="p">,</span>
+                                    <span class="s">@&quot;popular&quot;</span><span class="p">,</span>
+                                    <span class="s">@&quot;top_rated&quot;</span><span class="p">,</span>
+                                    <span class="s">@&quot;upcoming&quot;</span>
+                                <span class="l">]</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">_movieListTypes</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="k">@end</span></code></pre></figure>
+<p>I also created a method to titleize a passed in endpoint</p>
+<figure class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span></span><span class="p">-</span> <span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nf">titleizeEndpoint:</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">endpoint</span>
+<span class="p">{</span>
+    <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">capitalizedWords</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSMutableArray</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">];</span>
+    <span class="p">[[</span><span class="n">endpoint</span> <span class="nl">componentsSeparatedByString</span><span class="p">:</span><span class="s">@&quot;_&quot;</span><span class="p">]</span> <span class="nl">enumerateObjectsUsingBlock</span><span class="p">:</span> <span class="o">^</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="n">word</span><span class="p">,</span> <span class="n">NSUInteger</span> <span class="n">idx</span><span class="p">,</span> <span class="kt">BOOL</span> <span class="o">*</span><span class="n">stop</span><span class="p">){</span>
+        <span class="p">[</span><span class="n">capitalizedWords</span> <span class="nl">addObject</span><span class="p">:[</span><span class="n">word</span> <span class="n">capitalizedString</span><span class="p">]];</span>
+    <span class="p">}];</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">capitalizedWords</span> <span class="nl">componentsJoinedByString</span><span class="p">:</span><span class="s">@&quot; &quot;</span><span class="p">];</span>
+<span class="p">}</span></code></pre></figure>
+<p>Finally, I combined the property and method to build the <code>UITabBarController</code> and <code>UINavigationController</code>s
+with the appropriate endpoint and title</p>
+<figure class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span></span>  <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">movieListTypes</span> <span class="nl">enumerateObjectsUsingBlock</span><span class="p">:</span> <span class="o">^</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="n">endpoint</span><span class="p">,</span> <span class="n">NSUInteger</span> <span class="n">idx</span><span class="p">,</span> <span class="kt">BOOL</span> <span class="o">*</span><span class="n">stop</span><span class="p">){</span>
+      <span class="n">MovieListViewController</span> <span class="o">*</span><span class="n">movieListViewController</span> <span class="o">=</span> <span class="p">[[</span><span class="n">MovieListViewController</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithClient</span><span class="p">:</span> <span class="n">weakSelf</span><span class="p">.</span><span class="n">client</span> <span class="nl">forEndpoint</span><span class="p">:</span><span class="n">endpoint</span><span class="p">];</span>
+      <span class="bp">UINavigationController</span> <span class="o">*</span><span class="n">navigationController</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">UINavigationController</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithRootViewController</span><span class="p">:</span><span class="n">movieListViewController</span><span class="p">];</span>
+      <span class="n">navigationController</span><span class="p">.</span><span class="n">topViewController</span><span class="p">.</span><span class="n">title</span> <span class="o">=</span> <span class="p">[</span><span class="n">weakSelf</span> <span class="nl">titleizeEndpoint</span><span class="p">:</span><span class="n">endpoint</span><span class="p">];</span>
+      <span class="n">navigationController</span><span class="p">.</span><span class="n">tabBarItem</span><span class="p">.</span><span class="n">title</span> <span class="o">=</span> <span class="p">[</span><span class="n">weakSelf</span> <span class="nl">titleizeEndpoint</span><span class="p">:</span><span class="n">endpoint</span><span class="p">];</span>
+      <span class="p">[</span><span class="n">tabBarControllers</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">navigationController</span><span class="p">];</span>
+  <span class="p">}];</span></code></pre></figure>
+<h4 id="json-model">JSON Model</h4>
+<p>In order to simplify the process of deserializing the JSON coming back from the API, I decided to use
+the <a href="https://github.com/jsonmodel/jsonmodel">JSONModel</a> CocoaPod so as to not bog down the candidate
+with tedious JSON deserialization. Although this could be a good exercise in seeing how the candidate
+handles JSON HTTP responses, in this case there were more important concepts to focus on. I figured it would 
+give me a glimpse in seeing how the candidate seeks out documentation for the library, as they were tasked with adding
+the properties to the model, as well as telling JSONModel to map the JSON keys from snake case to camel case
+when deserializing.</p>
+<p><em>MovieModel.h</em></p>
+<figure class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span></span><span class="cp">#import &lt;JSONModel/JSONModel.h&gt;</span>
+<span class="k">@interface</span> <span class="nc">MovieModel</span> : <span class="nc">JSONModel</span>
+  <span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span><span class="n">title</span><span class="p">;</span>
+  <span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span><span class="n">overview</span><span class="p">;</span>
+  <span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span><span class="n">posterPath</span><span class="p">;</span>
+  <span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span><span class="n">releaseDate</span><span class="p">;</span>
+<span class="k">@end</span></code></pre></figure>
+<p><em>MovieModel.m</em></p>
+<figure class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span></span><span class="cp">#import &quot;MovieModel.h&quot;</span>
+<span class="k">@implementation</span> <span class="nc">MovieModel</span>
+  <span class="o">+</span> <span class="p">(</span><span class="n">JSONKeyMapper</span> <span class="o">*</span><span class="p">)</span><span class="n">keyMapper</span>
+  <span class="p">{</span>
+      <span class="k">return</span> <span class="p">[</span><span class="n">JSONKeyMapper</span> <span class="n">mapperForSnakeCase</span><span class="p">];</span>
+  <span class="p">}</span>
+<span class="k">@end</span></code></pre></figure>
+<h4 id="promises">Promises</h4>
+<p>This was one of the most interesting challeges to work through with a candidate. While most iOS engineers are very comfortable
+in handling asynchronous behavior with callbacks, <em>promises</em>, though similar, still take a bit of getting used to. The fact that you
+can chain promises, rather than have a series of nested callbacks, takes a bit of practice for building and implementing. As a result though, I believe
+promises can make for much cleaner code.</p>
+<p>My company’s application was written using a homegrown implementation of promises. In the case of the pairing challenge however, I decided to go
+with <a href="https://github.com/mxcl/PromiseKit">PromiseKit</a> as it both allows the candidate to not concern themselves with the internals of a custom construct,
+but may also hasten the process if he or she has ever used the third-party library, not to mention PromiseKit’s thorough documentation.</p>
+<p>I started off with defining private property and method definitions in the implementation file.</p>
+<figure class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span></span>  <span class="cp">#import &quot;MovieClient.h&quot;</span>
+  <span class="k">@interface</span> <span class="nc">MovieClient</span> <span class="p">()</span>
+  <span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">strong</span><span class="p">)</span> <span class="bp">NSURLSession</span> <span class="o">*</span><span class="n">URLSession</span><span class="p">;</span>
+  <span class="o">-</span> <span class="p">(</span><span class="bp">NSURLRequest</span> <span class="o">*</span><span class="p">)</span><span class="nl">requestForMovieListWithType</span><span class="p">:(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">listType</span><span class="p">;</span>
+  <span class="k">@end</span></code></pre></figure>
+<p>My company’s app implemented the API client by instanting it once and passing it around controllers where needed, so I followed the same pattern.</p>
+<figure class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span></span>  <span class="k">@implementation</span> <span class="nc">MovieClient</span>
+  <span class="bp">NSString</span>  <span class="o">*</span><span class="k">const</span> <span class="n">BASE_URL</span> <span class="o">=</span> <span class="s">@&quot;https://api.themoviedb.org/3/movie/%@?api_key=%@&quot;</span><span class="p">;</span>
+  <span class="bp">NSString</span> <span class="o">*</span><span class="k">const</span>  <span class="n">API_KEY</span> <span class="o">=</span> <span class="s">@&quot;key goes here&quot;</span><span class="p">;</span>
+  <span class="o">-</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="n">init</span>
+  <span class="p">{</span>
+      <span class="nb">self</span> <span class="o">=</span> <span class="p">[</span><span class="nb">super</span> <span class="n">init</span><span class="p">];</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nb">self</span> <span class="o">!=</span> <span class="nb">nil</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nb">self</span><span class="p">.</span><span class="n">URLSession</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSURLSession</span> <span class="nl">sessionWithConfiguration</span><span class="p">:[</span><span class="bp">NSURLSessionConfiguration</span> <span class="n">defaultSessionConfiguration</span><span class="p">]</span> <span class="nl">delegate</span><span class="p">:</span><span class="nb">nil</span> <span class="nl">delegateQueue</span><span class="p">:</span><span class="bp">NSOperationQueue</span><span class="p">.</span><span class="n">mainQueue</span><span class="p">];</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="nb">self</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="p">...</span></code></pre></figure>
+<p>Since each endpoint followed the same format, only one public method was needed, <code>fetchMovieList</code>, in which the movie list category type was passed in
+and a promise of type <code>AnyPromise</code> was returned.</p>
+<figure class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span></span>  <span class="o">-</span> <span class="p">(</span><span class="n">AnyPromise</span> <span class="o">*</span><span class="p">)</span><span class="nl">fetchMovieList</span><span class="p">:(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">listType</span>
+  <span class="p">{</span>
+      <span class="k">return</span> <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">URLSession</span> <span class="nl">promiseDataTaskWithRequest</span><span class="p">:[</span><span class="nb">self</span> <span class="nl">requestForMovieListWithType</span><span class="p">:</span><span class="n">listType</span><span class="p">]];</span>
+  <span class="p">}</span></code></pre></figure>
+<p>The <code>NSURLRequest</code> was constructed and returned from <code>requestForMovieListWithType</code>, which would take in the <code>listType</code> string, and interpolate the <code>API_KEY</code> and <code>listType</code>
+into the <code>BASE_URL</code>.</p>
+<figure class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span></span>  <span class="o">-</span> <span class="p">(</span><span class="bp">NSURLRequest</span> <span class="o">*</span><span class="p">)</span><span class="nl">requestForMovieListWithType</span><span class="p">:(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">listType</span>
+  <span class="p">{</span>
+      <span class="bp">NSString</span> <span class="o">*</span><span class="n">typeEncoded</span> <span class="o">=</span> <span class="p">[</span><span class="n">listType</span> <span class="nl">stringByAddingPercentEncodingWithAllowedCharacters</span><span class="p">:[</span><span class="bp">NSCharacterSet</span> <span class="n">URLFragmentAllowedCharacterSet</span><span class="p">]];</span>
+      <span class="bp">NSString</span> <span class="o">*</span><span class="n">apiKeyEncoded</span> <span class="o">=</span> <span class="p">[</span><span class="n">API_KEY</span> <span class="nl">stringByAddingPercentEncodingWithAllowedCharacters</span><span class="p">:[</span><span class="bp">NSCharacterSet</span> <span class="n">URLFragmentAllowedCharacterSet</span><span class="p">]];</span>
+      <span class="bp">NSURL</span> <span class="o">*</span><span class="n">url</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSURL</span> <span class="nl">URLWithString</span><span class="p">:[</span><span class="bp">NSString</span> <span class="nl">stringWithFormat</span><span class="p">:</span><span class="n">BASE_URL</span><span class="p">,</span> <span class="n">typeEncoded</span><span class="p">,</span> <span class="n">apiKeyEncoded</span><span class="p">]];</span>
+      <span class="k">return</span> <span class="p">[</span><span class="bp">NSURLRequest</span> <span class="nl">requestWithURL</span><span class="p">:</span><span class="n">url</span><span class="p">];</span>
+  <span class="p">}</span></code></pre></figure>
+<p>Now, if the request was executed, the app would crash with this message:</p>
+<p><img src="http://imgur.com/fo1GclL.png" width="100%" /></p>
+<p>This error would guide the interviewee to notice <code>PromiseKit</code> was complaining that the request was being executed on the main thread. Through some discussion and/or
+possible documentation reading, he or she would come to the conclusion they would need to instantiate a new <code>NSOperationQueue</code> for the <code>NSURLSession</code>.</p>
+<figure class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span></span>  <span class="k">@interface</span> <span class="nc">MovieClient</span> <span class="p">()</span>
+  <span class="p">...</span>
+  <span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">strong</span><span class="p">)</span> <span class="bp">NSOperationQueue</span> <span class="o">*</span><span class="n">requestQueue</span><span class="p">;</span>
+  <span class="p">...</span>
+  <span class="k">@end</span>
+  <span class="k">@implementation</span> <span class="nc">MovieClient</span>
+  <span class="o">-</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="n">init</span>
+  <span class="p">{</span>
+      <span class="nb">self</span> <span class="o">=</span> <span class="p">[</span><span class="nb">super</span> <span class="n">init</span><span class="p">];</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nb">self</span> <span class="o">!=</span> <span class="nb">nil</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nb">self</span><span class="p">.</span><span class="n">URLSession</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSURLSession</span> <span class="nl">sessionWithConfiguration</span><span class="p">:[</span><span class="bp">NSURLSessionConfiguration</span> <span class="n">defaultSessionConfiguration</span><span class="p">]</span> <span class="nl">delegate</span><span class="p">:</span><span class="nb">nil</span> <span class="nl">delegateQueue</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">requestQueue</span><span class="p">];</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="nb">self</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="o">-</span><span class="p">(</span><span class="bp">NSOperationQueue</span> <span class="o">*</span><span class="p">)</span> <span class="n">requestQueue</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">_requestQueue</span> <span class="o">==</span> <span class="nb">nil</span><span class="p">)</span> <span class="p">{</span>
+          <span class="n">_requestQueue</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSOperationQueue</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">];</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="n">_requestQueue</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="p">...</span></code></pre></figure>
+<h4 id="programmatic-views">Programmatic Views</h4>
+<p>The code challenge app only consisted of two programmatic views, a <code>LoadingView</code> and a custom <code>MovieTableViewCell</code>.
+The <code>LoadingView</code> was provided in full, for both the interviewee to focus on more important topics, as well as to
+potentially be used as a guide for “fleshing out” the needed parts of the <code>MovieTableViewCell</code>. The <code>MovieTableViewCell</code>
+doesn’t really handle any sort of special configuration, but a couple of items just to showcase are:</p>
+<ul>
+  <li>Interpolating the <code>posterPath</code> into a <code>POSTER_BASE_URL</code> and rendering it asynchronously</li>
+</ul>
+<figure class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span></span>  <span class="bp">NSString</span> <span class="o">*</span> <span class="k">const</span> <span class="n">POSTER_BASE_URL</span> <span class="o">=</span> <span class="s">@&quot;https://image.tmdb.org/t/p/w185/%@&quot;</span><span class="p">;</span>
+  <span class="p">...</span>
+  <span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">configureWithMovie</span><span class="p">:(</span><span class="n">MovieModel</span> <span class="o">*</span><span class="p">)</span><span class="n">movie</span>
+  <span class="p">{</span>
+      <span class="nb">self</span><span class="p">.</span><span class="n">titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">movie</span><span class="p">.</span><span class="n">title</span><span class="p">;</span>
+      <span class="nb">self</span><span class="p">.</span><span class="n">overviewLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">movie</span><span class="p">.</span><span class="n">overview</span><span class="p">;</span>
+      <span class="bp">NSString</span> <span class="o">*</span><span class="n">posterPathEncoded</span> <span class="o">=</span> <span class="p">[</span><span class="n">movie</span><span class="p">.</span><span class="n">posterPath</span> <span class="nl">stringByAddingPercentEncodingWithAllowedCharacters</span><span class="p">:[</span><span class="bp">NSCharacterSet</span> <span class="n">URLFragmentAllowedCharacterSet</span><span class="p">]];</span>
+      <span class="bp">NSString</span> <span class="o">*</span><span class="n">urlString</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSString</span> <span class="nl">stringWithFormat</span><span class="p">:</span><span class="n">POSTER_BASE_URL</span><span class="p">,</span> <span class="n">posterPathEncoded</span><span class="p">];</span>
+      <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">posterImageView</span> <span class="nl">setImageWithURL</span><span class="p">:[</span><span class="bp">NSURL</span> <span class="nl">URLWithString</span><span class="p">:</span><span class="n">urlString</span><span class="p">]</span> <span class="nl">usingActivityIndicatorStyle</span><span class="p">:</span><span class="n">UIActivityIndicatorViewStyleGray</span><span class="p">];</span>
+  <span class="p">}</span></code></pre></figure>
+<ul>
+  <li>Lazily-instantiated UI properties, which was a pattern I mimicked throughout the exercise to reflect the app the candidate would be working on when hired.
+However, the starting point only defined the properties, and the interviewee could instantiate them however he or she wanted.</li>
+</ul>
+<figure class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span></span>  <span class="o">-</span> <span class="p">(</span><span class="bp">UILabel</span> <span class="o">*</span><span class="p">)</span><span class="n">titleLabel</span>
+  <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">_titleLabel</span> <span class="o">==</span> <span class="nb">nil</span><span class="p">)</span>
+      <span class="p">{</span>
+          <span class="n">_titleLabel</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">UILabel</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">];</span>
+          <span class="n">_titleLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">@&quot;&quot;</span><span class="p">;</span>
+          <span class="n">_titleLabel</span><span class="p">.</span><span class="n">translatesAutoresizingMaskIntoConstraints</span> <span class="o">=</span> <span class="nb">NO</span><span class="p">;</span>
+          <span class="n">_titleLabel</span><span class="p">.</span><span class="n">lineBreakMode</span> <span class="o">=</span> <span class="n">NSLineBreakByWordWrapping</span><span class="p">;</span>
+          <span class="n">_titleLabel</span><span class="p">.</span><span class="n">font</span> <span class="o">=</span> <span class="p">[</span><span class="bp">UIFont</span> <span class="nl">boldSystemFontOfSize</span><span class="p">:</span><span class="mf">16.0</span><span class="p">];</span>
+          <span class="n">_titleLabel</span><span class="p">.</span><span class="n">numberOfLines</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+          <span class="n">_titleLabel</span><span class="p">.</span><span class="n">lineBreakMode</span> <span class="o">=</span> <span class="n">NSLineBreakByTruncatingTail</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="n">_titleLabel</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="p">...</span></code></pre></figure>
+<ul>
+  <li>Using <a href="https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/AutolayoutPG/VisualFormatLanguage.html">Visual Formatting Language</a> for
+constrants. Again, not a requirement, but encouraged to test the potential hire’s skillset.</li>
+</ul>
+<figure class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span></span>  <span class="o">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">updateConstraints</span>
+  <span class="p">{</span>
+      <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableArray</span> <span class="n">new</span><span class="p">];</span>
+      <span class="bp">NSDictionary</span> <span class="o">*</span><span class="n">views</span> <span class="o">=</span> <span class="n">NSDictionaryOfVariableBindings</span><span class="p">(</span>
+                                                           <span class="n">_titleLabel</span><span class="p">,</span>
+                                                           <span class="n">_overviewLabel</span><span class="p">,</span>
+                                                           <span class="n">_posterImageView</span>
+                                                           <span class="p">);</span>
+      <span class="p">[</span><span class="n">constraints</span> <span class="nl">addObjectsFromArray</span><span class="p">:</span> <span class="p">[</span><span class="bp">NSLayoutConstraint</span>
+        <span class="nl">constraintsWithVisualFormat</span><span class="p">:</span> <span class="s">@&quot;H:|-[_posterImageView(80)][_titleLabel]-|&quot;</span>
+        <span class="nl">options</span><span class="p">:</span><span class="mi">0</span>
+        <span class="nl">metrics</span><span class="p">:</span><span class="nb">nil</span>
+        <span class="nl">views</span><span class="p">:</span><span class="n">views</span><span class="p">]];</span>
+      <span class="p">...</span>
+      <span class="p">...</span>
+    <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">contentView</span> <span class="nl">addConstraints</span><span class="p">:</span><span class="n">constraints</span><span class="p">];</span>
+    <span class="p">[</span><span class="nb">super</span> <span class="n">updateConstraints</span><span class="p">];</span>
+  <span class="p">}</span></code></pre></figure>
+<h4 id="unit-testing-and-swift">Unit Testing and Swift</h4>
+<p>Because all work going forward on my company’s app was in Swift, the candidate should have at least a basic knowledge of it. I figured I could “kill two birds with one stone” by
+having him or her write at least one unit test in Swift. Unit and UI tests are something I feel I don’t see enough of in iOS applications, so I wanted to see how comfortable the iOS
+engineer was in writing them, as it would be something strongly encouraged for each new feature and bug fix.</p>
+<p>Adding Swift into the mix could also show me how the candidate handled Swift integration in an Objective-C project, considering he or she would need to create a bridging header and
+translate initialization syntax from an Objective-C class to a new instance declaration in Swift, depending on what the interviewee wanted to test. For my test, I simply verified
+the return value of the <code>fetchMovieList</code> method in the <code>MovieClient</code> class was indeed of type <code>AnyPromise</code>.</p>
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span></span>  <span class="p">...</span>
+  <span class="kd">class</span> <span class="nc">TheMovieDatabaseAppTests</span><span class="p">:</span> <span class="n">XCTestCase</span> <span class="p">{</span>
+      <span class="kd">func</span> <span class="nf">testFetchMovieList</span><span class="p">()</span> <span class="p">{</span>
+          <span class="c1">// Use XCTAssert and related functions to verify your tests produce the correct results.</span>
+          <span class="kd">let</span> <span class="nv">movieClient</span> <span class="p">=</span> <span class="n">MovieClient</span><span class="p">()</span>
+          <span class="n">XCTAssertTrue</span><span class="p">((</span><span class="n">movieClient</span><span class="p">!.</span><span class="n">fetchMovieList</span><span class="p">(</span><span class="s">&quot;upcoming&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="nb">Any</span><span class="p">)</span> <span class="k">is</span> <span class="n">AnyPromise</span><span class="p">)</span>
+      <span class="p">}</span>
+  <span class="p">}</span></code></pre></figure>
+<h2 id="conclusion">Conclusion</h2>
+<p>Putting together a code pairing exercise for potential job candidates was both a difficult and enjoyable experience. I felt it helped me make better decisions about how to structure functionality
+around technical requirements and best practices according to the project at hand, not just meeting business requirements. Though my company’s app was a good guide for how and what I wanted to test against,
+it was a productive challenge trying to put myself in the shoes of the candidate, how they would think about coming up with a solution for each step, and finding a balance between skill testing and time constraints.</p>
+<p>You can find the starting point on the <a href="https://github.com/kfarst/ios-code-interview/tree/master">master</a> branch of the project, and my personal solution on, cleverly enough, the <a href="https://github.com/kfarst/ios-code-interview/tree/solution">solution</a> branch. If you found this project helpful in your own endeavors, feel free to fork
+and expand the feature set with a pull request, and don’t hesitate to ask any questions or offer any suggestions. Thanks for reading, and good luck!</p>
+    <aside class="share">
+      <span>Share this: </span>
+      <a href="http://twitter.com/share?text=Designing an iOS Pair Programming Interview&amp;url=http://kfarst.github.com/ios/2017/04/20/designing-an-ios-pair-programming-interview/&amp;hashtags=web,dev,blog&amp;via=kevinfarst"
+      onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <i class="icon icon-twitter-rounded"></i>
+      </a>
+      <a href="https://www.facebook.com/sharer/sharer.php?u=http://kfarst.github.com/ios/2017/04/20/designing-an-ios-pair-programming-interview/"
+      onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <i class="icon icon-facebook-rounded"></i>
+      </a>
+    </aside>
+  </div>
+  <hr>
+  <aside id="comments" class="disqus">
+    <h3>Comments</h3>
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname, disqus_config;
+      var disqus_script_tag = setTimeout(function () {
+        if ('/ios/2017/04/20/designing-an-ios-pair-programming-interview') {
+          disqus_shortname = 'kfarst';
+          disqus_config = function () {
+            this.page.identifier = 'http://kfarst.github.com/ios/2017/04/20/designing-an-ios-pair-programming-interview';
+            this.page.title = 'Designing an iOS Pair Programming Interview';
+            this.page.url = 'http://kfarst.github.com/ios/2017/04/20/designing-an-ios-pair-programming-interview';
+            /*var disqus_developer = 1;*/
+          };
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        } else {
+          disqus_script_tag();
+        }
+      }, 1000);
+    </script>
+    <noscript>
+      Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
+    </noscript>
+  </aside>
+</article>
+        </section>
+<div class="clearfix"></div>
+<footer class="site-footer txt-center">
+  <hr>
+  <ul class="social">
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="http://kfarst.github.com" target="_blank"><i class="icon icon-github"></i></a></li>
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="http://twitter.com/kevinfarst" target="_blank"><i class="icon icon-twitter"></i></a></li>
+        <li><a href="" target="_blank"><i class="icon icon-"></i></a></li>
+        <li><a href="https://www.linkedin.com/in/kevin-farst-14a63914" target="_blank"><i class="icon icon-linkedin"></i></a></li>
+  </ul>
+  <small>&copy; 2019 All rights reserved. Made with <a href="http://jekyllrb.com" target="_blank">Jekyll</a> and <i class="icon icon-heart"></i></small>
+  <small>by <a href="http://nandomoreira.me" target="_blank">nandomoreira.me</a></small>
+</footer>
+    </main>
+    <a href="http://github.com/kfarst" target="_blank" class="github-corner"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#2ecc71; color:#f7f8f9; position: absolute; top: 0; border: 0; right: 0;"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+  </body>
+</html>
