@@ -21,11 +21,8 @@ be scratching your head trying to figure out how in the world to swap out your A
 instead of the real thing. This can be especially daunting for someone just getting into the realm of testing their code,
 and you can see from this example something needs to be done to make cleaner and easier to test code.
 
-As you probably know, iOS apps are build using the [Model-View-Controller](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) (MVC) architecture. If your views are storyboards
-or programmatic UI code presented to the user, and models are for business logic, it seems like the only place left
-to put "everything else" would be the controller (or view controller in the case of iOS). There is a joke in the iOS community
-that MVC actually stands for *Massive View Controller*, so you can see this is something that tends to naturally happen as
-you level up your dev skills in this mobile platform.
+As you probably know, iOS apps are build using the [Model-View-Controller](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) (MVC) architecture. If your views are storyboards or programmatic UI code presented to the user, and models are for business logic, it seems like the only place left to put "everything else" would be the controller (or view controller in the case of iOS). There is a joke in the iOS community
+that MVC actually stands for *Massive View Controller*, so you can see this is something that tends to naturally happen as you level up your dev skills in this mobile platform.
 
 ### It's Not Your Fault
 
@@ -164,7 +161,7 @@ class OrderListInteractorMock: OrderListViewControllerOutput {
 
 ### Passing Data In The VIP Cycle
 
-We still have a lot to cover in upcoming articles, but the last thing I'd lke to talk about in part 1 is how data is passed between the various methods in the VIP cycle. Rather than passing each argument into a method, we can build *models* for our *scene*. These models are just basic *structs* for the purpose of "packaging" the arguments into a single data structure. The view controller passes a **request** to the interactor, the interactor passes a **response** to the presenter, and finaly the presenter passes a **view model** back to the view controller.
+We still have a lot to cover in upcoming articles, but the last thing I'd like to talk about in part 1 is how data is passed between the various methods in the VIP cycle. Rather than passing each argument into a method, we can build *models* for our *scene*. These models are just basic *structs* for the purpose of "packaging" the arguments into a single data structure. The view controller passes a **request** to the interactor, the interactor passes a **response** to the presenter, and finaly the presenter passes a **view model** back to the view controller.
 
 <img src="https://imgur.com/L5ioLcf.png" width="100%" />
 
