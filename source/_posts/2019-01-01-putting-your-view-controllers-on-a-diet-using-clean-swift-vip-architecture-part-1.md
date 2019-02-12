@@ -11,6 +11,8 @@ tags:
 - iOS
 ---
 
+*Check out [part 2](http://kfarst.github.io/ios/2019/02/21/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture-part-2/) for more Clean Swift goodness*
+
 If you are just getting started in iOS development (or even have a decent amount of experience) you may
 see situations where your view controllers are getting quite large. Maybe you're finding all of the view setup,
 presenting other view controllers, getting the user's current location, and API calls are all defined and executed
@@ -201,4 +203,4 @@ Passing data in this way provides two key advantages:
 
 ## To Be Continued...
 
-As I mentioned above, in upcoming articles we will also be examining presenters, workers, routers, unit testing, and much more. I hope learning about Clean Swift has been an intriguing and exciting topic, and I look forward to expanding on it in my next few posts. Happy New Year, and happy coding!
+As I mentioned above, in [upcoming articles](http://kfarst.github.io/ios/2019/02/21/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture-part-2/) we will also be examining presenters, workers, routers, unit testing, and much more. I hope learning about Clean Swift has been an intriguing and exciting topic, and I look forward to expanding on it in my next few posts. Happy New Year, and happy coding!
