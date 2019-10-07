@@ -15,6 +15,10 @@ Welcome back! [Last time](http://kfarst.github.io/ios/2019/01/01/putting-your-vi
 
 <img src='https://imgur.com/hGioOK5.png' />
 
+As we walk through the code examples below, feel free to follow along with the source code [here](https://bitbucket.org/kfarst/photoshowcase). The app displays a simple table view with placeholder images.
+
+<img src='https://imgur.com/XrRzMT1.gif' />
+
 ## VIP Cycle Setup
 
 In [part 1](http://kfarst.github.io/ios/2019/01/01/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture/) I explained how data is passed between classes in a VIP cycle by way of *requests*, *responses*, and *view models*, but not how the cycle is set up or how dependencies are passed in during initialization.
