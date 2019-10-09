@@ -14,7 +14,7 @@ through [Codepath](http://codepath.com/).
 I really enjoy helping others and try to dedicate myself to "paying back" those who have helped me develop
 my career by building the skills of others as a mentor and teacher.
 
-As a part of that mentoring and teaching, I help others with their code on [Codementor](http://codementor.io)
+As a part of that mentoring and teaching, I help others with their code on [Codementor](https://www.codementor.io/kevinfarst)
 and have taught multiple classes on the platform for beginning, intermediate, and advanced levels.
 
 Additionally, I always try to contribute to many open source projects and continue building my skills to in
