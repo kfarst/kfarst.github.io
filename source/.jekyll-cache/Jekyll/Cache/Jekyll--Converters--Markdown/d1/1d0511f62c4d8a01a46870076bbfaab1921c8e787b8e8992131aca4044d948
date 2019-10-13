@@ -1,0 +1,51 @@
+I"�<p>I am a software engineer in Silicon Valley with almost a decade of experience in web and mobile development. I
+have a diverse background as a full-stack Ruby on Rails developer, front-end AngularJS, and iOS developer in
+multiple capacities and roles, as well as a team lead and manager.</p>
+
+<p>On the mobile side of things, I’ve attend both the <em>iOS For Engineers</em> and the <em>Android For Engineers</em> bootcamps
+through <a href="http://codepath.com/">Codepath</a>.</p>
+
+<p>I really enjoy helping others and try to dedicate myself to “paying back” those who have helped me develop
+my career by building the skills of others as a mentor and teacher.</p>
+
+<p>As a part of that mentoring and teaching, I help others with their code on <a href="https://www.codementor.io/kevinfarst">Codementor</a>
+and have taught multiple classes on the platform for beginning, intermediate, and advanced levels.</p>
+
+<p>Additionally, I always try to contribute to many open source projects and continue building my skills to in
+turn help others as the development landscape changes.</p>
+
+<h2 id="portfolio">Portfolio</h2>
+
+<h4 id="ios">iOS</h4>
+<ul>
+  <li><a href="https://itunes.apple.com/us/app/zozi-advance/id1050829261">ZOZI Advance</a> (Objective-C)</li>
+  <li><a href="https://github.com/kfarst/ios-code-interview/tree/solution">Pair Programming Interview App</a> (Objective-C)</li>
+  <li><a href="https://github.com/kfarst/alarm">Shuteye</a> (Swift)</li>
+  <li><a href="https://github.com/kfarst/YelpMe">YelpMe</a> (Swift)</li>
+  <li><a href="https://github.com/kfarst/Stale-Nightshade-Swift">Stale Nightshade</a> (Swift)</li>
+  <li><a href="https://github.com/kfarst/How-Tweet-It-Is/tree/v_2_0">How Tweet It is</a> (Swift)</li>
+</ul>
+
+<h4 id="android">Android</h4>
+<ul>
+  <li><a href="https://github.com/kfarst/Whispertweetnothings/tree/v_2_0">Whisper Tweet Nothings</a></li>
+  <li><a href="https://github.com/kfarst/NYTimesArticleSearch">New York Times Article Search</a></li>
+  <li><a href="https://github.com/kfarst/Flicks">Flicks</a></li>
+  <li><a href="https://github.com/kevrain/Consens.us">Consens.us</a></li>
+</ul>
+
+<h4 id="open-source-contributions">Open Source Contributions</h4>
+<ul>
+  <li><a href="https://github.com/kfarst/YLTableView">YLTableView</a> (Objective-C)</li>
+  <li><a href="https://github.com/kfarst/Shuttle">Shuttle</a> (Android)</li>
+  <li><a href="https://github.com/kfarst/Injineer">Injineer</a> (Objective-C)</li>
+  <li><a href="https://github.com/kfarst/angular-chosen">Angular Chosen Localytics</a> (JavaScript)</li>
+  <li><a href="https://github.com/kfarst/annotate_models">Annotate Models</a> (Ruby)</li>
+  <li><a href="https://github.com/kfarst/emaildirect-ruby">emaildirect</a> (Ruby)</li>
+  <li><a href="https://github.com/kfarst/openid_connect">openid_connect</a> (Ruby)</li>
+  <li><a href="https://github.com/Yelp/yelp-ios">yelp-ios</a> (Objective-C)</li>
+</ul>
+
+<p>You can find my other work and projects on my <a href="http://github.com/kfarst">GitHub</a>.</p>
+
+:ET

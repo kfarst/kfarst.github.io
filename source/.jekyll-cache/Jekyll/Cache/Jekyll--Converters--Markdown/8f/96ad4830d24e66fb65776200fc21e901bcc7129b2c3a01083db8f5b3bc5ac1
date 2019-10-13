@@ -1,0 +1,78 @@
+I"!<p>I am currently implementating <a href="https://en.wikipedia.org/wiki/Internationalization_and_localization">internationalization</a>, often abbreviated as <em>i18n</em>, in
+a React app I’m working on. I’m using <a href="https://github.com/i18next/react-i18next">react-i18next</a>
+to handle the translations, and I wanted to make sure we had proper test coverage for this new functionality. The way this package works,
+which is just a React wrapper around the <a href="https://www.i18next.com/">i18next</a> package, is by mapping nested keys to their associated values
+in a particular list of translations. By some means we detect the user’s language (usually from the browser), and fetch the JSON file associated
+with those translations and interpolate the values into the key placeholders. For example, for English we fetch the <code>en.json</code> file</p>
+
+<figure class="highlight"><pre><code class="language-json" data-lang="json"><span class="p">{</span><span class="w">
+  </span><span class="nl">"foo"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"bar"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"baz"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Foo Bar Baz"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span></code></pre></figure>
+
+<p>and use the package-provided <code>&lt;I18n /&gt;</code> component to translate it. Therefore</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="o">&lt;</span><span class="nx">I18n</span><span class="o">&gt;</span>
+<span class="p">{</span>
+  <span class="nx">t</span> <span class="o">=&gt;</span> <span class="p">(</span>
+    <span class="o">&lt;</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">{</span> <span class="nx">t</span><span class="p">(</span><span class="dl">'</span><span class="s1">foo.bar.baz</span><span class="dl">'</span><span class="p">)</span> <span class="p">}</span><span class="o">&lt;</span><span class="sr">/span</span><span class="err">&gt;
+</span>  <span class="p">)</span>
+<span class="p">}</span>
+<span class="o">&lt;</span><span class="sr">/I18n&gt;</span></code></pre></figure>
+
+<p>will become simply</p>
+
+<figure class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;span&gt;</span>Foo Bar Baz<span class="nt">&lt;/span&gt;</span></code></pre></figure>
+
+<p>You need to create a configuration file for initialization of the <strong>i18next</strong> package, providing various options. Two of these most importantly tell <strong>i18next</strong>
+<em>where</em> to find the translation files and <em>how</em> to fetch them. For the actual application’s configuration, I’m fetching the file(s) by way of XHR and a newly
+created endpoint. However for unit testing, we want both instant translations and to avoid the overhead of making a network request. The documentation provides
+an example of how to create an <strong>i18next</strong> configuration file specifically for testing, so I used something very similar to that found <a href="https://react.i18next.com/misc/testing.html">here</a>.
+For this configuration I tried using the <a href="https://github.com/sallar/i18next-sync-fs-backend">i18next-sync-fs-backend</a> in order to instantly load the translations
+by way of file fetching and reading on the server-side as opposed to an XHR request.</p>
+
+<p>However, this turned out to be quite the headache. It was not translating my strings despite scouring Google, trying to verify the correct file path, etc.
+I finally decided to do the importing myself, so using the file system package <a href="https://nodejs.org/api/fs.html">fs</a>, I fetched and parsed the JSON directly in the configuration file.
+<strong>i18next</strong> provides a function to add the resources as an argument rather than fetching them and handling the file parsing itself. By using <code>addResourceBundle</code>
+to add the JSON resources and <code>readFileSync</code> to pull the JSON directly into the config file, I was able to get my translations rendering synchronously and correctly.
+My working configuration file looked something like this:</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="k">import</span> <span class="nx">i18n</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">i18next</span><span class="dl">'</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="nx">reactI18nextModule</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">react-i18next</span><span class="dl">'</span><span class="p">;</span>
+<span class="k">import</span> <span class="nx">path</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">path</span><span class="dl">'</span><span class="p">;</span>
+<span class="k">import</span> <span class="nx">fs</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">fs</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="nx">i18n</span>
+  <span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">reactI18nextModule</span><span class="p">)</span>
+  <span class="p">.</span><span class="nx">init</span><span class="p">({</span>
+    <span class="na">initImmediate</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+    <span class="na">fallbackLng</span><span class="p">:</span> <span class="dl">'</span><span class="s1">en</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">debug</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+    <span class="na">saveMissing</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="na">preload</span><span class="p">:</span> <span class="p">[</span><span class="dl">'</span><span class="s1">en</span><span class="dl">'</span><span class="p">],</span>
+
+    <span class="na">interpolation</span><span class="p">:</span> <span class="p">{</span>
+      <span class="na">escapeValue</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span> <span class="c1">// not needed for react!!</span>
+    <span class="p">},</span>
+
+    <span class="c1">// react i18next special options (optional)</span>
+    <span class="na">react</span><span class="p">:</span> <span class="p">{</span>
+      <span class="na">wait</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+      <span class="na">nsMode</span><span class="p">:</span> <span class="dl">'</span><span class="s1">fallback</span><span class="dl">'</span><span class="p">,</span> <span class="c1">// set it to fallback to let passed namespaces to translated hoc act as fallbacks</span>
+    <span class="p">},</span>
+  <span class="p">})</span>
+  <span class="p">.</span><span class="nx">addResourceBundle</span><span class="p">(</span>
+    <span class="dl">'</span><span class="s1">en</span><span class="dl">'</span><span class="p">,</span>
+    <span class="dl">'</span><span class="s1">my-app</span><span class="dl">'</span><span class="p">,</span>
+    <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">fs</span><span class="p">.</span><span class="nx">readFileSync</span><span class="p">(</span><span class="nx">path</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="nx">__dirname</span><span class="p">,</span> <span class="dl">'</span><span class="s1">../src/client/locales/en.json</span><span class="dl">'</span><span class="p">)))</span>
+  <span class="p">);</span>
+
+
+<span class="k">export</span> <span class="k">default</span> <span class="nx">i18n</span><span class="p">;</span></code></pre></figure>
+
+<p>Language values are hard-coded in this example, but you can easily provide those as dynamic arguments for other languages. If you’re like
+me and struggled to get this working, I hope you can find this useful, or at least learned something new. Thanks for reading!</p>
+:ET

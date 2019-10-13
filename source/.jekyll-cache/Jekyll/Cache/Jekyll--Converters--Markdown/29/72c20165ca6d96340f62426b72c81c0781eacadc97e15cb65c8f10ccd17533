@@ -1,0 +1,148 @@
+I"~L<p>I’ve been working on a project and I wanted the neat “button bar-style” design for my <code>UISegmentedControl</code>, where there
+are no borders around the segments and there’s a small bar below the selected segment which moves when you choose a new
+segment. I found a couple of really good third-party projects that handled this, but I had some trouble with them and decided
+to try doing it myself. Just a disclaimer, this is <em>one</em> way of doing it; I’m using auto layout constraints, building
+the views programatically, and doing all of my theming inline for the purposes of simplicity.</p>
+
+<h2 id="getting-started">Getting started</h2>
+
+<p>I’m doing this in a Swift playground, so let’s start with the basics by creating a new <code>UIView</code> and adding a <code>UISegmentedControl</code>
+to it with three segments. Also to note, the way I’m building out my constraints will assume all segments are of equal length. If
+not, the button bar at the bottom of the selected segment might end up being too wide or not wide enough for the segment it’s under.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">import</span> <span class="kt">UIKit</span>
+<span class="kd">import</span> <span class="kt">PlaygroundSupport</span>
+
+<span class="c1">// Container view</span>
+<span class="k">let</span> <span class="nv">view</span> <span class="o">=</span> <span class="kt">UIView</span><span class="p">(</span><span class="nv">frame</span><span class="p">:</span> <span class="kt">CGRect</span><span class="p">(</span><span class="nv">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">y</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">width</span><span class="p">:</span> <span class="mi">400</span><span class="p">,</span> <span class="nv">height</span><span class="p">:</span> <span class="mi">100</span><span class="p">))</span>
+<span class="n">view</span><span class="o">.</span><span class="n">backgroundColor</span> <span class="o">=</span> <span class="o">.</span><span class="n">white</span>
+
+<span class="k">let</span> <span class="nv">segmentedControl</span> <span class="o">=</span> <span class="kt">UISegmentedControl</span><span class="p">()</span>
+<span class="c1">// Add segments</span>
+<span class="n">segmentedControl</span><span class="o">.</span><span class="nf">insertSegment</span><span class="p">(</span><span class="nv">withTitle</span><span class="p">:</span> <span class="s">"One"</span><span class="p">,</span> <span class="nv">at</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">animated</span><span class="p">:</span> <span class="kc">true</span><span class="p">)</span>
+<span class="n">segmentedControl</span><span class="o">.</span><span class="nf">insertSegment</span><span class="p">(</span><span class="nv">withTitle</span><span class="p">:</span> <span class="s">"Two"</span><span class="p">,</span> <span class="nv">at</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nv">animated</span><span class="p">:</span> <span class="kc">true</span><span class="p">)</span>
+<span class="n">segmentedControl</span><span class="o">.</span><span class="nf">insertSegment</span><span class="p">(</span><span class="nv">withTitle</span><span class="p">:</span> <span class="s">"Three"</span><span class="p">,</span> <span class="nv">at</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="nv">animated</span><span class="p">:</span> <span class="kc">true</span><span class="p">)</span>
+<span class="c1">// First segment is selected by default</span>
+<span class="n">segmentedControl</span><span class="o">.</span><span class="n">selectedSegmentIndex</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c1">// This needs to be false since we are using auto layout constraints</span>
+<span class="n">segmentedControl</span><span class="o">.</span><span class="n">translatesAutoresizingMaskIntoConstraints</span> <span class="o">=</span> <span class="kc">false</span>
+
+<span class="c1">// Add the segmented control to the container view</span>
+<span class="n">view</span><span class="o">.</span><span class="nf">addSubview</span><span class="p">(</span><span class="n">segmentedControl</span><span class="p">)</span>
+
+<span class="c1">// Constrain the segmented control to the top of the container view</span>
+<span class="n">segmentedControl</span><span class="o">.</span><span class="n">topAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">view</span><span class="o">.</span><span class="n">topAnchor</span><span class="p">)</span><span class="o">.</span><span class="n">isActive</span> <span class="o">=</span> <span class="kc">true</span>
+<span class="c1">// Constrain the segmented control width to be equal to the container view width</span>
+<span class="n">segmentedControl</span><span class="o">.</span><span class="n">widthAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">view</span><span class="o">.</span><span class="n">widthAnchor</span><span class="p">)</span><span class="o">.</span><span class="n">isActive</span> <span class="o">=</span> <span class="kc">true</span>
+<span class="c1">// Constraining the height of the segmented control to an arbitrarily chosen value</span>
+<span class="n">segmentedControl</span><span class="o">.</span><span class="n">heightAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalToConstant</span><span class="p">:</span> <span class="mi">40</span><span class="p">)</span><span class="o">.</span><span class="n">isActive</span> <span class="o">=</span> <span class="kc">true</span>
+
+<span class="kt">PlaygroundPage</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="n">liveView</span> <span class="o">=</span> <span class="n">view</span></code></pre></figure>
+
+<p>The playground live view shows us our basic <code>UISegmentedControl</code>. Don’t forget to append the <code>isActive</code> property to each of the auto layout
+constraints with a value of <code>true</code> or they won’t work.</p>
+
+<p><img src="https://imgur.com/MSovEk4.png" width="100%" /></p>
+
+<h2 id="colors-fonts-and-borders-oh-my">Colors, Fonts, and Borders Oh My!</h2>
+
+<p>Next, let’s remove the <code>backgroundColor</code> and <code>tintColor</code>. When the <code>tintColor</code> is removed, the borders and the selected segment background color
+will also disappear.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// Add lines below selectedSegmentIndex</span>
+<span class="n">segmentedControl</span><span class="o">.</span><span class="n">backgroundColor</span> <span class="o">=</span> <span class="o">.</span><span class="n">clear</span>
+<span class="n">segmentedControl</span><span class="o">.</span><span class="n">tintColor</span> <span class="o">=</span> <span class="o">.</span><span class="n">clear</span></code></pre></figure>
+
+<p>If you look at the live view, since we removed the <code>tintColor</code> the <code>UISegmentControl</code> has briefly “disappeared” since everything is now a clear color.
+To bring back the labels, let’s change the font and text color of both the selected segment and non-selected segments.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// Add lines below the segmented control's tintColor</span>
+<span class="n">segmentedControl</span><span class="o">.</span><span class="nf">setTitleTextAttributes</span><span class="p">([</span>
+    <span class="kt">NSAttributedStringKey</span><span class="o">.</span><span class="nv">font</span> <span class="p">:</span> <span class="kt">UIFont</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"DINCondensed-Bold"</span><span class="p">,</span> <span class="nv">size</span><span class="p">:</span> <span class="mi">18</span><span class="p">),</span>
+    <span class="kt">NSAttributedStringKey</span><span class="o">.</span><span class="nv">foregroundColor</span><span class="p">:</span> <span class="kt">UIColor</span><span class="o">.</span><span class="n">lightGray</span>
+    <span class="p">],</span> <span class="nv">for</span><span class="p">:</span> <span class="o">.</span><span class="n">normal</span><span class="p">)</span>
+
+<span class="n">segmentedControl</span><span class="o">.</span><span class="nf">setTitleTextAttributes</span><span class="p">([</span>
+    <span class="kt">NSAttributedStringKey</span><span class="o">.</span><span class="nv">font</span> <span class="p">:</span> <span class="kt">UIFont</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"DINCondensed-Bold"</span><span class="p">,</span> <span class="nv">size</span><span class="p">:</span> <span class="mi">18</span><span class="p">),</span>
+    <span class="kt">NSAttributedStringKey</span><span class="o">.</span><span class="nv">foregroundColor</span><span class="p">:</span> <span class="kt">UIColor</span><span class="o">.</span><span class="n">orange</span>
+    <span class="p">],</span> <span class="nv">for</span><span class="p">:</span> <span class="o">.</span><span class="n">selected</span><span class="p">)</span></code></pre></figure>
+
+<p><img src="https://imgur.com/xUJvksC.png" width="100%" /></p>
+
+<p>Almost there! Now we have to add a bar below the selected segment.</p>
+
+<h2 id="adding-the-selected-segment-bar">Adding the Selected Segment Bar</h2>
+
+<p>The button bar will be a simple <code>UIView</code> with a <code>backgroundColor</code> matching the color of the selected segment’s font color. This can obviously be different,
+but I’m choosing to make both the selected segment font and the button bar orange. Add these lines after the segmented control’s <code>translatesAutoresizingMaskIntoConstraints</code>
+property.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">let</span> <span class="nv">buttonBar</span> <span class="o">=</span> <span class="kt">UIView</span><span class="p">()</span>
+<span class="c1">// This needs to be false since we are using auto layout constraints</span>
+<span class="n">buttonBar</span><span class="o">.</span><span class="n">translatesAutoresizingMaskIntoConstraints</span> <span class="o">=</span> <span class="kc">false</span>
+<span class="n">buttonBar</span><span class="o">.</span><span class="n">backgroundColor</span> <span class="o">=</span> <span class="kt">UIColor</span><span class="o">.</span><span class="n">orange</span></code></pre></figure>
+
+<p>Next, add the <code>buttonBar</code> as a subview to the container view below the <code>addSubview</code> call for the <code>segmentedControl</code>.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// Below view.addSubview(segmentedControl)</span>
+<span class="n">view</span><span class="o">.</span><span class="nf">addSubview</span><span class="p">(</span><span class="n">buttonBar</span><span class="p">)</span></code></pre></figure>
+
+<p>Finally, we need to give the button bar a width, height, and position. Add these constraints below the <code>segmentedControl</code> constraints.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// Constrain the top of the button bar to the bottom of the segmented control</span>
+<span class="n">buttonBar</span><span class="o">.</span><span class="n">topAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">segmentedControl</span><span class="o">.</span><span class="n">bottomAnchor</span><span class="p">)</span><span class="o">.</span><span class="n">isActive</span> <span class="o">=</span> <span class="kc">true</span>
+<span class="n">buttonBar</span><span class="o">.</span><span class="n">heightAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalToConstant</span><span class="p">:</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">isActive</span> <span class="o">=</span> <span class="kc">true</span>
+<span class="c1">// Constrain the button bar to the left side of the segmented control</span>
+<span class="n">buttonBar</span><span class="o">.</span><span class="n">leftAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">segmentedControl</span><span class="o">.</span><span class="n">leftAnchor</span><span class="p">)</span><span class="o">.</span><span class="n">isActive</span> <span class="o">=</span> <span class="kc">true</span>
+<span class="c1">// Constrain the button bar to the width of the segmented control divided by the number of segments</span>
+<span class="n">buttonBar</span><span class="o">.</span><span class="n">widthAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">segmentedControl</span><span class="o">.</span><span class="n">widthAnchor</span><span class="p">,</span> <span class="nv">multiplier</span><span class="p">:</span> <span class="mi">1</span> <span class="o">/</span> <span class="kt">CGFloat</span><span class="p">(</span><span class="n">segmentedControl</span><span class="o">.</span><span class="n">numberOfSegments</span><span class="p">))</span><span class="o">.</span><span class="n">isActive</span> <span class="o">=</span> <span class="kc">true</span></code></pre></figure>
+
+<p>As the last comment says, we need the width of the button bar to be the width of the <code>segmentedControl</code> <em>divided by</em> the number of segments. This guarantees
+the button bar width will exactly match the width of a single segment, again assuming all segments have equal width.</p>
+
+<p><img src="https://imgur.com/FAXt1Wt.png" width="100%" /></p>
+
+<p>The initial view is now complete! As a final step, we need to have our button bar move to the selected segment whenever it changes.</p>
+
+<h2 id="animating-the-button-bar">Animating the Button Bar</h2>
+
+<p>When the selected segment changes, the segmented control needs to call a function that will handle the transition of the button bar’s position on the x-axis
+so it winds up underneath the selected segment. We have to jump through a couple hoops since this is a Swift playground, so below your <code>import</code> declarations,
+create a new <code>Responder</code> class and instantiate it to a varible. Add a function definition to the <code>Responder</code> class, then add a callback to the <code>segmentedControl</code>
+variable to fire when the <code>segmentedControl</code>’s value changes.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// Below import statements</span>
+<span class="kd">class</span> <span class="kt">Responder</span><span class="p">:</span> <span class="kt">NSObject</span> <span class="p">{</span>
+    <span class="kd">@objc</span> <span class="kd">func</span> <span class="nf">segmentedControlValueChanged</span><span class="p">(</span><span class="n">_</span> <span class="nv">sender</span><span class="p">:</span> <span class="kt">UISegmentedControl</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">let</span> <span class="nv">responder</span> <span class="o">=</span> <span class="kt">Responder</span><span class="p">()</span>
+<span class="o">...</span>
+<span class="c1">// Above the PlaygroundPage.current.liveView = view statement at the bottom</span>
+<span class="n">segmentedControl</span><span class="o">.</span><span class="nf">addTarget</span><span class="p">(</span><span class="n">responder</span><span class="p">,</span> <span class="nv">action</span><span class="p">:</span> <span class="kd">#selector(</span><span class="nf">responder.segmentedControlValueChanged(_:)</span><span class="kd">)</span><span class="p">,</span> <span class="nv">for</span><span class="p">:</span> <span class="kt">UIControlEvents</span><span class="o">.</span><span class="n">valueChanged</span><span class="p">)</span></code></pre></figure>
+
+<p>Be sure to pass in the <code>sender</code> as an argument to the function of type <code>UISegmentedControl</code> since we need access to it when the function
+is called. The last piece of the puzzle is updating the <code>buttonBar</code>’s value on the x-axis inside the function so it will move under the
+selected segment.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">@objc</span> <span class="kd">func</span> <span class="nf">segmentedControlValueChanged</span><span class="p">(</span><span class="n">_</span> <span class="nv">sender</span><span class="p">:</span> <span class="kt">UISegmentedControl</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">UIView</span><span class="o">.</span><span class="nf">animate</span><span class="p">(</span><span class="nv">withDuration</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">buttonBar</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">origin</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">segmentedControl</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="kt">CGFloat</span><span class="p">(</span><span class="n">segmentedControl</span><span class="o">.</span><span class="n">numberOfSegments</span><span class="p">))</span> <span class="o">*</span> <span class="kt">CGFloat</span><span class="p">(</span><span class="n">segmentedControl</span><span class="o">.</span><span class="n">selectedSegmentIndex</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>To get the correct position on the x-axis, divide the <code>segmentedControl</code>’s frame width by the <code>numberOfSegments</code>, then multiply that by the <code>selectedSegmentIndex</code>.</p>
+
+<p>Voila! We have our animated button bar.</p>
+
+<p><img src="https://imgur.com/9YIRSX7.gif" width="100%" /></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>I hope this post has been informative as a DIY solution to something you’ve probably seen in a lot of libraries or on a lot of iOS applications. From here, you can 
+hook up the <code>UISegmentedControl</code> to a <code>UIPageViewController</code> or <code>UIScrollView</code> as a way of moving between segmented content. You can find the playground code
+<a href="https://gist.github.com/kfarst/9f8a1eb59cce2004b15f0b682c92eeed">here</a> as a GitHub Gist, and good luck with your iOS development!</p>
+:ET

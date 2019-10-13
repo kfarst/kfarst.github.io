@@ -1,0 +1,315 @@
+I"��<p>You’ve probably seen in a lot of apps where tapping on a map location or address gives you the option to open that location in one of the map applications installed on your phone. Perhaps you tap on the address for an event in the Facebook app, and it gives you the option to see that location in Apple Maps, Google Maps, or Waze, depending on what apps you have on your phone. I wanted to attach this functionality to an <code>MKMapView</code> in an app I’m currently working on
+in a clean, encapsulated way, and thought I would share that in a post. I took what I had learned from a few other great articles, and combined them to fit my needs.</p>
+
+<h2 id="requirements">Requirements</h2>
+
+<p>To get started, I had to decide what map applications I wanted to support. Everyone will obviously have Apple Maps on their phone, but may also optionally have Google Maps or Waze as well. I decided to stick with these “big three” and go from there. Next, if there was only one app available on the phone (e.g. Apple Maps), I didn’t want to show a list with only one option, so tapping on the <code>MKMapView</code> would skip the selection step and directly open in Apple Maps. The final thing to keep in mind for my situation was that the actualy map view was located in a child view controller of the currently displayed top-level controller, so I wanted to offer the map selection pop-up in the parent view controller, even though the prompt would be triggered from the child view controller.</p>
+
+<p><img src="https://imgur.com/IgpRAyB.png" width="50%" /></p>
+
+<h2 id="initial-setup">Initial Setup</h2>
+
+<p>The first thing we need to do is to “whitelist” Google Maps and Waze in the <strong>Info.plist</strong> configuration file. Create an array entry with the key of <em>LSApplicationQueriesSchemes</em>. This will allow the app to determine if Waze and Google Maps are installed and available to be used on the device. From the Apple docs:</p>
+
+<blockquote>
+LSApplicationQueriesSchemes (Array - iOS) Specifies the URL schemes you want the app to be able to use with the canOpenURL: method of the UIApplication class. For each URL scheme you want your app to use with the canOpenURL: method, add it as a string in this array.
+</blockquote>
+
+<p>These URL schemes, unique to each app, allow for inter-application communcation, and you can read more about them <a href="https://developer.apple.com/library/content/featuredarticles/iPhoneURLScheme_Reference/Introduction/Introduction.html">here</a>.
+For our two map applications, we’ll add the array entries <em>comgooglemaps</em> and <em>waze</em>.</p>
+
+<p><img src="https://imgur.com/OwndhKz.png" width="100%" /></p>
+
+<h2 id="building-scheme-info">Building Scheme Info</h2>
+
+<p>Since Apple Maps already has a nice built-in API for opening itself from another iOS application with a particular location and configuration, I wanted to construct a similar, encapsulating interface for the other third-party map schemes as well. For Google Maps and Waze, we need to build out:</p>
+
+<ol>
+  <li>A mechanism to determine if each app is available to use on the device</li>
+  <li>The actual URL for opening the app with the location information</li>
+</ol>
+
+<p>I began this process with a simple protocol, aptly named <code>MapAppScheme</code>:</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">import</span> <span class="kt">Foundation</span>
+<span class="kd">import</span> <span class="kt">MapKit</span>
+
+<span class="kd">protocol</span> <span class="kt">MapAppScheme</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">label</span><span class="p">:</span> <span class="kt">String</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span> <span class="c1">// The label for the option in the list</span>
+    <span class="k">var</span> <span class="nv">scheme</span><span class="p">:</span> <span class="kt">URL</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span> <span class="c1">// The URL scheme used to determine if the app is available</span>
+    <span class="k">var</span> <span class="nv">annotation</span><span class="p">:</span> <span class="kt">MKAnnotation</span> <span class="p">{</span> <span class="k">get</span> <span class="k">set</span> <span class="p">}</span> <span class="c1">// The coordinates (latitutde and longitude) for the location</span>
+    <span class="k">var</span> <span class="nv">url</span><span class="p">:</span> <span class="kt">URL</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span> <span class="c1">// The URL to open the application with the required info</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>From here, it’s pretty straightfoward to “flesh out” the two schemes.</p>
+
+<h3 id="google-maps">Google Maps</h3>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">import</span> <span class="kt">Foundation</span>
+<span class="kd">import</span> <span class="kt">MapKit</span>
+
+<span class="kd">struct</span> <span class="kt">GoogleMapsScheme</span><span class="p">:</span> <span class="kt">MapAppScheme</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">label</span><span class="p">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"Google Maps"</span>
+    <span class="k">var</span> <span class="nv">scheme</span><span class="p">:</span> <span class="kt">URL</span><span class="p">?</span> <span class="o">=</span> <span class="kt">URL</span><span class="p">(</span><span class="nv">string</span><span class="p">:</span> <span class="s">"comgooglemaps://"</span><span class="p">)</span> <span class="c1">// Scheme needs to be wrapped in a URL object</span>
+    <span class="k">var</span> <span class="nv">annotation</span><span class="p">:</span> <span class="kt">MKAnnotation</span>
+
+    <span class="nf">init</span><span class="p">(</span><span class="nv">annotation</span><span class="p">:</span> <span class="kt">MKAnnotation</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="n">annotation</span>
+    <span class="p">}</span>
+
+    <span class="k">var</span> <span class="nv">url</span><span class="p">:</span> <span class="kt">URL</span><span class="p">?</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">stringScheme</span> <span class="o">=</span> <span class="n">scheme</span><span class="p">?</span><span class="o">.</span><span class="n">absoluteString</span>
+
+        <span class="c1">// Try to use the name of the location, replacing spaces with +, otherwise use the latitude and longitude</span>
+       <span class="k">guard</span> <span class="k">let</span> <span class="nv">destination</span><span class="p">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="n">annotation</span><span class="o">.</span><span class="n">title</span><span class="p">??</span><span class="o">.</span><span class="nf">replacingOccurrences</span><span class="p">(</span><span class="nv">of</span><span class="p">:</span> <span class="s">" "</span><span class="p">,</span> <span class="nv">with</span><span class="p">:</span> <span class="s">"+"</span><span class="p">)</span> <span class="p">??</span> <span class="s">"</span><span class="se">\(</span><span class="n">annotation</span><span class="o">.</span><span class="n">coordinate</span><span class="o">.</span><span class="n">latitude</span><span class="se">)</span><span class="s">,</span><span class="se">\(</span><span class="n">annotation</span><span class="o">.</span><span class="n">coordinate</span><span class="o">.</span><span class="n">longitude</span><span class="se">)</span><span class="s">"</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="kc">nil</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="kt">URL</span><span class="p">(</span><span class="nv">string</span><span class="p">:</span> <span class="s">"</span><span class="se">\(</span><span class="kt">String</span><span class="p">(</span><span class="nv">describing</span><span class="p">:</span> <span class="n">stringScheme</span><span class="o">!</span><span class="p">)</span><span class="se">)</span><span class="s">?saddr=&amp;daddr=</span><span class="se">\(</span><span class="n">destination</span><span class="se">)</span><span class="s">&amp;center=</span><span class="se">\(</span><span class="n">annotation</span><span class="o">.</span><span class="n">coordinate</span><span class="o">.</span><span class="n">latitude</span><span class="se">)</span><span class="s">,</span><span class="se">\(</span><span class="n">annotation</span><span class="o">.</span><span class="n">coordinate</span><span class="o">.</span><span class="n">longitude</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>The code speaks for itself, but ideally the <code>url</code> property will be constructed with either a location name:</p>
+
+<p><em>comgooglemaps://?saddr=&amp;daddr=Billy+Goat+Hill&amp;center=37.7415,122.4330</em></p>
+
+<p>Or the coordinates:</p>
+
+<p><em>comgooglemaps://?saddr=&amp;daddr=37.7415,122.4330&amp;center=37.7415,122.4330</em></p>
+
+<p>The way the URL is constructed will enter the location as the destination for traveling directions, with the starting location left blank. You can learn more about the Google Maps URL scheme <a href="https://developers.google.com/maps/documentation/urls/ios-urlscheme">here</a>.</p>
+
+<h3 id="waze">Waze</h3>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">import</span> <span class="kt">Foundation</span>
+<span class="kd">import</span> <span class="kt">MapKit</span>
+
+<span class="kd">struct</span> <span class="kt">WazeScheme</span><span class="p">:</span> <span class="kt">MapAppScheme</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">label</span><span class="p">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"Waze"</span>
+    <span class="k">var</span> <span class="nv">scheme</span><span class="p">:</span> <span class="kt">URL</span><span class="p">?</span> <span class="o">=</span> <span class="kt">URL</span><span class="p">(</span><span class="nv">string</span><span class="p">:</span> <span class="s">"waze://"</span><span class="p">)</span>
+    <span class="k">var</span> <span class="nv">annotation</span><span class="p">:</span> <span class="kt">MKAnnotation</span>
+
+    <span class="nf">init</span><span class="p">(</span><span class="nv">annotation</span><span class="p">:</span> <span class="kt">MKAnnotation</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="n">annotation</span>
+    <span class="p">}</span>
+
+    <span class="k">var</span> <span class="nv">url</span><span class="p">:</span> <span class="kt">URL</span><span class="p">?</span> <span class="p">{</span>
+        <span class="c1">// Try to get the location name</span>
+        <span class="k">let</span> <span class="nv">destination</span> <span class="o">=</span> <span class="n">annotation</span><span class="o">.</span><span class="n">title</span><span class="p">??</span><span class="o">.</span><span class="nf">addingPercentEncoding</span><span class="p">(</span><span class="nv">withAllowedCharacters</span><span class="p">:</span> <span class="o">.</span><span class="n">alphanumerics</span><span class="p">)</span>
+
+        <span class="c1">// Build the query params</span>
+        <span class="k">var</span> <span class="nv">searchQuery</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="kt">URLQueryItem</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"ll"</span><span class="p">,</span> <span class="nv">value</span><span class="p">:</span> <span class="s">"</span><span class="se">\(</span><span class="n">annotation</span><span class="o">.</span><span class="n">coordinate</span><span class="o">.</span><span class="n">latitude</span><span class="se">)</span><span class="s">,</span><span class="se">\(</span><span class="n">annotation</span><span class="o">.</span><span class="n">coordinate</span><span class="o">.</span><span class="n">longitude</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="c1">// Add location name to query params if available</span>
+        <span class="k">if</span> <span class="k">let</span> <span class="nv">dest</span> <span class="o">=</span> <span class="n">destination</span> <span class="p">{</span>
+            <span class="n">searchQuery</span><span class="o">.</span><span class="nf">append</span><span class="p">(</span><span class="kt">URLQueryItem</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"q"</span><span class="p">,</span> <span class="nv">value</span><span class="p">:</span> <span class="n">dest</span><span class="p">))</span>
+        <span class="p">}</span>
+
+        <span class="k">var</span> <span class="nv">wazeUrl</span> <span class="o">=</span>  <span class="kt">URLComponents</span><span class="p">(</span><span class="nv">string</span><span class="p">:</span> <span class="s">"https://waze.com/ul"</span><span class="p">)</span>
+        <span class="c1">// Attach query params to URL</span>
+        <span class="n">wazeUrl</span><span class="p">?</span><span class="o">.</span><span class="n">queryItems</span> <span class="o">=</span> <span class="n">searchQuery</span>
+
+        <span class="k">return</span> <span class="n">wazeUrl</span><span class="p">?</span><span class="o">.</span><span class="n">url</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>The Waze scheme is very similar to Google Maps, although the annotation’s title will be URL escaped instead of using <strong>+</strong>’s.</p>
+
+<p><em>https://waze.com/ul?q=66%20Billy%20Goat%20Hill&amp;ll=37.7415,122.4330</em></p>
+
+<p>Additionally, since the Waze URL scheme is a more traditional URL, I built it using the <code>URLComponent</code> class instead of interpolating the results into the URL string directly. You can learn more about the Waze URL scheme <a href="https://developers.google.com/waze/api/">here</a>.</p>
+
+<h2 id="consolidating-the-results">Consolidating the Results</h2>
+
+<p>Now that the schemes are built out, I constructed a helper class to determine which of the two I could use.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">import</span> <span class="kt">Foundation</span>
+<span class="kd">import</span> <span class="kt">MapKit</span>
+
+<span class="kd">class</span> <span class="kt">MapAppsHelper</span> <span class="p">{</span>
+    <span class="kd">fileprivate</span> <span class="k">let</span> <span class="nv">mapSchemes</span><span class="p">:</span> <span class="p">[</span><span class="kt">MapAppScheme</span><span class="p">]</span>
+    <span class="k">let</span> <span class="nv">annotation</span><span class="p">:</span> <span class="kt">MKAnnotation</span>
+
+    <span class="nf">init</span><span class="p">(</span><span class="nv">annotation</span><span class="p">:</span> <span class="kt">MKAnnotation</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="n">annotation</span>
+
+        <span class="n">mapSchemes</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="kt">GoogleMapsScheme</span><span class="p">(</span><span class="nv">annotation</span><span class="p">:</span> <span class="n">annotation</span><span class="p">),</span>
+            <span class="kt">WazeScheme</span><span class="p">(</span><span class="nv">annotation</span><span class="p">:</span> <span class="n">annotation</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+
+    <span class="kd">lazy</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">availableMapApps</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span> <span class="kt">URL</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="k">var</span> <span class="nv">availableSchemes</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span> <span class="kt">URL</span><span class="p">]</span> <span class="o">=</span> <span class="p">[:]</span>
+
+        <span class="k">for</span> <span class="n">scheme</span> <span class="k">in</span> <span class="n">mapSchemes</span> <span class="p">{</span>
+            <span class="c1">// If the app is available, add the URL to the list of available schemes</span>
+            <span class="k">if</span> <span class="k">let</span> <span class="nv">schemeUrl</span> <span class="o">=</span> <span class="n">scheme</span><span class="o">.</span><span class="n">scheme</span><span class="p">,</span> <span class="kt">UIApplication</span><span class="o">.</span><span class="n">shared</span><span class="o">.</span><span class="nf">canOpenURL</span><span class="p">(</span><span class="n">schemeUrl</span><span class="p">),</span> <span class="k">let</span> <span class="nv">url</span> <span class="o">=</span> <span class="n">scheme</span><span class="o">.</span><span class="n">url</span> <span class="p">{</span>
+                <span class="n">availableSchemes</span><span class="p">[</span><span class="n">scheme</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">url</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="c1">// ["Google Maps": "urlForGoogleMaps", ...]</span>
+        <span class="k">return</span> <span class="n">availableSchemes</span>
+    <span class="p">}()</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>We first check if the scheme is available by using the <code>canOpenURL</code> function, then add our constructed URL to the list of <code>availableSchemes</code>. I then created a <code>MapActionSheetViewController</code>, which is a <code>UIAlertController</code> action sheet.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">import</span> <span class="kt">UIKit</span>
+<span class="kd">import</span> <span class="kt">MapKit</span>
+
+<span class="kd">class</span> <span class="kt">MapActionSheetViewController</span><span class="p">:</span> <span class="kt">UIAlertController</span> <span class="p">{</span>
+    <span class="kd">fileprivate</span> <span class="k">let</span> <span class="nv">mapOptions</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span> <span class="kt">URL</span><span class="p">]</span>
+
+    <span class="nf">init</span><span class="p">(</span><span class="nv">mapOptions</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span> <span class="kt">URL</span><span class="p">],</span> <span class="nv">renderAppleMaps</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">()</span> <span class="o">-&gt;</span> <span class="p">())</span> <span class="p">{</span>
+        <span class="c1">// Pass in the results from our MapAppsHelper</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">mapOptions</span> <span class="o">=</span> <span class="n">mapOptions</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">init</span><span class="p">(</span><span class="nv">nibName</span><span class="p">:</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">bundle</span><span class="p">:</span> <span class="kc">nil</span><span class="p">)</span>
+        <span class="c1">// Pass in the closure containing the logic to render the location inside Apple Maps</span>
+        <span class="nf">buildActions</span><span class="p">(</span><span class="n">renderAppleMaps</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="k">override</span> <span class="k">var</span> <span class="nv">preferredStyle</span><span class="p">:</span> <span class="kt">UIAlertControllerStyle</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="o">.</span><span class="n">actionSheet</span>
+    <span class="p">}</span>
+
+    <span class="kd">required</span> <span class="nf">init</span><span class="p">?(</span><span class="n">coder</span> <span class="nv">aDecoder</span><span class="p">:</span> <span class="kt">NSCoder</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">fatalError</span><span class="p">(</span><span class="s">"init(coder:) has not been implemented"</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">fileprivate</span> <span class="kd">func</span> <span class="nf">buildActions</span><span class="p">(</span><span class="n">_</span> <span class="nv">renderAppleMaps</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">()</span> <span class="o">-&gt;</span> <span class="p">())</span> <span class="p">{</span>
+        <span class="c1">// Add the Apple Maps option with the closure containing the logic for rendering the location in Apple Maps</span>
+        <span class="nf">addAction</span><span class="p">(</span><span class="kt">UIAlertAction</span><span class="p">(</span><span class="nv">title</span><span class="p">:</span> <span class="s">"Apple Maps"</span><span class="p">,</span> <span class="nv">style</span><span class="p">:</span> <span class="o">.</span><span class="k">default</span><span class="p">,</span> <span class="nv">handler</span><span class="p">:</span> <span class="p">{</span> <span class="p">(</span><span class="n">action</span><span class="p">)</span> <span class="k">in</span>
+            <span class="nf">renderAppleMaps</span><span class="p">()</span>
+        <span class="p">}))</span>
+
+        <span class="c1">// Add one or more actions for our third-party map applications</span>
+        <span class="n">mapOptions</span><span class="o">.</span><span class="n">forEach</span> <span class="p">{</span> <span class="n">option</span> <span class="k">in</span>
+            <span class="nf">addAction</span><span class="p">(</span><span class="kt">UIAlertAction</span><span class="p">(</span><span class="nv">title</span><span class="p">:</span> <span class="n">option</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="nv">style</span><span class="p">:</span> <span class="o">.</span><span class="k">default</span><span class="p">,</span> <span class="nv">handler</span><span class="p">:</span> <span class="p">{</span> <span class="p">(</span><span class="n">action</span><span class="p">)</span> <span class="k">in</span>
+                <span class="kt">UIApplication</span><span class="o">.</span><span class="n">shared</span><span class="o">.</span><span class="nf">open</span><span class="p">(</span><span class="n">option</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="nv">options</span><span class="p">:</span> <span class="p">[:],</span> <span class="nv">completionHandler</span><span class="p">:</span> <span class="kc">nil</span><span class="p">)</span>
+            <span class="p">}))</span>
+        <span class="p">}</span>
+
+        <span class="c1">// Add an option to cancel opening the location in a map application</span>
+        <span class="nf">addAction</span><span class="p">(</span><span class="kt">UIAlertAction</span><span class="p">(</span><span class="nv">title</span><span class="p">:</span> <span class="s">"Cancel"</span><span class="p">,</span> <span class="nv">style</span><span class="p">:</span> <span class="o">.</span><span class="n">cancel</span><span class="p">,</span> <span class="nv">handler</span><span class="p">:</span> <span class="p">{</span> <span class="p">(</span><span class="n">action</span><span class="p">)</span> <span class="k">in</span>
+            <span class="k">self</span><span class="o">.</span><span class="nf">dismiss</span><span class="p">(</span><span class="nv">animated</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span> <span class="nv">completion</span><span class="p">:</span> <span class="kc">nil</span><span class="p">)</span>
+        <span class="p">}))</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>There’s a lot going on here, but hopefully the code with comments will make clear what’s going on. Basically as we add options to the action sheet, we associate the logic for opening each map application with the correct URL (or executing a closure in the case of Apple Maps) to that option. As we wrap up, hopefully this will all make sense. However, for a visual representation, this will render the highlighted section below.</p>
+
+<p><img src="https://imgur.com/TNmtyKn.png" width="50%" /></p>
+
+<p>One final thing to note about the <code>renderAppleMaps</code> closure; we are passing this functionality in rather than declaring it inside the controller since we might have the case where the only map app available is Apple Maps. Therefore, rather than writing the code to open the location in Apple Maps in two places in the codebase, we can write it in one place and pass it in if we need to, or just execute it when the <code>MKMapView</code> is tapped.</p>
+
+<h2 id="wiring-up-the-view">Wiring Up the View</h2>
+
+<p>As mentioned at the beginning of the article, the <code>MKMapView</code> is actually inside the view of a child view controller, and we want to render our <code>UIAlertController</code> action sheet in the parent controller. The child view controller is called <code>ParkDetailsMapViewController</code>, and the parent controller is the <code>ParkViewController</code>.</p>
+
+<p><img src="https://imgur.com/kINutAH.png" width="50%" /></p>
+
+<p>We can accomplish this by setting up a <code>UITapGestureRecognizer</code> on the <code>MKMapView</code>, then setting the <code>ParkViewController</code> parent as the delegate to a protocol declared in the child <code>ParkDetailsMapViewController</code>. When the <code>MKMapView</code> is tapped, trigger the delegate to show the action sheet. First, the <code>ParkDetailsMapViewController</code>, in which I’m only showing the relevant parts.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">import</span> <span class="kt">MapKit</span>
+
+<span class="kd">protocol</span> <span class="kt">ParkDetailsMapViewControllerDelegate</span><span class="p">:</span> <span class="kd">class</span> <span class="p">{</span>
+    <span class="c1">// Define this in the parent ParkViewController</span>
+    <span class="kd">func</span> <span class="nf">renderMapSelectionActionSheet</span><span class="p">(</span><span class="nv">mapOptions</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span> <span class="kt">URL</span><span class="p">],</span> <span class="nv">renderAppleMaps</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">()</span> <span class="o">-&gt;</span> <span class="p">())</span>
+<span class="p">}</span>
+<span class="kd">class</span> <span class="kt">ParkDetailsMapViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">mapAppsHelper</span><span class="p">:</span> <span class="kt">MapAppsHelper</span>
+
+    <span class="nf">init</span><span class="p">(</span><span class="nv">annotation</span><span class="p">:</span> <span class="kt">MKAnnotation</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// Pass in the MKAnnotation from the MKMapView</span>
+        <span class="n">mapAppsHelper</span> <span class="o">=</span> <span class="kt">MapAppsHelper</span><span class="p">(</span><span class="nv">annotation</span><span class="p">:</span> <span class="n">annotation</span><span class="p">)</span>
+        <span class="o">...</span>
+        <span class="c1">// mapView variable declaration left out, however just a basic MKMapView setup</span>
+        <span class="n">mapView</span><span class="o">.</span><span class="nf">addAnnotationWithRegion</span><span class="p">(</span><span class="n">annotation</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="k">var</span> <span class="nv">mapTapGesureRecognizer</span><span class="p">:</span> <span class="kt">UITapGestureRecognizer</span><span class="p">?</span>
+    <span class="k">weak</span> <span class="k">var</span> <span class="nv">delegate</span><span class="p">:</span> <span class="kt">ParkDetailsMapViewControllerDelegate</span><span class="p">?</span>
+
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">viewDidLoad</span><span class="p">()</span>
+
+        <span class="c1">// When the map view is tapped, call the openInMaps function</span>
+        <span class="n">mapTapGesureRecognizer</span> <span class="o">=</span> <span class="kt">UITapGestureRecognizer</span><span class="p">(</span><span class="nv">target</span><span class="p">:</span> <span class="k">self</span><span class="p">,</span> <span class="nv">action</span><span class="p">:</span> <span class="kd">#selector(</span><span class="nf">openInMaps</span><span class="kd">)</span><span class="p">)</span>
+        <span class="n">mapView</span><span class="o">.</span><span class="nf">addGestureRecognizer</span><span class="p">(</span><span class="n">mapTapGesureRecognizer</span><span class="o">!</span><span class="p">)</span>
+        <span class="o">...</span>
+    <span class="p">}</span></code></pre></figure>
+
+<p>I added the <code>openInMaps</code> function as a private extension to the controller.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">fileprivate</span> <span class="kd">extension</span> <span class="kt">ParkDetailsMapViewController</span> <span class="p">{</span>
+    <span class="kd">@objc</span> <span class="kd">func</span> <span class="nf">openInMaps</span><span class="p">(</span><span class="n">_</span> <span class="nv">sender</span><span class="p">:</span> <span class="kt">UITapGestureRecognizer</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// If we have more than Apple Maps available, trigger the rendering of the action sheet</span>
+        <span class="k">if</span> <span class="n">mapAppsHelper</span><span class="o">.</span><span class="n">availableMapApps</span><span class="o">.</span><span class="n">count</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">{</span>
+            <span class="n">delegate</span><span class="p">?</span><span class="o">.</span><span class="nf">renderMapSelectionActionSheet</span><span class="p">(</span><span class="nv">mapOptions</span><span class="p">:</span> <span class="n">mapAppsHelper</span><span class="o">.</span><span class="n">availableMapApps</span><span class="p">,</span> <span class="nv">renderAppleMaps</span><span class="p">:</span> <span class="p">{</span>
+                <span class="k">self</span><span class="o">.</span><span class="n">mapView</span><span class="o">.</span><span class="nf">openInMaps</span><span class="p">(</span><span class="k">self</span><span class="o">.</span><span class="n">mapAppsHelper</span><span class="o">.</span><span class="n">annotation</span><span class="p">)</span>
+            <span class="p">})</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="c1">// Open directly in Apple Maps</span>
+            <span class="n">mapView</span><span class="o">.</span><span class="nf">openInMaps</span><span class="p">(</span><span class="n">mapAppsHelper</span><span class="o">.</span><span class="n">annotation</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>If you notice, the two arguments we’re sending to the <code>renderMapSelectionActionSheet</code> delegate function happen to match the arguments required for the initialization of the <code>MapActionSheetViewController</code>. You can probably guess where we’ll be creating that controller instance….</p>
+
+<p>Before we jump over to the parent <code>ParkViewController</code>, I want to point out that the <code>openInMaps</code> function on the <code>mapView</code> variable is actually an extension attached to the <code>MKMapView</code> for opening the location in Apple Maps.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">extension</span> <span class="kt">MKMapView</span> <span class="p">{</span>
+    <span class="c1">// How far to zoom the map</span>
+    <span class="kd">private</span> <span class="k">var</span> <span class="nv">regionRadius</span><span class="p">:</span> <span class="kt">CLLocationDistance</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="mi">2000</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">addAnnotationWithRegion</span><span class="p">(</span><span class="n">_</span> <span class="nv">annotation</span><span class="p">:</span> <span class="kt">MKAnnotation</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">addAnnotation</span><span class="p">(</span><span class="n">annotation</span><span class="p">)</span>
+        <span class="c1">// Center the map view around the location</span>
+        <span class="k">let</span> <span class="nv">coordinateRegion</span> <span class="o">=</span> <span class="kt">MKCoordinateRegionMakeWithDistance</span><span class="p">(</span><span class="n">annotation</span><span class="o">.</span><span class="n">coordinate</span><span class="p">,</span> <span class="n">regionRadius</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">regionRadius</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">)</span>
+        <span class="nf">setRegion</span><span class="p">(</span><span class="n">coordinateRegion</span><span class="p">,</span> <span class="nv">animated</span><span class="p">:</span> <span class="kc">true</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">openInMaps</span><span class="p">(</span><span class="n">_</span> <span class="nv">annotation</span><span class="p">:</span> <span class="kt">MKAnnotation</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">options</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="kt">MKLaunchOptionsMapCenterKey</span><span class="p">:</span> <span class="kt">NSValue</span><span class="p">(</span><span class="nv">mkCoordinate</span><span class="p">:</span> <span class="n">region</span><span class="o">.</span><span class="n">center</span><span class="p">),</span>
+            <span class="kt">MKLaunchOptionsMapSpanKey</span><span class="p">:</span> <span class="kt">NSValue</span><span class="p">(</span><span class="nv">mkCoordinateSpan</span><span class="p">:</span> <span class="n">region</span><span class="o">.</span><span class="n">span</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="c1">// Set up the location marker in the map view</span>
+        <span class="k">let</span> <span class="nv">placemark</span> <span class="o">=</span> <span class="kt">MKPlacemark</span><span class="p">(</span><span class="nv">coordinate</span><span class="p">:</span> <span class="n">annotation</span><span class="o">.</span><span class="n">coordinate</span><span class="p">,</span> <span class="nv">addressDictionary</span><span class="p">:</span> <span class="kc">nil</span><span class="p">)</span>
+        <span class="k">let</span> <span class="nv">mapItem</span> <span class="o">=</span> <span class="kt">MKMapItem</span><span class="p">(</span><span class="nv">placemark</span><span class="p">:</span> <span class="n">placemark</span><span class="p">)</span>
+        <span class="n">mapItem</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">annotation</span><span class="o">.</span><span class="n">title</span><span class="o">!</span>
+        <span class="c1">// Launch in Apple Maps</span>
+        <span class="n">mapItem</span><span class="o">.</span><span class="nf">openInMaps</span><span class="p">(</span><span class="nv">launchOptions</span><span class="p">:</span> <span class="n">options</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Hopefully the code and comments are enough of an explanation, but feel free to play around with different values here to see what kind of results you get in the map view.</p>
+
+<h2 id="finishing-touches">Finishing Touches</h2>
+
+<p>The last piece is one of the most straightforward, where we actually build out the <code>renderMapSelectionActionSheet</code> delegate function. At this point, all we need to do is take the arguments passed in, instantiate the <code>MapActionSheetViewController</code> with those arguments, and present the view controller.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">ParkViewController</span><span class="p">:</span> <span class="kt">UIViewController</span><span class="p">,</span> <span class="kt">ParkDetailsMapViewControllerDelegate</span><span class="p">,</span> <span class="kt">UIScrollViewDelegate</span> <span class="p">{</span>
+    <span class="o">...</span>
+    <span class="kd">func</span> <span class="nf">renderMapSelectionActionSheet</span><span class="p">(</span><span class="nv">mapOptions</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span> <span class="kt">URL</span><span class="p">],</span> <span class="nv">renderAppleMaps</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">()</span> <span class="o">-&gt;</span> <span class="p">())</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">actionSheet</span> <span class="o">=</span> <span class="kt">MapActionSheetViewController</span><span class="p">(</span><span class="nv">mapOptions</span><span class="p">:</span> <span class="n">mapOptions</span><span class="p">,</span> <span class="nv">renderAppleMaps</span><span class="p">:</span> <span class="n">renderAppleMaps</span><span class="p">)</span>
+        <span class="c1">// Show the action sheet</span>
+        <span class="nf">present</span><span class="p">(</span><span class="n">actionSheet</span><span class="p">,</span> <span class="nv">animated</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span> <span class="nv">completion</span><span class="p">:</span> <span class="kc">nil</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="o">...</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>And voilà! Our finished product (sorry for the heavy duty GIF).</p>
+
+<p><img src="https://imgur.com/MmQeuGx.gif" width="50%" /></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this particular case, we are using an <code>MKMapView</code> to trigger our map app options, but you could very well do it with a <code>UITableViewCell</code> or <code>UILabel</code> location address as well. This is one way I felt worked best for this particular codebase, but there are many other great tutorials on how to do this out scattered about the interwebs. I hope you’ve been able to pick up a few good ideas from this lesson on your iOS journey. Thanks for reading!</p>
+:ET

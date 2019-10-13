@@ -1,0 +1,244 @@
+I"�j<p>If you’ve done anything with Swift beyond the basics of the language, you’ve most certainly worked with closures. If you’ve fetched data from a URL,
+you probably used the <code>dataTask</code> function.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">func</span> <span class="nf">dataTask</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt">URL</span><span class="p">,</span> <span class="nv">completionHandler</span><span class="p">:</span> <span class="p">(</span><span class="kt">Data</span><span class="p">?,</span> <span class="kt">URLResponse</span><span class="p">?,</span> <span class="kt">Error</span><span class="p">?)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span></code></pre></figure>
+
+<p>The <code>completionHandler</code> take a closure that passes in the response from the request so you can populate your table view. If you’ve presented a view
+controller from another view controller, you used the <code>present</code> function.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">func</span> <span class="nf">present</span><span class="p">(</span><span class="n">_</span> <span class="nv">viewControllerToPresent</span><span class="p">:</span> <span class="kt">UIViewController</span><span class="p">,</span> <span class="n">animated</span> <span class="nv">flag</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">,</span> <span class="nv">completion</span><span class="p">:</span> <span class="p">(()</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span></code></pre></figure>
+
+<p>You can pass an optional closure to execute some code after the new view controller is presented on the screen.</p>
+
+<p>If you’ve needed to sort values in an array, you  may have used the <code>sorted(by:)</code> function, which accepts a closure to determine what logic to use to sort
+those elements.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="n">reversedNames</span> <span class="o">=</span> <span class="n">names</span><span class="o">.</span><span class="nf">sorted</span><span class="p">(</span><span class="nv">by</span><span class="p">:</span> <span class="p">{</span> <span class="p">(</span><span class="nv">s1</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">s2</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span> <span class="k">in</span>
+    <span class="k">return</span> <span class="n">s1</span> <span class="o">&gt;</span> <span class="n">s2</span>
+<span class="p">})</span></code></pre></figure>
+
+<p>We see callbacks and closures all over an iOS project, and in keeping with those standards, I’ve tried to leverage closures when I can where it makes sense to in my own function signatures.</p>
+
+<p>I thought it might be interesting to share a few ideas in what other contexts you might find yourself using your own defined closures beyond the Apple-defined APIs.</p>
+
+<h2 id="two-paragraph-crash-course">Two Paragraph Crash Course</h2>
+
+<p>As a refresher, from the offical docs:</p>
+
+<blockquote>
+Closures are self-contained blocks of functionality that can be passed around and used in your code. Closures in Swift are similar to blocks in
+C and Objective-C and to lambdas in other programming languages.
+
+Closures can capture and store references to any constants and variables from the context in which they are defined. This is known as closing
+over those constants and variables. Swift handles all of the memory management of capturing for you.
+</blockquote>
+
+<p>Closures can also be thought of as <em>anonymous fuctions</em>, since you are still optionally passing arguments and return values, but either not giving the function a name
+or assigning it to a variable instead. In fact, functions themselves are a special type of closure. Moving on, let’s cover a couple of
+suggestions and ideas on how we might use closures in our projects.</p>
+
+<h2 id="shortened-syntax-with-typealias">Shortened Syntax with Typealias</h2>
+
+<p>This is probably the most likely suggestion you’ve run into. If you find you’re using the same closure signature in a lot of places, you can assign it to a <code>typealias</code>
+and pass the named type into a function signature, rather than explicitly writing it out every time. A great use case for this is <code>URLSession</code>’s <code>dataTask</code> function mentioned
+above. Again, the closure in the <code>completionHandler</code> has a type definition of</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="p">(</span><span class="kt">Data</span><span class="p">?,</span> <span class="kt">URLResponse</span><span class="p">?,</span> <span class="kt">Error</span><span class="p">?)</span> <span class="o">-&gt;</span> <span class="kt">Void</span></code></pre></figure>
+
+<p>Perhaps you’re wrapping the function call inside your own function definition to suit your API needs.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">Api</span> <span class="p">{</span>
+  <span class="o">...</span>
+  <span class="kd">func</span> <span class="nf">getOrders</span><span class="p">(</span><span class="n">_</span> <span class="nv">response</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt">Data</span><span class="p">?,</span> <span class="kt">URLResponse</span><span class="p">?,</span> <span class="kt">Error</span><span class="p">?)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">URLSessionTask</span> <span class="p">{</span>
+    <span class="o">...</span>
+    <span class="k">return</span> <span class="n">myUrlSession</span><span class="o">.</span><span class="nf">dataTask</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="n">myUrl</span><span class="p">,</span> <span class="nv">completionHandler</span><span class="p">:</span> <span class="n">response</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>You can see how quickly this can become cumbersome to write, let alone not very pretty visually. If we <code>typealias</code> it, you can replace the definition with a simple name,
+which will definitely come in handy as we add more and more endpoints to our <code>Api</code> class.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">Api</span> <span class="p">{</span>
+  <span class="kd">typealias</span> <span class="kt">ApiResponse</span>  <span class="o">=</span> <span class="p">(</span><span class="kt">Data</span><span class="p">?,</span> <span class="kt">URLResponse</span><span class="p">?,</span> <span class="kt">Error</span><span class="p">?)</span> <span class="o">-&gt;</span> <span class="kt">Void</span>
+  <span class="o">...</span>
+  <span class="kd">func</span> <span class="nf">getOrders</span><span class="p">(</span><span class="n">_</span> <span class="nv">response</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt">ApiResponse</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">URLSessionTask</span> <span class="p">{</span>
+    <span class="o">...</span>
+    <span class="k">return</span> <span class="n">myUrlSession</span><span class="o">.</span><span class="nf">dataTask</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="n">myUrl</span><span class="p">,</span> <span class="nv">completionHandler</span><span class="p">:</span> <span class="n">response</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Just a slight disclaimer, it’s good to alias types when you will be using the same type in a lot of places, but can quickly get out of hand if you type alias <em>every</em> closure you define.
+The idea is to have a small amount of closure type aliases referenced multiple times in functions, not the other way around. We want to simplify and make our code less
+confusing, and with many type aliases and fewer function definitions using them, the result can lead to misdirection and confusion.</p>
+
+<h2 id="injecting-custom-code-into-a-common-paradigm">Injecting Custom Code into a Common Paradigm</h2>
+
+<p>Another common use-case I found myself quickly wanting to extract into reusable code is showing alerts. This done with the <code>UIAlertController</code>, and although Apple has done a nice job
+in terms of its API construction, even adding simple functionality can immediately become an annoyance to repeat. For example, take this simple alert:</p>
+
+<p><img src="http://imgur.com/6aim2Fs.png" width="100%" /></p>
+
+<p>In a <code>UIViewController</code> we would probably define the code for this like so:</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">let</span> <span class="nv">alert</span> <span class="o">=</span> <span class="kt">UIAlertController</span><span class="p">(</span><span class="nv">title</span><span class="p">:</span> <span class="s">"Error"</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="s">"Email address correctly formatted"</span><span class="p">,</span> <span class="nv">preferredStyle</span><span class="p">:</span> <span class="o">.</span><span class="n">alert</span><span class="p">)</span>
+<span class="c1">// add OK button</span>
+<span class="n">alert</span><span class="o">.</span><span class="nf">addAction</span><span class="p">(</span>
+    <span class="kt">UIAlertAction</span><span class="p">(</span><span class="nv">title</span><span class="p">:</span> <span class="s">"OK"</span><span class="p">,</span> <span class="nv">style</span><span class="p">:</span> <span class="o">.</span><span class="k">default</span><span class="p">,</span> <span class="nv">handler</span><span class="p">:</span> <span class="kc">nil</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="c1">// show alert</span>
+<span class="k">self</span><span class="o">.</span><span class="nf">present</span><span class="p">(</span><span class="n">alert</span><span class="p">,</span> <span class="nv">animated</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span> <span class="nv">completion</span><span class="p">:</span> <span class="kc">nil</span><span class="p">)</span></code></pre></figure>
+
+<p>Not too complicated, but I could definitely see this being a pain writing over and over again, just with different messages. What if we next need it to say <strong>Password incorrectly formatted</strong>?
+We can extract the <code>title</code> and <code>message</code> into variables, but maybe we want the option to customize the action that happens after the user clicks OK. Rather than hard-code the behavior inside
+the <code>UIAlertAction</code>, then using some value or <code>enum</code> to switch between the actions, we can just pass a closure in that will be executed when the user clicks OK. If this is pulled into a reusable
+context like a <code>Utilities</code> class, we also need to pass the <code>title</code>, <code>message</code>, and <code>UIViewController</code> in as well.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">Utilities</span> <span class="p">{</span>
+  <span class="o">...</span>
+  <span class="kd">static</span> <span class="kd">func</span> <span class="nf">messageAlert</span><span class="p">(</span><span class="nv">title</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">caller</span><span class="p">:</span> <span class="kt">UIViewController</span><span class="p">,</span> <span class="nv">afterConfirm</span><span class="p">:</span> <span class="p">(()</span> <span class="o">-&gt;</span> <span class="p">())?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">alert</span> <span class="o">=</span> <span class="kt">UIAlertController</span><span class="p">(</span><span class="nv">title</span><span class="p">:</span> <span class="n">title</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span> <span class="nv">preferredStyle</span><span class="p">:</span> <span class="o">.</span><span class="n">alert</span><span class="p">)</span>
+    <span class="c1">// add OK button</span>
+    <span class="n">alert</span><span class="o">.</span><span class="nf">addAction</span><span class="p">(</span>
+        <span class="kt">UIAlertAction</span><span class="p">(</span><span class="nv">title</span><span class="p">:</span> <span class="s">"OK"</span><span class="p">,</span> <span class="nv">style</span><span class="p">:</span> <span class="o">.</span><span class="k">default</span><span class="p">,</span> <span class="nv">handler</span><span class="p">:</span> <span class="p">{</span> <span class="n">_</span> <span class="k">in</span>
+            <span class="c1">// conditionally execute passed in closure</span>
+            <span class="k">if</span> <span class="k">let</span> <span class="nv">action</span> <span class="o">=</span> <span class="n">afterConfirm</span> <span class="p">{</span>
+                <span class="nf">action</span><span class="p">()</span>
+            <span class="p">}</span>
+        <span class="p">})</span>
+    <span class="p">)</span>
+    <span class="c1">// show alert</span>
+    <span class="n">caller</span><span class="o">.</span><span class="nf">present</span><span class="p">(</span><span class="n">alert</span><span class="p">,</span> <span class="nv">animated</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span> <span class="nv">completion</span><span class="p">:</span> <span class="kc">nil</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Just a quick note, for the <code>UIAlertAction</code>’s <code>handler</code>, I’m passing in an underscore to denote we aren’t using the argument, however that argument is the <code>UIAlertAction</code> itself in case you
+needed to configure or modify it further. For a usage example, let’s say the user is trying to register for a new account, and after typing the password confirmation, we want to alert them that
+the password and password confirmation do not match. If we wanted to restart the registration flow again without them having to explicitly tap the <code>Register</code> button again, we could build our error
+message like this:</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kt">Utilities</span><span class="o">.</span><span class="nf">messageAlert</span><span class="p">(</span><span class="nv">title</span><span class="p">:</span> <span class="s">"Error"</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="s">"Passwords do not match"</span><span class="p">,</span> <span class="nv">caller</span><span class="p">:</span> <span class="k">self</span><span class="p">,</span> <span class="nv">handler</span><span class="p">:</span> <span class="p">{</span>
+  <span class="k">self</span><span class="o">.</span><span class="nf">register</span><span class="p">()</span>
+<span class="p">})</span></code></pre></figure>
+
+<p>There is always a balance between making a piece of functionality reusable and avoiding making it too complicated, so if you further need to customize this example, be careful not to sacrifice readability
+for reusability, both for your future self’s sake and any other developers that will be touching your code.</p>
+
+<h2 id="immediately-invoked-closures">Immediately Invoked Closures</h2>
+
+<p>Closures can be “executed” by appending argument parentheses after the closing curly brace. It can be done either inline</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">let</span> <span class="nv">test</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="nf">print</span><span class="p">(</span><span class="s">"Hello world!"</span><span class="p">)</span>
+<span class="p">}()</span></code></pre></figure>
+
+<p>or as separate calls.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// define the closure</span>
+<span class="k">let</span> <span class="nv">test</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="nf">print</span><span class="p">(</span><span class="s">"Hello world!"</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="c1">// execute the closure</span>
+<span class="nf">test</span><span class="p">()</span></code></pre></figure>
+
+<p>Really, you don’t even need to assign it to a variable at all if you don’t want or need to.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="p">{</span>
+  <span class="nf">print</span><span class="p">(</span><span class="s">"Hello world!"</span><span class="p">)</span>
+<span class="p">}()</span></code></pre></figure>
+
+<p>What context might we use this? Often times when declaring a new instance of a class, after assigning it
+to a variable the first calls you make are to customize the properties of that instance. Using <code>UILabel</code>
+as an example, you will almost <em>always</em> be customizing an instance you create.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">let</span> <span class="nv">label</span> <span class="o">=</span> <span class="kt">UILabel</span><span class="p">()</span>
+<span class="n">label</span><span class="o">.</span><span class="n">textAlignment</span> <span class="o">=</span> <span class="o">.</span><span class="n">center</span>
+<span class="n">label</span><span class="o">.</span><span class="n">textColor</span> <span class="o">=</span> <span class="o">.</span><span class="n">black</span>
+<span class="n">label</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">"Hello, World!"</span></code></pre></figure>
+
+<p>With our handy new syntax, we can clean this up like so.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">let</span> <span class="nv">label</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="k">let</span> <span class="nv">l</span> <span class="o">=</span> <span class="kt">UILabel</span><span class="p">()</span>
+  <span class="c1">// set properties</span>
+  <span class="n">l</span><span class="o">.</span><span class="n">textAlignment</span> <span class="o">=</span> <span class="o">.</span><span class="n">center</span>
+  <span class="n">l</span><span class="o">.</span><span class="n">textColor</span> <span class="o">=</span> <span class="o">.</span><span class="n">black</span>
+  <span class="n">l</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">"Hello, World!"</span>
+  <span class="c1">// return instance to assign to `label` variable</span>
+  <span class="k">return</span> <span class="n">l</span>
+<span class="p">}()</span></code></pre></figure>
+
+<p>It adds a little nice syntactic sugar, but what if we need to declare a property on a <code>UIViewController</code>?
+Let’s use Swift 4’s new <a href="https://developer.apple.com/documentation/foundation/jsondecoder">JSONDecoder</a>, which
+can help us map raw JSON to an object in a much improved way.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">ViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+  <span class="o">...</span>
+  <span class="k">var</span> <span class="nv">decoder</span><span class="p">:</span> <span class="kt">JSONDecoder</span> <span class="o">=</span> <span class="kt">JSONDecoder</span><span class="p">()</span>
+  <span class="o">...</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>We’ll be mapping a JSON object to a simple struct called <code>Foo</code>.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift">  <span class="kd">struct</span> <span class="kt">Foo</span><span class="p">:</span> <span class="kt">Codable</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">dateTime</span><span class="p">:</span> <span class="kt">Date</span>
+    <span class="o">...</span>
+    <span class="kd">enum</span> <span class="kt">CodingKeys</span> <span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="kt">CodingKey</span> <span class="p">{</span>
+      <span class="k">case</span> <span class="n">dateTime</span>
+    <span class="p">}</span>
+  <span class="p">}</span></code></pre></figure>
+
+<p>Don’t worry too much about the syntax above, just note that we have a <code>Date</code> field on our <code>Foo</code> struct. You can find a
+great guide that lays out this new JSON mapping technique <a href="http://benscheirman.com/2017/06/ultimate-guide-to-json-parsing-with-swift-4/">here</a>.
+The <code>JSONDecoder</code> instance can have certain options set for configuration, and we want to automatical convert the <code>dateTime</code> field
+on our object to an ISO 8601 format when mapped. However, the date formatting is configured on the <code>JSONDecoder</code> instance itself, so we need to set that property
+on our <code>decoder</code> instance variable. We can’t do this immediately after, since that would be invalid Swift.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">ViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+  <span class="o">...</span>
+  <span class="k">var</span> <span class="nv">decoder</span><span class="p">:</span> <span class="kt">JSONDecoder</span> <span class="o">=</span> <span class="kt">JSONDecoder</span><span class="p">()</span>
+  <span class="n">decoder</span><span class="o">.</span><span class="n">dateEncodingStrategy</span> <span class="o">=</span> <span class="o">.</span><span class="n">iso8601</span>
+  <span class="o">...</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>We can however neatly package the instance declaration and any configuration together using an immediately invoked closure.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">ViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+  <span class="o">...</span>
+  <span class="k">var</span> <span class="nv">decoder</span><span class="p">:</span> <span class="kt">JSONDecoder</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">d</span> <span class="o">=</span> <span class="kt">JSONDecoder</span><span class="p">()</span>
+    <span class="n">d</span><span class="o">.</span><span class="n">dateEncodingStrategy</span> <span class="o">=</span> <span class="o">.</span><span class="n">iso8601</span>
+    <span class="k">return</span> <span class="n">d</span>
+  <span class="p">}()</span>
+  <span class="o">...</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>This will immediately execute the closure and assign the instance to the <code>decoder</code> variable, but if there’s a certain context in the <code>ViewController</code>
+where the <code>decoder</code> isn’t used, it would be nice to not have to instantiate it until absolutely necessary. If we prepend the <code>lazy</code> keyword
+to it, it will only be executed the first time the variable is referenced.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">ViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+  <span class="o">...</span>
+  <span class="kd">lazy</span> <span class="k">var</span> <span class="nv">decoder</span><span class="p">:</span> <span class="kt">JSONDecoder</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">d</span> <span class="o">=</span> <span class="kt">JSONDecoder</span><span class="p">()</span>
+    <span class="n">d</span><span class="o">.</span><span class="n">dateEncodingStrategy</span> <span class="o">=</span> <span class="o">.</span><span class="n">iso8601</span>
+    <span class="k">return</span> <span class="n">d</span>
+  <span class="p">}()</span>
+  <span class="o">...</span>
+  <span class="k">override</span> <span class="kd">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">super</span><span class="o">.</span><span class="nf">viewDidLoad</span><span class="p">()</span>
+    <span class="o">...</span>
+    <span class="k">do</span> <span class="p">{</span>
+      <span class="c1">// `decoder` variable not set until it is called here</span>
+      <span class="k">let</span> <span class="nv">foo</span><span class="p">:</span> <span class="kt">Foo</span> <span class="o">=</span> <span class="k">try</span> <span class="n">decoder</span><span class="o">.</span><span class="nf">decode</span><span class="p">(</span><span class="kt">Foo</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="n">fooJson</span><span class="p">)</span>
+    <span class="p">}</span> <span class="k">catch</span> <span class="k">let</span> <span class="nv">error</span> <span class="p">{</span>
+      <span class="o">...</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Closures in Swift have a multitude of use cases as we’ve seen, and I definitely encourage you to continue your exploration to find new and innovative ways to make your life
+and the lives of other Swift developers a little easier using this amazing feature. The last thing I wanted to highlight is a nifty little quick reference site covering many
+ways to use and declare closures in Swift, <a href="http://goshdarnclosuresyntax.com/">Gosh Darn Closure Syntax</a>. Good luck and happy coding!</p>
+:ET

@@ -1,0 +1,531 @@
+I"a�<p>Welcome back! After taking a hiatus, let’s wrap up this series on Clean Swift by implementing unit tests against the components in a <em>scene</em>. When I was first becoming familiar with the architecture by building sample apps for job interviews, cleaning up my massive view controllers and the ease of writing tests were two of the biggest benefits I noticed immediately. Coming from a Ruby on Rails background where testing is baked into the culture, I was delighted that Clean Swift was not only making my views and features easier to build and manage, but made writing unit tests a breeze.</p>
+
+<p>The best part about building up a test suite with Clean Swift is its flexibility as a paradigm. The VIP cycle doesn’t need to be backed by a heavy-duty framework or require special setup, it is composed of protocols and design patterns. With dependency injection included, swapping out the real <strong>NetworkManager</strong> or <strong>UserDefaults</strong> with a mock object becomes trivial.</p>
+
+<p>We’ll dive into each of these topics, but first let’s set up a simple scene containing a single view controller-interactor-presenter cycle with a few simple UI controls and events to demonstrate how easy it is to get started writing your own tests alongside your features, giving yourself, your team, and the business as a whole a greater sense of quality assurance as you build your product.</p>
+
+<h2 id="what-were-testing">What We’re Testing</h2>
+
+<p>For this exercise, I’m testing against a simple single-screen app containing a few UI elements that respond to both system events as well as user events. Let’s break down what we see:</p>
+
+<p><img src="https://imgur.com/c2OA7dh.gif" width="50%" style="margin: auto" /></p>
+
+<ul>
+  <li>
+    <p><strong>Clock</strong> - At the top of the view, a system clock keeps track of and displays the current time down to the second. This clock will pause when the app goes to the background and resumes with the correct time when the app becomes active again</p>
+  </li>
+  <li>
+    <p><strong>Text Field</strong> - Below the clock is a field for the user to enter their name</p>
+  </li>
+  <li>
+    <p><strong>Save Button</strong> - When a user enters or updates their name, clicking this button will persist the name to <strong>UserDefaults</strong> for retrieval the next time the app is opened. This button becomes disabled when there is no text in the text field or the user has not made any changes to the text since the last time the app was opened or the last time the name was saved.</p>
+  </li>
+  <li>
+    <p><strong>Greet Button</strong> - After the user has saved their name, they can say hello to their iPhone by tapping the “<em>Hi, iPhone!</em>” button. This will display an alert message with the phone’s response, greeting the user in return with “<em>Hi, {name}!</em>”. This button is disabled when a name has not been persisted to <strong>UserDefaults</strong>.</p>
+  </li>
+</ul>
+
+<p>Overall the app itself and its features are basic, but the important part is how those features were set up. As we explore the various approaches to test these features, the discussion will naturally move into the testing strategies I not only want to cover in this post, but you will find yourself using as you build out your test suite.</p>
+
+<p>A couple things to note before we dive into code: first, I’ll be limiting my test cases only to testing the VIP cycle and Clean Swift functionality. I would highly recommend diving deeper into your test suite, especially in terms of writing test cases for the additional functionality in your view controller that may not explicitly be covered by the APIs between the view controller, interactor, presenter, and router. This will become clearer as we move through the article. Secondly, I’ll mostly be including only the code related to the functionality I’m currently describing. The full source code for the app can be found <a href="https://github.com/kfarst/viptesting">here</a>, but please comment if anything is still ambiguous.</p>
+
+<h2 id="testing-setup">Testing Setup</h2>
+
+<p>For my test cases, I will be writing them in a behavior-driven development style using the <a href="https://github.com/Quick/Quick">Quick</a> and <a href="https://github.com/Quick/Quick/blob/master/Documentation/en-us/NimbleAssertions.md">Nimble</a> frameworks available through <a href="https://cocoapods.org/">CocoaPods</a> distribution. This style of test writing is mostly used as a way to group our tests together and isolate them into verbose descriptions to better understand what is being tested and where errors can be found. The test cases are still very understandable to those already familiar with the native <strong>XCTest</strong> and <strong>XCUITest</strong> testing frameworks. You can learn more about these testing practices in my blog post <a href="http://kfarst.github.io/ios/2017/07/26/bringing-behavior-driven-development-to-xcode/">Bringing Behavior-Driven Development to Xcode</a>.</p>
+
+<h3 id="unit-testing">Unit Testing</h3>
+
+<p>According to our good friend Wikipedia:</p>
+
+<blockquote>
+Unit testing is a software testing method by which individual units of source code, sets of one or more computer program modules together with associated control data, usage procedures, and operating procedures, are tested to determine whether they are fit for use.
+</blockquote>
+
+<p>A more straightforward definition comes from a great analogy I’ve heard:</p>
+
+<blockquote>
+If integration testing is testing the rocket launch, unit testing is testing the individual fuel cells, navigation system, engines, emergency procedures, and all the parts that come together for a successful spaceflight.
+</blockquote>
+
+<p>In order for us to have confidence in the reliability of our app as a user-facing product, we need to test the individual classes and functions that make the features of our app “behave” correctly. That’s where behavior-driven unit testing comes in as we test the individual functions and properties that make up the view controllers, presenters, and interactors in our VIP cycles.</p>
+
+<h3 id="protocol-oriented-programming">Protocol-Oriented Programming</h3>
+
+<p>At WWDC 2015, Apple gave a presentation stressing the importance of starting with a <a href="https://developer.apple.com/videos/play/wwdc2015/408/">protocol</a> in Swift, In the example app above, the <em>Main</em> scene contains the single VIP cycle, omitting the worker and encapsulating all business logic in the interactor. With that in mind, let’s take a look at the VIP diagram from <a href="http://kfarst.github.io/ios/2019/02/21/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture-part-2/">part 2</a> of the series:</p>
+
+<p><img src="https://imgur.com/hGioOK5.png" /></p>
+
+<p>Each class communicates with its sibling in the cycle through a <em>viewController</em>, <em>interactor</em>, and <em>presenter</em> property respectively. However, the property type is not the <strong>MainViewController</strong>, <strong>MainInteractor</strong>, or <strong>MainPresenter</strong> itself, but the <em>protocols</em> they conform to.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// MainPresenter.swift</span>
+<span class="kd">protocol</span> <span class="kt">MainPresentationLogic</span><span class="p">:</span> <span class="kt">AlertPresenter</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">displayCurrentTime</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">CurrentTime</span><span class="o">.</span><span class="kt">Response</span><span class="p">)</span>
+    <span class="kd">func</span> <span class="nf">setUserInfo</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">Response</span><span class="p">)</span>
+    <span class="kd">func</span> <span class="nf">updateUserInfo</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">Response</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="o">...</span>
+<span class="kd">class</span> <span class="kt">MainPresenter</span><span class="p">:</span> <span class="kt">MainPresentationLogic</span> <span class="p">{</span>
+    <span class="k">weak</span> <span class="k">var</span> <span class="nv">viewController</span><span class="p">:</span> <span class="kt">MainDisplayLogic</span><span class="p">?</span>
+<span class="p">}</span>
+
+<span class="c1">// MainViewController.swift</span>
+<span class="kd">protocol</span> <span class="kt">MainDisplayLogic</span><span class="p">:</span> <span class="kd">class</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">updateClockTime</span><span class="p">(</span><span class="nv">viewModel</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">CurrentTime</span><span class="o">.</span><span class="kt">ViewModel</span><span class="p">)</span>
+    <span class="kd">func</span> <span class="nf">setUserInfo</span><span class="p">(</span><span class="nv">viewModel</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">ViewModel</span><span class="p">)</span>
+    <span class="kd">func</span> <span class="nf">updateFromUserInfo</span><span class="p">(</span><span class="nv">viewModel</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">ViewModel</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="o">...</span>
+<span class="kd">class</span> <span class="kt">MainViewController</span><span class="p">:</span> <span class="kt">UIViewController</span><span class="p">:</span> <span class="kt">MainDisplayLogic</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">interactor</span><span class="p">:</span> <span class="kt">MainBusinessLogic</span><span class="p">?</span>
+<span class="p">}</span>
+
+<span class="c1">// MainInteractor.swift</span>
+<span class="kd">protocol</span> <span class="kt">MainBusinessLogic</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">updateCurrentTime</span><span class="p">()</span>
+    <span class="kd">func</span> <span class="nf">saveUserInfo</span><span class="p">(</span><span class="nv">request</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">Request</span><span class="p">)</span>
+    <span class="kd">func</span> <span class="nf">getUserInfo</span><span class="p">()</span>
+    <span class="kd">func</span> <span class="nf">showGreeting</span><span class="p">()</span>
+    <span class="kd">func</span> <span class="nf">userInfoChanged</span><span class="p">(</span><span class="nv">request</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">Request</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="o">...</span>
+<span class="kd">class</span> <span class="kt">MainInteractor</span><span class="p">:</span> <span class="kt">MainBusinessLogic</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">presenter</span><span class="p">:</span> <span class="kt">MainPresentationLogic</span><span class="p">?</span>
+<span class="p">}</span></code></pre></figure>
+
+<p><em>Protocols</em> are a “software contract” that allows us to pass any object to be used in its place as long as it defines the properties and functions the protocol expects. In fact, the only time the properties are actually set with <em>concrete</em> implementations of the protocols are located in the <strong>MainConfigurator</strong> when the scene is set up.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">MainConfigurator</span> <span class="p">{</span>
+  <span class="kd">func</span> <span class="nf">configure</span><span class="p">(</span><span class="nv">viewController</span><span class="p">:</span> <span class="kt">MainViewController</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">let</span> <span class="nv">interactor</span> <span class="o">=</span> <span class="kt">MainInteractor</span><span class="p">()</span>
+      <span class="k">let</span> <span class="nv">presenter</span> <span class="o">=</span> <span class="kt">MainPresenter</span><span class="p">()</span>
+      <span class="k">let</span> <span class="nv">router</span> <span class="o">=</span> <span class="kt">MainRouter</span><span class="p">()</span>
+    
+      <span class="n">viewController</span><span class="o">.</span><span class="n">interactor</span> <span class="o">=</span> <span class="n">interactor</span>
+      <span class="n">viewController</span><span class="o">.</span><span class="n">router</span> <span class="o">=</span> <span class="n">router</span>
+      <span class="n">interactor</span><span class="o">.</span><span class="n">presenter</span> <span class="o">=</span> <span class="n">presenter</span>
+      <span class="n">presenter</span><span class="o">.</span><span class="n">viewController</span> <span class="o">=</span> <span class="n">viewController</span>
+      <span class="n">router</span><span class="o">.</span><span class="n">viewController</span> <span class="o">=</span> <span class="n">viewController</span>
+      <span class="n">router</span><span class="o">.</span><span class="n">dataStore</span> <span class="o">=</span> <span class="n">interactor</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Since we are testing each of the classes in isolation however, and since the <em>viewController</em>, <em>interactor</em> and <em>presenter</em> properties are mutable with a <strong>var</strong> declaration, all that needs to be done to ensure the functions defined in the protocols are being called is to pass an object that “meets the contract” of the protocol, but its implementation can be changed to help provide data better suited to check against test cases. When a dependecy is replaced with an object specifically for the case of testing the events and calls against that object, it is called a <em>test double</em>.</p>
+
+<h3 id="test-doubles">Test Doubles</h3>
+
+<p>Test doubles come in multiple forms based on their utilization. The one thing they have in common is that they can be “plugged in” where we need them to help facilitate testing. A few variants include:</p>
+
+<ul>
+  <li><strong>Fake</strong> - Object that behaves similar to the production version, but may have expensive operations or unrelated functionality that needs to be removed. Persistence or network calls may want to be swappped out in these objects.</li>
+  <li><strong>Mock</strong> - Objects that register the calls they receive.</li>
+  <li><strong>Stub</strong> - Objects that have prefined data to be returned when called. Since the data being passed in to a function or definition is known, as well as its return value, this object can instead return hardcoded values without making expensive calls.</li>
+</ul>
+
+<p>At the end of the previous section, I mentioned we wanted to test the interaction between the classes in the VIP cycle and verify the correct functions are being called. Because of this, a <em>mock</em> would be ideal for this situation.
+For the first example, let’s set up test cases for the <strong>MainInteractor</strong>. From the diagram above, we receive <em>requests</em> from the view controller, some work is done in the interactor, and the result is passed off to the presenter in the form of a <em>response</em> struct. The beauty of this is that the interactor is basically saying “I don’t care how my functions get called, I just know when <em>xyz</em> function is called I need to perform some work and pass the result off to the <strong>MainPresentationLogic</strong> delegate”. We will be calling the functions ourselves, but we need an object to help us record the output from the interactor. A <strong>MainPresenterMock</strong> can be created in the <em>VIPTestingTests &gt; Support &gt; Mocks &gt; Main</em> folder that conforms to the <strong>MainPresentationLogic</strong> protocol. From there, it’s just about copying over the function definitions that are defined in that protocol, since that is the only knowledge the interactor has about its <em>presenter</em> property type.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">//  protocol MainPresentationLogic: AlertPresenter {</span>
+<span class="c1">//      func displayCurrentTime(response: Main.CurrentTime.Response)</span>
+<span class="c1">//      func setUserInfo(response: Main.UserInfo.Response)</span>
+<span class="c1">//      func updateUserInfo(response: Main.UserInfo.Response)</span>
+<span class="c1">//      func showAlert(response: MessageProtocol)</span>
+<span class="c1">//      func showToast(response: MessageProtocol)</span>
+<span class="c1">//  }</span>
+
+<span class="kd">class</span> <span class="kt">MainPresenterMock</span><span class="p">:</span> <span class="kt">MainPresentationLogic</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">displayCurrentTime</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">CurrentTime</span><span class="o">.</span><span class="kt">Response</span><span class="p">)</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+    <span class="kd">func</span> <span class="nf">setUserInfo</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">Response</span><span class="p">)</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+    <span class="kd">func</span> <span class="nf">updateUserInfo</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">Response</span><span class="p">)</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>If we want the simplest feedback possible, all that is needed is to add properties to this mock whose values are changed within the function bodies. In this case, a Boolean flag can be set up to verify each function was called.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">MainPresenterMock</span><span class="p">:</span> <span class="kt">MainPresentationLogic</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">displayCurrentTimeCalled</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="k">var</span> <span class="nv">setUserInfoCalled</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="k">var</span> <span class="nv">updateUserInfoCalled</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="k">var</span> <span class="nv">showToastCalled</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="k">var</span> <span class="nv">showAlertCalled</span> <span class="o">=</span> <span class="kc">false</span>
+    
+    <span class="kd">func</span> <span class="nf">showAlert</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="kt">MessageProtocol</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">showAlertCalled</span> <span class="o">=</span> <span class="kc">true</span>
+    <span class="p">}</span>
+    
+    <span class="kd">func</span> <span class="nf">displayCurrentTime</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">CurrentTime</span><span class="o">.</span><span class="kt">Response</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">displayCurrentTimeCalled</span> <span class="o">=</span> <span class="kc">true</span>
+    <span class="p">}</span>
+    
+    <span class="kd">func</span> <span class="nf">setUserInfo</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">Response</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">setUserInfoCalled</span> <span class="o">=</span> <span class="kc">true</span>
+    <span class="p">}</span>
+    
+    <span class="kd">func</span> <span class="nf">updateUserInfo</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">Response</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">updateUserInfoCalled</span> <span class="o">=</span> <span class="kc">true</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">showToast</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="kt">MessageProtocol</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">showToastCalled</span> <span class="o">=</span> <span class="kc">true</span>
+    <span class="p">}</span>
+    
+    <span class="kd">func</span> <span class="nf">showAlert</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="kt">MessageProtocol</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">showAlertCalled</span> <span class="o">=</span> <span class="kc">true</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>We’ve just created our first mock! Piece of cake, right? Now, let’s use this newly crafted tool to test the <strong>MainInteractor</strong>.</p>
+
+<h3 id="writing-test-cases">Writing Test Cases</h3>
+
+<p>Moving over to <em>VIPTestingTests &gt; Classes &gt; Main &gt; MainInteractorSpec.swift</em>, we can use the same idea we used for the <strong>MainPresenterMock</strong>, using the <strong>MainBusinessLogic</strong> protocol as
+a map to build the test case structure. Using <em>Quick</em>’s declarative block-style syntax, combined with a tip from <em>betterspecs.org</em> about <a href="http://www.betterspecs.org/#describe">how to describe your methods</a>, we can set up blocks of code to define the behavior of each method defined by the <strong>MainBusinessLogic</strong> protocol.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">//  protocol MainBusinessLogic {</span>
+<span class="c1">//      func updateCurrentTime()</span>
+<span class="c1">//      func saveUserInfo(request: Main.UserInfo.Request)</span>
+<span class="c1">//      func getUserInfo()</span>
+<span class="c1">//      func showGreeting()</span>
+<span class="c1">//      func userInfoChanged(request: Main.UserInfo.Request)</span>
+<span class="c1">//  }</span>
+
+<span class="kd">class</span> <span class="kt">MainInteractorSpec</span><span class="p">:</span> <span class="kt">QuickSpec</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">spec</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nf">describe</span><span class="p">(</span><span class="s">"Interactor: Main"</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nf">describe</span><span class="p">(</span><span class="s">"#updateCurrentTime"</span><span class="p">)</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+            <span class="nf">describe</span><span class="p">(</span><span class="s">"#saveUserInfo"</span><span class="p">)</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+            <span class="nf">describe</span><span class="p">(</span><span class="s">"#getUserInfo"</span><span class="p">)</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+            <span class="nf">describe</span><span class="p">(</span><span class="s">"#showGreeting"</span><span class="p">)</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+            <span class="nf">describe</span><span class="p">(</span><span class="s">"#userInfoChanged"</span><span class="p">)</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Now within each <em>describe</em> block a series of <em>it</em> closures can be added containing <em>expect</em> clauses to handle our assertions. This “expectation syntax” provided by <em>Nimble</em> can test the flags set on the <strong>MainPresenterMock</strong> class when the function we’re testing in the <strong>MainInteractor</strong> is called and verify they have been set to <em>true</em>.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="nf">describe</span><span class="p">(</span><span class="s">"Interactor: Main"</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">interactor</span><span class="p">:</span> <span class="kt">MainInteractor</span><span class="o">!</span>
+    <span class="k">var</span> <span class="nv">presenter</span><span class="p">:</span> <span class="kt">MainPresenterMock</span><span class="o">!</span>
+    
+    <span class="n">beforeEach</span> <span class="p">{</span>
+        <span class="n">interactor</span> <span class="o">=</span> <span class="kt">MainInteractor</span><span class="p">()</span>
+        <span class="n">presenter</span> <span class="o">=</span> <span class="kt">MainPresenterMock</span><span class="p">()</span>
+        
+        <span class="n">interactor</span><span class="o">.</span><span class="n">presenter</span> <span class="o">=</span> <span class="n">presenter</span>
+    <span class="p">}</span>
+    <span class="o">...</span>
+    <span class="nf">describe</span><span class="p">(</span><span class="s">"#getUserInfo"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">it</span><span class="p">(</span><span class="s">"fetches user info from storage"</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">interactor</span><span class="o">.</span><span class="nf">getUserInfo</span><span class="p">()</span>
+            <span class="nf">expect</span><span class="p">(</span><span class="n">presenter</span><span class="o">.</span><span class="n">setUserInfoCalled</span><span class="p">)</span><span class="o">.</span><span class="nf">to</span><span class="p">(</span><span class="nf">beTrue</span><span class="p">())</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="o">...</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>The <em>beforeEach</em> closure is called before each <em>it</em> block, giving us the opportunity to reset the test data and classes before each expectation is tested. Congratulations! You just wrote your first unit test using Clean Swift. I hope the ease of setting up mocks and building the first test cases shows how easily this can be integrated into your feature development and opening the door for a test-driven development experience. Combining <em>Quick</em> and Clean Swift also makes it much easier to test different use cases based on data state. In the <strong>MainInteractor</strong> <em>saveUserInfo()</em> function, the <em>request</em> contains an optional <strong>String?</strong> name that will cause the interactor function to call the <strong>MainPresenter</strong> <em>showAlert()</em> function instead of the <strong>MainPresenter</strong> <em>showToast()</em> function if the name is empty.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// MainInteractor.swift</span>
+<span class="kd">func</span> <span class="nf">saveUserInfo</span><span class="p">(</span><span class="nv">request</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">Request</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="k">let</span> <span class="nv">name</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">name</span> <span class="p">{</span>
+        <span class="n">storage</span><span class="o">.</span><span class="nf">set</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nv">forKey</span><span class="p">:</span> <span class="s">"name"</span><span class="p">)</span>
+        <span class="n">storage</span><span class="o">.</span><span class="nf">synchronize</span><span class="p">()</span>
+        
+        <span class="k">let</span> <span class="nv">response</span> <span class="o">=</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">Message</span><span class="o">.</span><span class="kt">Response</span><span class="p">(</span>
+            <span class="nv">type</span><span class="p">:</span> <span class="o">.</span><span class="n">message</span><span class="p">,</span>
+            <span class="nv">text</span><span class="p">:</span> <span class="s">"Name saved!"</span>
+        <span class="p">)</span>
+
+        <span class="nf">getUserInfo</span><span class="p">()</span>
+        
+        <span class="n">presenter</span><span class="p">?</span><span class="o">.</span><span class="nf">showToast</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="n">response</span><span class="p">)</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">response</span> <span class="o">=</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">Message</span><span class="o">.</span><span class="kt">Response</span><span class="p">(</span>
+            <span class="nv">type</span><span class="p">:</span> <span class="o">.</span><span class="n">error</span><span class="p">,</span>
+            <span class="nv">text</span><span class="p">:</span> <span class="s">"Please enter your name"</span>
+        <span class="p">)</span>
+        
+        <span class="n">presenter</span><span class="p">?</span><span class="o">.</span><span class="nf">showAlert</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="n">response</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Additionally, if the name is saved successfully, <em>getUserInfo()</em> is also called which in turn calls <strong>presenter?.setUserInfo(response: response)</strong>.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// MainInteractor.swift</span>
+<span class="kd">func</span> <span class="nf">getUserInfo</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">response</span> <span class="o">=</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">Response</span><span class="p">(</span>
+        <span class="nv">text</span><span class="p">:</span> <span class="n">storage</span><span class="o">.</span><span class="nf">string</span><span class="p">(</span><span class="nv">forKey</span><span class="p">:</span> <span class="s">"name"</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">presenter</span><span class="p">?</span><span class="o">.</span><span class="nf">setUserInfo</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="n">response</span><span class="p">)</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>These cases can all be easily isolated and verified in our unit tests.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// MainInteractorSpec.swift</span>
+<span class="nf">describe</span><span class="p">(</span><span class="s">"#saveUserInfo"</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nf">describe</span><span class="p">(</span><span class="s">"with a valid name"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">it</span><span class="p">(</span><span class="s">"shows a toast"</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">Request</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Bob"</span><span class="p">)</span>
+            <span class="n">interactor</span><span class="o">.</span><span class="nf">saveUserInfo</span><span class="p">(</span><span class="nv">request</span><span class="p">:</span> <span class="n">request</span><span class="p">)</span>
+            <span class="nf">expect</span><span class="p">(</span><span class="n">presenter</span><span class="o">.</span><span class="n">showToastCalled</span><span class="p">)</span><span class="o">.</span><span class="nf">to</span><span class="p">(</span><span class="nf">beTrue</span><span class="p">())</span>
+        <span class="p">}</span>
+        
+        <span class="nf">it</span><span class="p">(</span><span class="s">"updates the user state"</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">Request</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Anne"</span><span class="p">)</span>
+            <span class="n">interactor</span><span class="o">.</span><span class="nf">saveUserInfo</span><span class="p">(</span><span class="nv">request</span><span class="p">:</span> <span class="n">request</span><span class="p">)</span>
+            <span class="nf">expect</span><span class="p">(</span><span class="n">presenter</span><span class="o">.</span><span class="n">setUserInfoCalled</span><span class="p">)</span><span class="o">.</span><span class="nf">to</span><span class="p">(</span><span class="nf">beTrue</span><span class="p">())</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    
+    <span class="nf">describe</span><span class="p">(</span><span class="s">"with an invalid name"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">it</span><span class="p">(</span><span class="s">"shows an alert"</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">Request</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="kc">nil</span><span class="p">)</span>
+            <span class="n">interactor</span><span class="o">.</span><span class="nf">saveUserInfo</span><span class="p">(</span><span class="nv">request</span><span class="p">:</span> <span class="n">request</span><span class="p">)</span>
+            <span class="nf">expect</span><span class="p">(</span><span class="n">presenter</span><span class="o">.</span><span class="n">showAlertCalled</span><span class="p">)</span><span class="o">.</span><span class="nf">to</span><span class="p">(</span><span class="nf">beTrue</span><span class="p">())</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Remember, the <em>beforeEach</em> closure runs before each <em>it</em> block, so our mock and its properties are reset every time.</p>
+
+<h4 id="working-backwards">Working Backwards</h4>
+
+<p>We can leverage protocols and mock objects for testing classes within the <strong>Foundation</strong> and <strong>UIKit</strong> frameworks as well. Within the <strong>MainInteractor</strong>,
+the <em>saveUserInfo()</em> and <em>getUserInfo()</em> functions call on the <strong>storage</strong> property to <em>get</em> and <em>set</em> the name provided by the user’s input.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// MainInteractor.swift</span>
+<span class="kd">class</span> <span class="kt">MainInteractor</span><span class="p">:</span> <span class="kt">MainBusinessLogic</span><span class="p">,</span> <span class="kt">MainDataStore</span> <span class="p">{</span>
+    <span class="o">...</span>
+    <span class="k">var</span> <span class="nv">storage</span><span class="p">:</span> <span class="kt">UserDefaults</span>
+    <span class="o">...</span>
+    <span class="nf">init</span><span class="p">(</span><span class="nv">storage</span><span class="p">:</span> <span class="kt">UserDefaults</span> <span class="o">=</span> <span class="kt">UserDefaults</span><span class="o">.</span><span class="n">standard</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">storage</span> <span class="o">=</span> <span class="n">storage</span>
+    <span class="p">}</span>
+    <span class="o">...</span>
+    <span class="kd">func</span> <span class="nf">saveUserInfo</span><span class="p">(</span><span class="nv">request</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">Request</span><span class="p">)</span> <span class="p">{</span>
+        <span class="o">...</span>
+        <span class="n">storage</span><span class="o">.</span><span class="nf">set</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nv">forKey</span><span class="p">:</span> <span class="s">"name"</span><span class="p">)</span>
+        <span class="n">storage</span><span class="o">.</span><span class="nf">synchronize</span><span class="p">()</span>
+        <span class="o">...</span>
+    <span class="p">}</span>
+    
+    <span class="kd">func</span> <span class="nf">getUserInfo</span><span class="p">()</span> <span class="p">{</span>
+        <span class="o">...</span>
+        <span class="n">storage</span><span class="o">.</span><span class="nf">string</span><span class="p">(</span><span class="nv">forKey</span><span class="p">:</span> <span class="s">"name"</span><span class="p">)</span>
+        <span class="o">...</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>In this example, <strong>UserDefaults</strong> is a <em>concrete</em> implementation instead of a protocol. If we wanted to change this storage option in the future, or wanted to easily
+swap out this storage type for another, it <em>must</em> be an instance of <strong>UserDefaults</strong> or a subclass of it. This constraint is pretty rigid, especially if we don’t want to use the actual <strong>UserDefaults</strong>
+class in unit testing. <strong>UserDefaults</strong> has a generic interface for our purposes, so it’s a good candidate for showcasing how a protocol can be derived from an existing class in order to make a mock
+object for testing.</p>
+
+<p>The example highlights all references to the <em>storage</em> property and its functions. From this “interface”, combined with checking the actual method signatures for argument names in <strong>UserDefaults</strong>, a generic <strong>Storage</strong> protocol can be:</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">protocol</span> <span class="kt">Storage</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">set</span><span class="p">(</span><span class="n">_</span> <span class="nv">value</span><span class="p">:</span> <span class="kt">Any</span><span class="p">?,</span> <span class="n">forKey</span> <span class="n">defaultName</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span>
+    <span class="kd">func</span> <span class="nf">string</span><span class="p">(</span><span class="n">forKey</span> <span class="n">defaultName</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">String</span><span class="p">?</span>
+    <span class="kd">func</span> <span class="nf">synchronize</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Bool</span>
+<span class="p">}</span></code></pre></figure>
+
+<p><strong>UserDefaults</strong> can conform to the protocol through an <em>extension</em>, and the <em>storage</em> property in the <strong>MainInteractor</strong> can adopt the generic <strong>Storage</strong> type.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">protocol</span> <span class="kt">Storage</span> <span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+<span class="o">...</span>
+<span class="kd">extension</span> <span class="kt">UserDefaults</span><span class="p">:</span> <span class="kt">Storage</span> <span class="p">{</span> <span class="cm">/* conform UserDefaults to Storage */</span> <span class="p">}</span>
+<span class="o">...</span>
+<span class="kd">class</span> <span class="kt">MainInteractor</span><span class="p">:</span> <span class="kt">MainBusinessLogic</span><span class="p">,</span> <span class="kt">MainDataStore</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">storage</span><span class="p">:</span> <span class="kt">Storage</span>
+
+    <span class="nf">init</span><span class="p">(</span><span class="nv">storage</span><span class="p">:</span> <span class="kt">Storage</span> <span class="o">=</span> <span class="kt">UserDefaults</span><span class="o">.</span><span class="n">standard</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">storage</span> <span class="o">=</span> <span class="n">storage</span>
+    <span class="p">}</span>
+    <span class="o">...</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Now it’s back to business as usual. A <strong>StorageMock</strong> can be defined and passed into test cases, and the mock object will tell us if its functions were called or not.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// StorageMock.swift</span>
+<span class="kd">class</span> <span class="kt">StorageMock</span><span class="p">:</span> <span class="kt">Storage</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">valueSet</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="k">var</span> <span class="nv">valueFetched</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="k">var</span> <span class="nv">synchronizeCalled</span> <span class="o">=</span> <span class="kc">false</span>
+    
+    <span class="kd">func</span> <span class="nf">set</span><span class="p">(</span><span class="n">_</span> <span class="nv">value</span><span class="p">:</span> <span class="kt">Any</span><span class="p">?,</span> <span class="n">forKey</span> <span class="n">defaultName</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">valueSet</span> <span class="o">=</span> <span class="kc">true</span>
+    <span class="p">}</span>
+    
+    <span class="kd">func</span> <span class="nf">string</span><span class="p">(</span><span class="n">forKey</span> <span class="n">defaultName</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">String</span><span class="p">?</span> <span class="p">{</span>
+        <span class="n">valueFetched</span> <span class="o">=</span> <span class="kc">true</span>
+        <span class="c1">// stub returning pre-defined data</span>
+        <span class="k">return</span> <span class="s">"TestName"</span>
+    <span class="p">}</span>
+    
+    <span class="kd">func</span> <span class="nf">synchronize</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Bool</span> <span class="p">{</span>
+        <span class="n">synchronizeCalled</span> <span class="o">=</span> <span class="kc">true</span>
+        <span class="k">return</span> <span class="kc">true</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// MainInteractorSpec.swift</span>
+<span class="kd">class</span> <span class="kt">MainInteractorSpec</span><span class="p">:</span> <span class="kt">QuickSpec</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">spec</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nf">describe</span><span class="p">(</span><span class="s">"Interactor: Main"</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">var</span> <span class="nv">interactor</span><span class="p">:</span> <span class="kt">MainInteractor</span><span class="o">!</span>
+            <span class="k">var</span> <span class="nv">presenter</span><span class="p">:</span> <span class="kt">MainPresenterMock</span><span class="o">!</span>
+            <span class="k">var</span> <span class="nv">storageMock</span><span class="p">:</span> <span class="kt">StorageMock</span><span class="o">!</span>
+            
+            <span class="n">beforeEach</span> <span class="p">{</span>
+                <span class="n">storageMock</span> <span class="o">=</span> <span class="kt">StorageMock</span><span class="p">()</span>
+
+                <span class="c1">// passing in a mock object instead of using UserDefaults</span>
+                <span class="n">interactor</span> <span class="o">=</span> <span class="kt">MainInteractor</span><span class="p">(</span><span class="nv">storage</span><span class="p">:</span> <span class="n">storageMock</span><span class="p">)</span> 
+                <span class="n">presenter</span> <span class="o">=</span> <span class="kt">MainPresenterMock</span><span class="p">()</span>
+
+                <span class="n">interactor</span><span class="o">.</span><span class="n">presenter</span> <span class="o">=</span> <span class="n">presenter</span>
+            <span class="p">}</span>
+            
+            <span class="nf">describe</span><span class="p">(</span><span class="s">"#saveUserInfo"</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nf">describe</span><span class="p">(</span><span class="s">"with a valid name"</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="o">...</span>                    
+                    <span class="nf">it</span><span class="p">(</span><span class="s">"saves the user name to storage"</span><span class="p">)</span> <span class="p">{</span>
+                        <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">Request</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Anne"</span><span class="p">)</span>
+                        <span class="n">interactor</span><span class="o">.</span><span class="nf">saveUserInfo</span><span class="p">(</span><span class="nv">request</span><span class="p">:</span> <span class="n">request</span><span class="p">)</span>
+                        <span class="nf">expect</span><span class="p">(</span><span class="n">storageMock</span><span class="o">.</span><span class="n">valueSet</span><span class="p">)</span><span class="o">.</span><span class="nf">to</span><span class="p">(</span><span class="nf">beTrue</span><span class="p">())</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+                
+                <span class="nf">describe</span><span class="p">(</span><span class="s">"with an invalid name"</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="o">...</span>
+                    <span class="nf">it</span><span class="p">(</span><span class="s">"does not save the user name to storage"</span><span class="p">)</span> <span class="p">{</span>
+                        <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">Request</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="kc">nil</span><span class="p">)</span>
+                        <span class="n">interactor</span><span class="o">.</span><span class="nf">saveUserInfo</span><span class="p">(</span><span class="nv">request</span><span class="p">:</span> <span class="n">request</span><span class="p">)</span>
+                        <span class="nf">expect</span><span class="p">(</span><span class="n">storageMock</span><span class="o">.</span><span class="n">valueSet</span><span class="p">)</span><span class="o">.</span><span class="nf">to</span><span class="p">(</span><span class="nf">beFalse</span><span class="p">())</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            
+            <span class="nf">describe</span><span class="p">(</span><span class="s">"#getUserInfo"</span><span class="p">)</span> <span class="p">{</span>
+                <span class="o">...</span>
+                <span class="nf">it</span><span class="p">(</span><span class="s">"fetches user info from storage"</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="n">interactor</span><span class="o">.</span><span class="nf">getUserInfo</span><span class="p">()</span>
+                    <span class="nf">expect</span><span class="p">(</span><span class="n">storageMock</span><span class="o">.</span><span class="n">valueFetched</span><span class="p">)</span><span class="o">.</span><span class="nf">to</span><span class="p">(</span><span class="nf">beTrue</span><span class="p">())</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Be careful with which classes you use this technique on. An interface can quickly become overly complex for this type of direct protocol modeling, or Apple could simply
+change the underlying implementation in the next iOS version. It may be a better option for cases like this to create <em>wrapper classes</em> that expose a generic interface
+rather that the specific <em>concrete</em> classes themselves.</p>
+
+<h4 id="testing-presenters">Testing Presenters</h4>
+
+<p>I don’t have too much to add specifically for testing <em>presenters</em>. We can create a <strong>MainViewControllerMock</strong> and validate its functions are being called after the presenter
+“does its work”. One thing to note is that even though the <em>concrete</em> implementation of the <strong>MainDisplayLogic</strong> protocol happens to be a 
+<strong>UIViewController</strong> in the source code, the <strong>MainViewControllerMock</strong> does not need to be and can be implemented as a <em>POSO</em> (Plain Old Swift Object).</p>
+
+<p>Rather than using Boolean flags to verify functions are being called, the data that is being passed to these functions can be captured and tested for more refined
+unit tests. One example for the <em>displayCurrentTime()</em> function would be to switch out the <em>dateFormatter</em> property to use a different date format, 
+and verify the <strong>Date</strong> object was indeed transformed into the string format expected.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// MainViewControllerMock.swift</span>
+<span class="kd">class</span> <span class="kt">MainViewControllerMock</span><span class="p">:</span> <span class="kt">MainDisplayLogic</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">currentTimeViewModel</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">CurrentTime</span><span class="o">.</span><span class="kt">ViewModel</span><span class="o">!</span>
+    <span class="k">var</span> <span class="nv">userInfoViewModel</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">ViewModel</span><span class="o">!</span>
+
+    <span class="kd">func</span> <span class="nf">updateClockTime</span><span class="p">(</span><span class="nv">viewModel</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">CurrentTime</span><span class="o">.</span><span class="kt">ViewModel</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">currentTimeViewModel</span> <span class="o">=</span> <span class="n">viewModel</span>
+    <span class="p">}</span>
+    
+    <span class="kd">func</span> <span class="nf">setUserInfo</span><span class="p">(</span><span class="nv">viewModel</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">ViewModel</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">userInfoViewModel</span> <span class="o">=</span> <span class="n">viewModel</span>
+    <span class="p">}</span>
+    
+    <span class="kd">func</span> <span class="nf">updateFromUserInfo</span><span class="p">(</span><span class="nv">viewModel</span><span class="p">:</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">UserInfo</span><span class="o">.</span><span class="kt">ViewModel</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">userInfoViewModel</span> <span class="o">=</span> <span class="n">viewModel</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// MainPresenterSpec.swift</span>
+<span class="kd">class</span> <span class="kt">MainPresenterSpec</span><span class="p">:</span> <span class="kt">QuickSpec</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">spec</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nf">describe</span><span class="p">(</span><span class="s">"Presenter: Main"</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">var</span> <span class="nv">presenter</span><span class="p">:</span> <span class="kt">MainPresenter</span><span class="o">!</span>
+            <span class="k">var</span> <span class="nv">viewController</span><span class="p">:</span> <span class="kt">MainViewControllerMock</span><span class="o">!</span>
+            <span class="k">var</span> <span class="nv">dateFormatter</span><span class="p">:</span> <span class="kt">DateFormatter</span><span class="o">!</span>
+
+            <span class="n">beforeEach</span> <span class="p">{</span>
+                <span class="n">dateFormatter</span> <span class="o">=</span> <span class="kt">DateFormatter</span><span class="p">()</span>
+                <span class="c1">// only show the year for testing purposes</span>
+                <span class="n">dateFormatter</span><span class="o">.</span><span class="n">dateFormat</span> <span class="o">=</span> <span class="s">"YYYY"</span>
+                <span class="c1">// initialize with test date formatter</span>
+                <span class="n">presenter</span> <span class="o">=</span> <span class="kt">MainPresenter</span><span class="p">(</span><span class="nv">dateFormatter</span><span class="p">:</span> <span class="n">dateFormatter</span><span class="p">)</span>
+                <span class="n">viewController</span> <span class="o">=</span> <span class="kt">MainViewControllerMock</span><span class="p">()</span>
+                
+                <span class="n">presenter</span><span class="o">.</span><span class="n">viewController</span> <span class="o">=</span> <span class="n">viewController</span>
+            <span class="p">}</span>
+            
+            <span class="nf">describe</span><span class="p">(</span><span class="s">"#displayCurrentTime"</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nf">it</span><span class="p">(</span><span class="s">"returns the correct display time"</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="k">let</span> <span class="nv">date</span> <span class="o">=</span> <span class="kt">Date</span><span class="p">()</span>
+                    <span class="k">let</span> <span class="nv">response</span> <span class="o">=</span> <span class="kt">Main</span><span class="o">.</span><span class="kt">CurrentTime</span><span class="o">.</span><span class="kt">Response</span><span class="p">(</span><span class="nv">date</span><span class="p">:</span> <span class="n">date</span><span class="p">)</span>
+                    <span class="n">presenter</span><span class="o">.</span><span class="nf">displayCurrentTime</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="n">response</span><span class="p">)</span>
+                    
+                    <span class="nf">expect</span><span class="p">(</span>
+                        <span class="n">viewController</span><span class="o">.</span><span class="n">currentTimeViewModel</span><span class="o">.</span><span class="n">displayTime</span>
+                        <span class="p">)</span><span class="o">.</span><span class="nf">to</span><span class="p">(</span><span class="nf">equal</span><span class="p">(</span><span class="n">dateFormatter</span><span class="o">.</span><span class="nf">string</span><span class="p">(</span><span class="nv">from</span><span class="p">:</span> <span class="n">date</span><span class="p">)))</span>
+                    
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="o">...</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<h4 id="testing-view-controllers">Testing View Controllers</h4>
+
+<p>View Controller testing is notoriously difficult, and in fact is one of the inspirations behind Clean Swift! A general rule for specifically <em>unit</em> testing view controllers
+is to try and focus on writing test cases for your <em>business</em> logic and not so much how executing a piece of code changes what the user sees. If you find yourself minipulating
+or testing properties on <strong>UIKit</strong> objects themselves (<strong>UITextField</strong>, <strong>UILabel</strong>, <strong>UIButton</strong>, etc) you may want to consider moving that testing into a UI test instead.
+If there are important business logic changes associated with an update to what the user sees in the view, write your tests to validate the underlying classes, properties, and
+functions.</p>
+
+<p>Keeping that in mind, Clean Swift is strictly focused on business logic, as in the earlier example where <strong>MainViewControllerMock</strong> did not even need to be a <strong>UIViewController</strong>
+subclass, since any class conforming to the <strong>MainDisplayLogic</strong> can be used in place of the view controller in the presenter. When any sort of “work” needs to be done from an
+event received by the view controller, that event information is passed on to the interactor as part of the VIP cycle. Therefore when specifically testing Clean Swift-added functionality,
+those test cases should focus on validating interactor functions are being called, as well as what information is being passed to those functions.</p>
+
+<p>It may be a bit of a pain having to manually trigger events that the user would normally do or mock system events to trigger interactor functions, but regardless the Clean Swift paradigm
+absolutely simplifies this process into many fewer steps than what may needed without the use of the VIP cycle.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">// MainViewControllerSpec.swift</span>
+<span class="kd">class</span> <span class="kt">MainViewControllerSpec</span><span class="p">:</span> <span class="kt">QuickSpec</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">spec</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">var</span> <span class="nv">interactor</span><span class="p">:</span> <span class="kt">MainInteractorMock</span><span class="o">!</span>
+        <span class="k">var</span> <span class="nv">viewController</span><span class="p">:</span> <span class="kt">MainViewController</span><span class="o">!</span>
+        
+        <span class="n">beforeEach</span> <span class="p">{</span>
+            <span class="n">interactor</span> <span class="o">=</span> <span class="kt">MainInteractorMock</span><span class="p">()</span>
+            <span class="n">viewController</span> <span class="o">=</span> <span class="kt">MainViewController</span><span class="p">()</span>
+            
+            <span class="n">viewController</span><span class="o">.</span><span class="n">interactor</span> <span class="o">=</span> <span class="n">interactor</span>
+        <span class="p">}</span>
+        
+        <span class="nf">describe</span><span class="p">(</span><span class="s">"#viewDidLoad"</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nf">it</span><span class="p">(</span><span class="s">"fetches the user info"</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">viewController</span><span class="o">.</span><span class="nf">viewDidLoad</span><span class="p">()</span>
+                <span class="nf">expect</span><span class="p">(</span><span class="n">interactor</span><span class="o">.</span><span class="n">getUserInfoCalled</span><span class="p">)</span><span class="o">.</span><span class="nf">to</span><span class="p">(</span><span class="nf">beTrue</span><span class="p">())</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>This is just a taste of how Clean Swift can make your development life easier with unit testing. My goal for this post was to encourage you and show how easy it is to get started even
+writing a few simple unit tests. Once you get in the habit, writing more complex and verbose tests will be second nature, and the business and engineering teams alike will feel more at ease
+knowing the product is constantly being tested as it evolves. Both externally, and thanks to us, internally as well. Again, the source code for this post can be found <a href="https://github.com/kfarst/viptesting">here</a> and as always happy coding!</p>
+:ET

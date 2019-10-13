@@ -1,0 +1,277 @@
+I"M�<p>Welcome back! <a href="http://kfarst.github.io/ios/2019/01/01/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture/">Last time</a> I talked about massive view controllers and some of the root causes. I also introduced one way of mitigating that using the Clean Swift architecture. I introduced the concept of a <em>scene</em> and how the interactor receives events from the view controller such as API requests, button taps and other event notifications. I also covered data passing with <em>request</em>, <em>response</em>, and <em>view model</em> objects between classes in the VIP cycle, and how these model objects decouple that communication.</p>
+
+<p><img src="https://imgur.com/hGioOK5.png" /></p>
+
+<p>As we walk through the code examples below, feel free to follow along with the source code <a href="https://bitbucket.org/kfarst/photoshowcase">here</a>. The app displays a simple table view with placeholder images.</p>
+
+<p><img src="https://imgur.com/XrRzMT1.gif" /></p>
+
+<h2 id="vip-cycle-setup">VIP Cycle Setup</h2>
+
+<p>In <a href="http://kfarst.github.io/ios/2019/01/01/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture/">part 1</a> I explained how data is passed between classes in a VIP cycle by way of <em>requests</em>, <em>responses</em>, and <em>view models</em>, but not how the cycle is set up or how dependencies are passed in during initialization.</p>
+
+<p>Since a new VIP cycle is built when a new view controller is created and all dependencies are established at once, it’s best to set everything up in the view controller. However, to avoid bloating the view controller with setup logic, creating a <em>configurator</em> class can handle the initialization of the VIP cycle.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">PhotoListConfigurator</span> <span class="p">{</span>
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">shared</span> <span class="o">=</span> <span class="kt">PhotoListConfigurator</span><span class="p">()</span>
+
+    <span class="kd">func</span> <span class="nf">configure</span><span class="p">(</span><span class="nv">viewController</span><span class="p">:</span> <span class="kt">PhotoListViewController</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">interactor</span> <span class="o">=</span> <span class="kt">PhotoListInteractor</span><span class="p">()</span>
+        <span class="k">let</span> <span class="nv">presenter</span> <span class="o">=</span> <span class="kt">PhotoListPresenter</span><span class="p">()</span>
+        <span class="k">let</span> <span class="nv">router</span> <span class="o">=</span> <span class="kt">PhotoListRouter</span><span class="p">()</span>
+
+        <span class="c1">// Assign properties</span>
+        <span class="n">viewController</span><span class="o">.</span><span class="n">interactor</span> <span class="o">=</span> <span class="n">interactor</span>
+        <span class="n">viewController</span><span class="o">.</span><span class="n">router</span> <span class="o">=</span> <span class="n">router</span>
+        <span class="n">interactor</span><span class="o">.</span><span class="n">presenter</span> <span class="o">=</span> <span class="n">presenter</span>
+        <span class="n">presenter</span><span class="o">.</span><span class="n">viewController</span> <span class="o">=</span> <span class="n">viewController</span>
+        <span class="n">router</span><span class="o">.</span><span class="n">viewController</span> <span class="o">=</span> <span class="n">viewController</span>
+        <span class="n">router</span><span class="o">.</span><span class="n">dataStore</span> <span class="o">=</span> <span class="n">interactor</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>From here, an instance of the class can easily be passed in as a dependency to the view controller.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">PhotoListViewController</span><span class="p">:</span> <span class="kt">UITableViewController</span> <span class="p">{</span>
+    <span class="o">...</span>
+    <span class="nf">init</span><span class="p">(</span><span class="nv">configurator</span><span class="p">:</span> <span class="kt">PhotoListConfigurator</span> <span class="o">=</span> <span class="kt">PhotoListConfigurator</span><span class="o">.</span><span class="n">shared</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">init</span><span class="p">(</span><span class="nv">nibName</span><span class="p">:</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">bundle</span><span class="p">:</span> <span class="kc">nil</span><span class="p">)</span>
+
+        <span class="n">configurator</span><span class="o">.</span><span class="nf">configure</span><span class="p">(</span><span class="nv">viewController</span><span class="p">:</span> <span class="k">self</span><span class="p">)</span>
+        <span class="o">...</span>
+    <span class="p">}</span>
+    <span class="o">...</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>You might notice the dependency has a default argument passed in, which is a shared instance of the <strong>PhotoListConfigurator</strong> class. Passing an argument in with a default value provided allows for selective overriding of dependencies, like for passing in mock objects for unit testing. We’ll cover testing in the next part of this series, but this idea works across all classes in the VIP cycle.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">PhotoListInteractor</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">apiClient</span><span class="p">:</span> <span class="kt">PhotoApiClient</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">imageCache</span><span class="p">:</span> <span class="kt">ImageCache</span>
+    <span class="o">...</span>
+    <span class="nf">init</span><span class="p">(</span><span class="nv">apiClient</span><span class="p">:</span> <span class="kt">PhotoApiClient</span> <span class="o">=</span> <span class="kt">PhotoApiClient</span><span class="o">.</span><span class="n">shared</span><span class="p">,</span> <span class="nv">imageCache</span><span class="p">:</span> <span class="kt">ImageCache</span> <span class="o">=</span> <span class="kt">ImageCache</span><span class="o">.</span><span class="n">shared</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">apiClient</span> <span class="o">=</span> <span class="n">apiClient</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">imageCache</span> <span class="o">=</span> <span class="n">imageCache</span>
+    <span class="p">}</span>
+  <span class="o">...</span>
+<span class="p">}</span></code></pre></figure>
+
+<h2 id="the-interactor-and-workers">The Interactor and Workers</h2>
+
+<p>When an interactor receives an event, it is expected to do some kind of work. The work can be done directly in the interactor, where services and other dependencies are passed directly into the interactor itself. This can be seen in the example above.</p>
+
+<p>However, with multiple dependencies as well as accessing shared resources like API clients, it could be argued that the interactor is doing more than its share of a single responsibility, which is responding to view controller events.</p>
+
+<p>Within the VIP paradigm, this is solved by extracting dependencies and their related tasks into individual classes called <em>workers</em>. In my experience using Clean Swift so far, most scenes containing a VIP cycle only needs one worker for its interactor (usually matching the naming convention of the scene, so a <strong>PhotoListInteractor</strong> would have a <strong>PhotoListWorker</strong>). If multiple dependencies are required for a scene and each has multiple tasks, it might be a good idea to break those up into even more worker classes. Remember that ease of testing is also something to keep in mind, so having small testable components makes for easier test writing.</p>
+
+<p>Another case for needing additional workers is shared tasks across multiple scenes. Workers provide a way to both encapsulate dependencies <em>and</em> common tasks using those dependencies. For example, including a shared <strong>AuthenticationWorker</strong> as a dependency of multiple interactors in multiple scenes would allow you to reuse the same code related to common authentication tasks in all areas of code where some sort of authentication work needs to be done.</p>
+
+<p>Either way, once either an interactor or one of its workers completes a task relating to an event coming from the view controller, we now need a way to update the view, assuming the result of the task needs the UI to be updated. This is where a <em>presenter</em> comes in.</p>
+
+<h2 id="updating-the-view">Updating the View</h2>
+
+<p>After a task in the interactor is completed, it will almost always accompany an update to the view. This can include updating a <em>UITableView</em>, disabling a button, navigating to another scene containing another VIP cycle, or any combination of view updates and routing.</p>
+
+<p>The presenter helps coordinate these view and scene updates. The presenter takes a <em>response</em> object from the interactor containing any necessary data for the view to update (again, think about data for a UITableView, etc) and formats it into a view model to pass to the view controller.</p>
+
+<p>A couple things to keep in mind when considering the presenter object:</p>
+
+<ul>
+  <li>An interactor function doesn’t necessarily need a subsequent presenter function to call if there are no view updates, for example saving data in the background without actually changing anything the user sees.</li>
+  <li>A presenter function doesn’t always need to receive a <em>response</em> from the interactor or provide a <em>view model</em> for the view controller if no additional data needs to go through the remaining VIP event cycle.</li>
+  <li>An interactor doesn’t have to call the same presenter function every time. If an API request comes back with an error in the interactor, instead of calling <strong>presentPhotos()</strong> in the example below, <strong>presentError()</strong> would instead tell the presenter the view controller needs to show some sort of error to the user.</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">PhotoListInteractor</span><span class="p">:</span> <span class="kt">PhotoListBusinessLogic</span><span class="p">,</span> <span class="kt">PhotoListDataStore</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">presenter</span><span class="p">:</span> <span class="kt">PhotoListPresentationLogic</span><span class="p">?</span>
+    <span class="kd">private</span> <span class="k">var</span> <span class="nv">worker</span><span class="p">:</span> <span class="kt">PhotoListWorker</span><span class="p">?</span>
+    <span class="o">...</span> 
+    <span class="nf">init</span> <span class="p">(</span><span class="nv">worker</span><span class="p">:</span> <span class="kt">PhotoListWorker</span> <span class="o">=</span> <span class="kt">PhotoListWorker</span><span class="p">())</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">worker</span> <span class="o">=</span> <span class="n">worker</span>
+    <span class="p">}</span>
+    <span class="o">...</span>    
+    <span class="kd">func</span> <span class="nf">loadPhotosList</span><span class="p">(</span><span class="nv">request</span><span class="p">:</span> <span class="kt">PhotoList</span><span class="o">.</span><span class="kt">Fetch</span><span class="o">.</span><span class="kt">Request</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">worker</span><span class="p">?</span><span class="o">.</span><span class="nf">getPhotos</span><span class="p">(</span><span class="nv">page</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">page</span><span class="p">,</span> <span class="nv">limit</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">limit</span><span class="p">)</span> <span class="p">{</span> <span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="kt">ApiClientResult</span><span class="o">&lt;</span><span class="p">[</span><span class="kt">Photo</span><span class="p">]</span><span class="o">&gt;</span><span class="p">)</span> <span class="k">in</span>
+            <span class="k">switch</span> <span class="n">response</span> <span class="p">{</span>
+            <span class="k">case</span> <span class="o">.</span><span class="nf">success</span><span class="p">(</span><span class="k">let</span> <span class="nv">photos</span><span class="p">):</span>
+                <span class="o">...</span>
+            <span class="k">case</span> <span class="o">.</span><span class="nf">error</span><span class="p">(</span><span class="k">let</span> <span class="nv">error</span><span class="p">):</span>
+                <span class="k">self</span><span class="o">.</span><span class="n">presenter</span><span class="p">?</span><span class="o">.</span><span class="nf">showError</span><span class="p">(</span><span class="nv">withMessage</span><span class="p">:</span> <span class="n">error</span><span class="o">.</span><span class="n">localizedDescription</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="k">default</span><span class="p">:</span>
+                <span class="k">self</span><span class="o">.</span><span class="n">presenter</span><span class="p">?</span><span class="o">.</span><span class="nf">showError</span><span class="p">(</span><span class="nv">withMessage</span><span class="p">:</span> <span class="s">"Error loading photos. Please try again later."</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<h2 id="completing-the-vip-cycle">Completing the VIP Cycle</h2>
+
+<p>After the presenter prepares any data for updating the view, the view controller needs to apply those view changes. The presenter creates a <em>view model</em> struct to pass any data from itself to the view controller. From here, the appropriate UI changes are applied.</p>
+
+<p>Just as an interactor function could call one or many presenter functions (think success path or failure path depending on the task result), more than likely if an interactor could call one of multiple presenter functions, each one of those presenter functions probably would need its own unique function to call on the view controller.</p>
+
+<p>The example mentioned in the previous section of loading photos or showing an error based on the interator’s task would apply to this situation. If the presenter’s protocol definition is</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">protocol</span> <span class="kt">PhotoListPresenterInput</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">showPhotoList</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="kt">PhotoList</span><span class="o">.</span><span class="kt">Fetch</span><span class="o">.</span><span class="kt">Response</span><span class="p">)</span>
+    <span class="kd">func</span> <span class="nf">showError</span><span class="p">(</span><span class="nv">response</span><span class="p">:</span> <span class="kt">PhotoList</span><span class="o">.</span><span class="kt">Error</span><span class="o">.</span><span class="kt">Response</span><span class="p">)</span>
+    <span class="o">...</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>The view controller’s protocol definition might be</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">protocol</span> <span class="kt">PhotoListViewControllerInput</span><span class="p">:</span> <span class="kd">class</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">renderPhotosList</span><span class="p">(</span><span class="nv">viewModel</span><span class="p">:</span> <span class="kt">PhotoList</span><span class="o">.</span><span class="kt">Fetch</span><span class="o">.</span><span class="kt">ViewModel</span><span class="p">)</span>
+    <span class="kd">func</span> <span class="nf">showError</span><span class="p">(</span><span class="nv">viewModel</span><span class="p">:</span> <span class="kt">PhotoList</span><span class="o">.</span><span class="kt">Error</span><span class="o">.</span><span class="kt">ViewModel</span><span class="p">)</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>If you notice the <strong>class</strong> declaration above, the protocol is declaring that any objects conforming to it must be a <em>class</em> as opposed to a <em>struct</em>, <em>enum</em>, or some other data structure that is able to conform to protocols.</p>
+
+<p>Looking at a partial definition of the example presenter we’re discussing</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">PhotoListPresenter</span><span class="p">:</span> <span class="kt">PhotoListPresenterInput</span> <span class="p">{</span>
+    <span class="k">weak</span> <span class="k">var</span> <span class="nv">viewController</span><span class="p">:</span> <span class="kt">PhotoListViewControllerInput</span><span class="p">?</span>
+    <span class="o">...</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>You’ll note the property referencing the view controller is <strong>weak</strong>. That’s because there is already a <strong>strong</strong> reference to the view controller when the scene was created and loaded. The view controller has a strong reference to the interactor and the interactor has a strong reference to the presenter. If the presenter had a strong reference back to the view controller, a <a href="https://stackoverflow.com/questions/19892245/understanding-retain-cycle-in-depth">retain cycle</a> could be created and the classes in the scene would never be deallocated when creating and switching to another scene. Correct property reference types should look like:</p>
+
+<p><img src="https://imgur.com/2xW6V7w.png" /></p>
+
+<p>One final point to discuss comes from a pattern I discovered while writing <em>scenes</em>; showing an error from the view controller is likely a common task across most view controllers in your app and may even have custom styling and error rendering as part of your app’s “theme”.</p>
+
+<p>A solution that has worked well for me is creating an <em>extension</em> on <strong>UIViewController</strong> with a function to show an alert that can be called from any controller in the app. Additionally, any protocol function definitions for the view controller regarding showing an error message can be extracted into its own <strong>AlertDelegate</strong> that this extension can conform to.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">import</span> <span class="kt">UIKit</span>
+
+<span class="c1">// Procotol for extension and conformance</span>
+<span class="kd">protocol</span> <span class="kt">MessageBoxDelegate</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">showError</span><span class="p">(</span><span class="nv">message</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span>
+    <span class="kd">func</span> <span class="nf">showSuccess</span><span class="p">(</span><span class="nv">message</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// Defines what type of message to show</span>
+<span class="kd">enum</span> <span class="kt">MessageType</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">success</span>
+    <span class="k">case</span> <span class="n">error</span>
+    <span class="k">case</span> <span class="n">info</span>
+
+    <span class="k">var</span> <span class="nv">color</span><span class="p">:</span> <span class="kt">UIColor</span> <span class="p">{</span>
+        <span class="k">switch</span> <span class="k">self</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="o">.</span><span class="nv">success</span><span class="p">:</span> <span class="k">return</span> <span class="o">.</span><span class="n">green</span>
+        <span class="k">case</span> <span class="o">.</span><span class="nv">error</span><span class="p">:</span> <span class="k">return</span> <span class="o">.</span><span class="n">red</span>
+        <span class="k">case</span> <span class="o">.</span><span class="nv">info</span><span class="p">:</span> <span class="k">return</span> <span class="o">.</span><span class="n">yellow</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// View controller conforms to message box delegate</span>
+<span class="kd">extension</span> <span class="kt">UIViewController</span><span class="p">:</span> <span class="kt">MessageBoxDelegate</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">showError</span><span class="p">(</span><span class="nv">message</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">showMessage</span><span class="p">(</span><span class="nv">withText</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span> <span class="nv">andType</span><span class="p">:</span> <span class="o">.</span><span class="n">error</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">showSuccess</span><span class="p">(</span><span class="nv">message</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">showMessage</span><span class="p">(</span><span class="nv">withText</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span> <span class="nv">andType</span><span class="p">:</span> <span class="o">.</span><span class="n">success</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="kd">func</span> <span class="nf">showMessage</span><span class="p">(</span><span class="n">withText</span> <span class="nv">text</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="n">andType</span> <span class="nv">type</span><span class="p">:</span> <span class="kt">MessageType</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// Ensure main thread for UI updates</span>
+        <span class="kt">DispatchQueue</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="n">async</span> <span class="p">{</span>
+            <span class="c1">// Custom error view</span>
+            <span class="k">let</span> <span class="nv">v</span> <span class="o">=</span> <span class="kt">MessageBoxView</span><span class="p">()</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="n">text</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">messageColor</span> <span class="o">=</span> <span class="n">type</span><span class="o">.</span><span class="n">color</span>
+
+            <span class="c1">// Set error box invisible</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c1">// Try to present from the navigation controller otherwise present from current view controller</span>
+            <span class="p">(</span><span class="k">self</span><span class="o">.</span><span class="n">navigationController</span><span class="p">?</span><span class="o">.</span><span class="n">view</span> <span class="p">??</span> <span class="k">self</span><span class="o">.</span><span class="n">view</span><span class="p">)</span><span class="o">.</span><span class="nf">insertSubview</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nv">at</span><span class="p">:</span> <span class="k">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">subviews</span><span class="o">.</span><span class="n">count</span><span class="p">)</span>
+            <span class="c1">// Constraints</span>
+            <span class="kt">NSLayoutConstraint</span><span class="o">.</span><span class="nf">activate</span><span class="p">([</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">leftAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="k">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">leftAnchor</span><span class="p">,</span> <span class="nv">constant</span><span class="p">:</span> <span class="mi">10</span><span class="p">),</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">rightAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="k">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">rightAnchor</span><span class="p">,</span> <span class="nv">constant</span><span class="p">:</span> <span class="o">-</span><span class="mi">10</span><span class="p">),</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">bottomAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="k">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">bottomAnchor</span><span class="p">,</span> <span class="nv">constant</span><span class="p">:</span> <span class="o">-</span><span class="mi">50</span><span class="p">),</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">heightAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalToConstant</span><span class="p">:</span> <span class="mi">50</span><span class="p">)</span>
+                <span class="p">])</span>
+            <span class="c1">// Fade in</span>
+            <span class="kt">UIView</span><span class="o">.</span><span class="nf">animate</span><span class="p">(</span><span class="nv">withDuration</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="p">}</span>
+            <span class="c1">// Fade out</span>
+            <span class="kt">Timer</span><span class="o">.</span><span class="nf">scheduledTimer</span><span class="p">(</span><span class="nv">withTimeInterval</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="nv">repeats</span><span class="p">:</span> <span class="kc">false</span><span class="p">)</span> <span class="p">{</span> <span class="n">_</span> <span class="k">in</span>
+                <span class="kt">UIView</span><span class="o">.</span><span class="nf">animate</span><span class="p">(</span><span class="nv">withDuration</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="nv">animations</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="n">v</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="p">},</span> <span class="nv">completion</span><span class="p">:</span> <span class="p">{</span> <span class="p">(</span><span class="n">completed</span><span class="p">)</span> <span class="k">in</span>
+                    <span class="k">if</span> <span class="n">completed</span> <span class="p">{</span>
+                        <span class="c1">// Remove custom error view</span>
+                        <span class="n">v</span><span class="o">.</span><span class="nf">removeFromSuperview</span><span class="p">()</span>
+                    <span class="p">}</span>
+                <span class="p">})</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Now, when an alert of some sort needs to be shown, the property referencing the view controller in the presenter can conform to multiple protocols rather than having to include some sort of <strong>showError()</strong> function in every view controller’s protocol.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">PhotoListPresenter</span><span class="p">:</span> <span class="kt">PhotoListPresenterInput</span> <span class="p">{</span>
+    <span class="c1">// Property conforms to both view controller and message box</span>
+    <span class="k">weak</span> <span class="k">var</span> <span class="nv">viewController</span><span class="p">:</span> <span class="p">(</span><span class="kt">PhotoListViewControllerInput</span> <span class="o">&amp;</span> <span class="kt">MessageBoxDelegate</span><span class="p">)?</span>
+    <span class="o">...</span>
+    <span class="kd">func</span> <span class="nf">showError</span><span class="p">(</span><span class="n">withMessage</span> <span class="nv">message</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">viewController</span><span class="p">?</span><span class="o">.</span><span class="nf">showError</span><span class="p">(</span><span class="nv">message</span><span class="p">:</span> <span class="n">message</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p><em>Scene with error message</em></p>
+
+<p><img src="https://i.imgur.com/yvj2FTM.gif" height="750px" /></p>
+
+<h2 id="navigating-from-scene-to-scene">Navigating From Scene to Scene</h2>
+
+<p>The last component to cover in Clean Swift is the “glue” between VIP scenes: the <em>router</em>. A router object is instantiated with the rest of the scene and lives as a property on the view controller.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">PhotoListViewController</span><span class="p">:</span> <span class="kt">UITableViewController</span> <span class="p">{</span>
+    <span class="o">...</span>
+    <span class="k">var</span> <span class="nv">router</span><span class="p">:</span> <span class="p">(</span><span class="kt">NSObjectProtocol</span> <span class="o">&amp;</span> <span class="kt">PhotoListRoutingLogic</span><span class="p">)?</span>
+    <span class="o">...</span>
+    <span class="kd">func</span> <span class="nf">showDetailView</span><span class="p">(</span><span class="nv">photoID</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">router</span><span class="p">?</span><span class="o">.</span><span class="nf">showDetailView</span><span class="p">(</span><span class="nv">withPhotoID</span><span class="p">:</span> <span class="n">photoID</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>The router has a weak reference to the view controller and uses it to present a new view controller modally, access the view controller’s <strong>UINavgationController</strong> to push a new view controller onto the navigation stack, or any other task requiring a view controller to either be shown or removed from the screen.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">protocol</span> <span class="kt">PhotoListRoutingLogic</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">showDetailView</span><span class="p">(</span><span class="n">withPhotoID</span> <span class="nv">photoID</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="o">...</span>
+<span class="kd">class</span> <span class="kt">PhotoListRouter</span><span class="p">:</span> <span class="kt">NSObject</span><span class="p">,</span> <span class="kt">PhotoListRoutingLogic</span><span class="p">,</span> <span class="kt">PhotoListDataPassing</span> <span class="p">{</span>
+    <span class="k">weak</span> <span class="k">var</span> <span class="nv">viewController</span><span class="p">:</span> <span class="kt">PhotoListViewController</span><span class="p">?</span>
+    <span class="o">...</span>
+    <span class="kd">func</span> <span class="nf">showDetailView</span><span class="p">(</span><span class="n">withPhotoID</span> <span class="nv">photoID</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="k">let</span> <span class="nv">navVC</span> <span class="o">=</span> <span class="n">viewController</span><span class="o">.</span><span class="n">navigationController</span> <span class="p">{</span>
+            <span class="k">let</span> <span class="nv">detailVC</span> <span class="o">=</span> <span class="kt">PhotoDetailViewController</span><span class="p">(</span><span class="nv">photoID</span><span class="p">:</span> <span class="n">photoID</span><span class="p">)</span>
+            <span class="n">navVC</span><span class="o">.</span><span class="nf">pushViewController</span><span class="p">(</span><span class="n">detailVC</span><span class="p">,</span> <span class="nv">animated</span><span class="p">:</span> <span class="kc">true</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>If the view needs to be updated with no additional tasks required, a direct call to the router from the view controller might suffice. However, it would be just as straightforward to send a task through the VIP cycle before the view controller calls a method on the router at the end.</p>
+
+<p>If you’re using storyboards and segues as opposed to programmatic views, the router can also handle the logic for those situations as well. The key is to pass the segue object into a router function called within the <strong>prepareForSegue(_:sender)</strong> function of the view controller.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">extension</span> <span class="kt">PhotoListViewController</span><span class="p">:</span> <span class="kt">PhotoListPresenterOutput</span> <span class="p">{</span>
+  <span class="k">override</span> <span class="kd">func</span> <span class="nf">prepareForSegue</span><span class="p">(</span><span class="nv">segue</span><span class="p">:</span> <span class="kt">UIStoryboardSegue</span><span class="p">,</span> <span class="nv">sender</span><span class="p">:</span> <span class="kt">AnyObject</span><span class="p">?)</span> <span class="p">{</span>
+    <span class="n">router</span><span class="o">.</span><span class="nf">passDataToNextScene</span><span class="p">(</span><span class="n">segue</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>The additional routing logic that would normally be found in the <strong>prepareForSegue(_:sender)</strong> function can now be extracted into the router for easier testing and skinnier view controllers.</p>
+
+<h2 id="whats-next">What’s Next?</h2>
+
+<p>In the last two posts, we’ve covered the components that make up the VIP cycle in a scene, as well how those components communicate with each other and with other scenes. With all the tools laid out to start building a “cleaner” Swift app, it’s important to also test that functionality. I’ll be wrapping up this series in the <a href="http://kfarst.github.io/ios/2019/10/03/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture-part-3/">next</a> article, where we’ll be doing just that. In the meantime, enjoy your work with Clean Swift!</p>
+:ET

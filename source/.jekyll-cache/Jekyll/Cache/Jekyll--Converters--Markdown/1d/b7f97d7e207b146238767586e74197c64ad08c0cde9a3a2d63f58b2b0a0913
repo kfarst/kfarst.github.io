@@ -1,0 +1,148 @@
+I"x2<p><em>NOTE: I’ve refactored this walkthrough in a subsequent blog post <a href="http://kfarst.github.io//android/2017/02/22/refactoring-a-twitter-style-text-counter-in-android/">here</a></em></p>
+
+<p>A little while back I attended an <a href="http://codepath.com/">Android bootcamp</a> in which we built a handful of apps
+as we learned. One of the apps we were tasked with building was a <a href="http://twitter.com">Twitter</a> app, and one of
+the features I wanted to build was the almost iconic character counter for tweet composition, as they are of course limited
+to 140 characters. As you type each character, the gray text counts down to zero before turning red and continuing
+to count back up in the negative range.</p>
+
+<p>Additionally, since the Twitter API will reject any tweet posted over 140 characters, we need to disable the button
+next to the counter to prevent the tweet from attempting to be posted.</p>
+
+<p><img src="http://i.imgur.com/pm2MYbP.gif" width="50%" /></p>
+
+<h2 id="getting-started">Getting started</h2>
+
+<p>We’ll be using data binding, so in our <code>build.gradle</code> for our <code>app</code> module we’ll need to enable it.</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java">  <span class="n">android</span> <span class="o">{</span>
+      <span class="o">...</span>
+      <span class="n">dataBinding</span><span class="o">.</span><span class="na">enabled</span> <span class="o">=</span> <span class="kc">true</span>
+      <span class="o">...</span>
+  <span class="o">}</span></code></pre></figure>
+
+<p>In the layout file for the fragment, we need to expose a variable to tie logic from the fragment’s class to values
+inside the layout. Data-binding layout files need to be wrapped in a <code>layout</code> tag, followed by a list of <code>variable</code> tags
+within an opening and closing <code>data</code> tag. The <code>variable</code> tag we’ll add is what Android will use to tie a property in
+our <code>ComposeTweetFragment</code> to the <code>fragment_compose_tweet.xml</code> layout.</p>
+
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml">  <span class="cp">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span>
+  <span class="nt">&lt;layout</span> <span class="na">xmlns:android=</span><span class="s">"http://schemas.android.com/apk/res/android"</span>
+      <span class="na">xmlns:tools=</span><span class="s">"http://schemas.android.com/tools"</span><span class="nt">&gt;</span>
+
+      <span class="nt">&lt;data&gt;</span>
+          <span class="nt">&lt;variable</span> <span class="na">name=</span><span class="s">"tweetViewModel"</span> <span class="na">type=</span><span class="s">"com.kfarst.apps.whispertweetnothings.models.TweetViewModel"</span><span class="nt">/&gt;</span>
+      <span class="nt">&lt;/data&gt;</span>
+      ...
+  <span class="nt">&lt;/layout&gt;</span></code></pre></figure>
+
+<p>We’ll come back to the <code>TweetViewModel</code> explanation shortly. Back to our <code>ComposeTweetFragment</code> class, we need to add a variable
+called <code>tweetViewModel</code> to tie our layout-declared variable to the fragment’s class. From the documentation,</p>
+
+<blockquote>
+By default, a Binding class will be generated based on the name of the layout file, converting it to Pascal case and suffixing "Binding" to it.
+</blockquote>
+
+<p>Therefore the variable we’ll declare will be of type <code>FragmentComposeTweetBinding</code>.</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="o">...</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">ComposeTweetFragment</span> <span class="kd">extends</span> <span class="nc">DialogFragment</span> <span class="o">{</span>
+    <span class="o">...</span>
+    <span class="kd">private</span> <span class="nc">FragmentComposeTweetBinding</span> <span class="n">binding</span><span class="o">;</span>
+    <span class="o">...</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>In the <code>onCreate</code> method, we inflate the view, assign the binding to our private variable, and set the value of our layout-defined
+<code>tweetViewModel</code> variable.</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java">  <span class="o">...</span>
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="nc">View</span> <span class="nf">onCreateView</span><span class="o">(</span><span class="nc">LayoutInflater</span> <span class="n">inflater</span><span class="o">,</span> <span class="nc">ViewGroup</span> <span class="n">container</span><span class="o">,</span>
+                           <span class="nc">Bundle</span> <span class="n">savedInstanceState</span><span class="o">)</span> <span class="o">{</span>
+      <span class="c1">// Inflate the layout for this fragment</span>
+      <span class="nc">View</span> <span class="n">view</span> <span class="o">=</span> <span class="n">inflater</span><span class="o">.</span><span class="na">inflate</span><span class="o">(</span><span class="no">R</span><span class="o">.</span><span class="na">layout</span><span class="o">.</span><span class="na">fragment_compose_tweet</span><span class="o">,</span> <span class="n">container</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+      <span class="n">binding</span> <span class="o">=</span> <span class="nc">FragmentComposeTweetBinding</span><span class="o">.</span><span class="na">bind</span><span class="o">(</span><span class="n">view</span><span class="o">);</span>
+
+      <span class="c1">// Bind view model for observing the number of tweet characters</span>
+      <span class="n">binding</span><span class="o">.</span><span class="na">setTweetViewModel</span><span class="o">(</span><span class="k">new</span> <span class="nc">TweetViewModel</span><span class="o">(</span><span class="n">tweet</span><span class="o">));</span>
+      <span class="o">...</span>
+  <span class="o">}</span>
+  <span class="o">...</span></code></pre></figure>
+
+<p>The <code>tweet</code> variable comes from a value passed into the fragment class.</p>
+
+<h2 id="where-did-the-tweetviewmodel-come-from">Where did the TweetViewModel come from?</h2>
+
+<p>Returning to the <code>TweetViewModel</code> class, let’s look at part of the definition, as this is a class we’re declaring ourselves.</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java">  <span class="o">...</span>
+  <span class="kd">public</span> <span class="kd">class</span> <span class="nc">TweetViewModel</span> <span class="o">{</span>
+      <span class="kd">private</span> <span class="kd">static</span> <span class="nc">Integer</span> <span class="no">TOTAL_TWEET_LENGTH</span> <span class="o">=</span> <span class="mi">140</span><span class="o">;</span>
+      <span class="kd">private</span> <span class="nc">Tweet</span> <span class="n">tweet</span><span class="o">;</span>
+      <span class="kd">public</span> <span class="nc">ObservableField</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">charactersRemaining</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ObservableField</span><span class="o">&lt;&gt;(</span><span class="no">TOTAL_TWEET_LENGTH</span><span class="o">);</span>
+      <span class="o">...</span>
+  <span class="o">}</span></code></pre></figure>
+
+<p>The notable item to point out here is the <code>ObservableField</code> property, which provides a way in which data bound UI can be notified of changes.
+The character count changes dynamically based off of user input, so it needs to know when to update. We also need to add a <code>TextWatcher</code> to
+the class to watch the <code>EditText</code> field as the user types.</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java">  <span class="o">...</span>
+  <span class="kd">public</span> <span class="nc">TextWatcher</span> <span class="n">watcher</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">TextWatcher</span><span class="o">()</span> <span class="o">{</span>
+      <span class="nd">@Override</span>
+      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">afterTextChanged</span><span class="o">(</span><span class="nc">Editable</span> <span class="n">editable</span><span class="o">)</span> <span class="o">{</span>
+          <span class="n">tweet</span><span class="o">.</span><span class="na">setStatus</span><span class="o">(</span><span class="n">editable</span><span class="o">.</span><span class="na">toString</span><span class="o">());</span>
+          <span class="n">charactersRemaining</span><span class="o">.</span><span class="na">set</span><span class="o">(</span><span class="no">TOTAL_TWEET_LENGTH</span> <span class="o">-</span> <span class="n">editable</span><span class="o">.</span><span class="na">toString</span><span class="o">().</span><span class="na">length</span><span class="o">());</span>
+      <span class="o">}</span>
+  <span class="o">};</span>
+  <span class="o">...</span></code></pre></figure>
+
+<p>Finally, in our <code>fragment_compose_tweet.xml</code> layout file (and only showing the properties related to the functionality we’re building), we have:</p>
+
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml">        <span class="nt">&lt;EditText</span>
+            <span class="na">android:hint=</span><span class="s">"What's happening?"</span>
+            <span class="na">android:text=</span><span class="s">"@{tweetViewModel.tweet.status}"</span>
+            <span class="na">android:addTextChangedListener=</span><span class="s">"@{tweetViewModel.watcher}"</span>
+            <span class="na">android:id=</span><span class="s">"@+id/etTweet"</span> <span class="nt">/&gt;</span>
+
+        <span class="nt">&lt;TextView</span>
+            <span class="na">android:text=</span><span class="s">'@{""+tweetViewModel.charactersRemaining}'</span>
+            <span class="na">android:textColor=</span><span class="s">"@{tweetViewModel.charactersRemaining &gt; -1 ? @android:color/darker_gray : @android:color/holo_red_dark}"</span> <span class="nt">/&gt;</span>
+
+        <span class="nt">&lt;Button</span>
+            <span class="na">android:text=</span><span class="s">"Tweet"</span>
+            <span class="na">android:id=</span><span class="s">"@+id/btnTweet"</span>
+            <span class="na">android:alpha=</span><span class="s">"@{tweetViewModel.charactersRemaining == 140 || tweetViewModel.charactersRemaining &amp;lt; 0 ? 0.5f : 1.0f}"</span>
+            <span class="na">android:clickable=</span><span class="s">"@{tweetViewModel.charactersRemaining &amp;lt; 140 &amp;amp;&amp;amp; tweetViewModel.charactersRemaining &gt; -1 ? true : false}"</span> <span class="nt">/&gt;</span></code></pre></figure>
+
+<p>We use the <code>@{}</code> syntax for interpolating our data-bound expressions, which by element type are</p>
+
+<h4 id="edittext">EditText</h4>
+
+<ul>
+  <li><em>text</em> - The actual tweet body.</li>
+  <li><em>addTextChangedListener</em> - The text watcher that determines when to update the character count.</li>
+</ul>
+
+<h4 id="textview">TextView</h4>
+
+<ul>
+  <li><em>text</em> - The dynamic count of the number of characters remaining (the <code>""+</code> casts the <code>Integer</code> to type <code>String</code>).</li>
+  <li><em>textColor</em> - If the number of characters remaining is between 0 and 140, the text color will be gray, otherwise a negative count will turn the text red.</li>
+</ul>
+
+<h4 id="button">Button</h4>
+
+<ul>
+  <li><em>alpha</em> - Show a partially faded button indicating that it is disabled if the user hasn’t started typing a tweet yet, or if they type more than 140 characters. The <code>&lt;</code> needs to be escaped.</li>
+  <li><em>clickable</em> - Allow the button to be clicked if the user has typed at least one character and not more than 140. The <code>&lt;</code> and <code>&amp;&amp;</code> need to be escaped.</li>
+</ul>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Both data binding and observables are very powerful concepts in Android, and I encourage you to explore the vast array of ways they can be utilized in your
+apps. The <a href="https://developer.android.com/develop/index.html">official documentation</a> is the best place to start, and they are plenty of other tutorials
+easily found on the Googles. I’ve only shown the bare minimum code for explanation of the topic at hand, but if you would like to go through the tutorial
+again with the full source, you can find it on my GitHub account <a href="https://github.com/kfarst/whispertweetnothings">here</a>. If you have any questions, or
+suggestions for a better way to structure the code above, please don’t hesistate to comment. Good luck and thanks for reading!</p>
+:ET

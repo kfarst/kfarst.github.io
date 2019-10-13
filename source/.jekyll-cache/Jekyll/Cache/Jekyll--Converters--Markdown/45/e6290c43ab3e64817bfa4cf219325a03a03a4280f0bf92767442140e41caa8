@@ -1,0 +1,90 @@
+I"m<p>Recently I volunteered to help teach a group of engineers how to mock in Sketch, which is a graphic design tool
+mostly used for, surprise surprise, creating web and mobile mocks. Though it has similar tools and concepts as Photoshop or Illustrator,
+Sketch has a bit more focus on mocking and not so much being a massive all-purpose tool. The class more specifically
+is aimed at mobile engineering, so naturally we would be mocking out something for iOS, Android, Windows Phone (really?).
+I and two of my teaching colleagues set out to decide what we should have them do, should we have them come up with their own design?
+Might be a little tough in a structured, time-constrained workshop. How much is too much in terms of work? At what point is
+a design considered “too complex” for an introductory Sketch workshop? We put our heads together, and through the power of
+three engineers’ minds (uh oh?) we came up with…</p>
+
+<h2 id="the-foursquare-app">The Foursquare App</h2>
+
+<p>We felt the Foursquare application (at least the one on iOS, I assume it’s probably the same on Android) was a good mix
+of different screens and clean, yet relatively simple design. It would be a good exercise of “reverse engineering” to
+hopefully get the students comfortable with venturing out and coming up with their own mocks and screens. However, before
+we were to teach the material, we obviously had to learn it ourselves! I thought for a fun exercise (and maybe a first mediocre crack
+at teaching this stuff) I would go through my flow and process of learning and building out one of the screens.</p>
+
+<p>Before getting out the pitchforks, this isn’t the definitive guide to all tools Sketch, I wanted to go through my discovery
+of techniques, tools, and search material to show how you (as a fellow engineer?) might go about your search for “how do to
+something in Sketch”. I guarantee some of these approaches aren’t the best, but hey you gotta start somewhere right? So, please
+withold judgement, and here we go…</p>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>Since it’s probably good to set up a frame of reference, I wanted mock out the home screen of the Foursquare app. STILL needing a frame
+of reference, here’s the actual image of the home screen:</p>
+
+<p><img src="http://imgur.com/T6BZqKt.png" width="50%" /></p>
+
+<p>Ohhhh fancy! Like I said, clean and pleasant design, not too complicated. OK hopping into Sketch, I do know that there is a template
+with predefined iOS (also one for Android) UI components from which we can work from, so that should save us some time.</p>
+
+<p><img src="http://imgur.com/5S7nt66.png" width="100%" /></p>
+
+<p>Here’s the template we have to work from:</p>
+
+<p><img src="http://imgur.com/sF9Tops.png" width="100%" /></p>
+
+<p>If you scroll up and out inside the window you’ll see you have this huge blank space all around the UI template list. We need to use this space
+to start adding screens. I know there’s a way to add a new “blank iPhone screen” as a starting point, so in the upper left corner
+I try <strong>Insert &gt; Artboard</strong> and sure enough, on the right I have a list of options to choose from, so I chose one of the <em>iPhone</em> templates.</p>
+
+<p><img src="http://imgur.com/xrJTKQ5.png" width="100%" /></p>
+
+<p>So far so good! I click on the template and zoom in, and first I see I need to make the background a little grayer to match the mock.
+On the right toolbar you can check the <strong>Background color</strong> option, then we’ll change it to a light gray.</p>
+
+<p><img src="http://imgur.com/pf4fHyF.png" width="100%" /></p>
+
+<p>Next, we see there’s an image at the top of the screen, so I just Googled <em>hd food</em> and grabbed an image from there. Then I choose
+<strong>Insert &gt; Image</strong>, choose my image, then simply drag and resize it into place.</p>
+
+<p><img src="http://imgur.com/7JxSMA0.png" width="100%" /></p>
+
+<p>If you look at the actual screenshot of the app though, you’ll see that the image kind of fades away at the bottom. A quick search of
+<em>sketch fading image</em> gave me the answer. You’ll want to choose <strong>Insert &gt; Shape &gt; Rectangle</strong>, then click and drag your mouse to create 
+a rectangle completely covering the image. On the left hand side, hold the <em>shift</em> key and choose both the image and the rectangle. Then, right
+click and choose <strong>Mask</strong>. The rectangle will disappear and the two selections will be grouped into a folder.</p>
+
+<p><img src="http://imgur.com/eiNVGbl.gif" width="100%" /></p>
+
+<p>Open the newly created folder, select the <em>Mask</em>, then go to <strong>Layer &gt; Mask Mode &gt; Alpha Mask</strong>.</p>
+
+<p><img src="http://imgur.com/bN5JpZ5.png" width="100%" /></p>
+
+<p>On the right toolbar, click the gray color swatch under <strong>Fills</strong>, choose the second option from the left (<strong>Linear Gradient</strong>), then change
+one side of the gradient to transparent, and the other side to black. You’ll see the fade effect we were looking for, but it’s flipped. No problem,
+under <strong>Rotate</strong> on the top right, change the value to <strong>180</strong>.</p>
+
+<p><img src="http://imgur.com/5Umg3Py.gif" width="100%" /></p>
+
+<p>Hey, now we’re getting somewhere!</p>
+
+<h2 id="adding-ios-ui-components">Adding iOS UI Components</h2>
+
+<p>Now it’s time to make it start looking like a real app. Below our iPhone Artboard, we still have our template UI components. Choose the white status bar,
+copy it, then paste it up near our mock and place it at the top. Do the same with the tab bar, placing it at the bottom. Since the Foursquare app has
+four options on the tab bar, choose the bar with 4 tabs on it.</p>
+
+<p><img src="http://imgur.com/V6gx1rr.gif" width="100%" /></p>
+
+<p>We’re already halfway there! Next time we’ll add the search bar and category buttons.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>I decided to break this up into two different posts. Although not too text heavy, there are a TON of visuals, and I didn’t want the post to get too long 
+(hopefully not a lame excuse, page load speeds right?). There’s nothing groundbreaking here, but if anything I would hope if you’ve ever had a desire to try Sketch that demonstrating
+how easy it is to get even this far would be enough of a reason to give it a shot. Maybe you can do the same with another app and write your own blog post? ;)
+Either way, good luck and see you next time!</p>
+:ET

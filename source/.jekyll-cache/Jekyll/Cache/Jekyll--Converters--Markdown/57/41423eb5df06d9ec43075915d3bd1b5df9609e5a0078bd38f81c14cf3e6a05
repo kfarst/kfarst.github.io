@@ -1,0 +1,246 @@
+I"�m<p><a href="https://ui-router.github.io/ng1/">UI-Router</a> is an alternative to the
+de-facto Angular 1 router, basing its functionality around <em>states</em> as opposed
+to routes. I won’t be going into the details of the router, but I wanted to demonstrate
+the flexibility and potential of it, using a concept called <em>decorators</em>.</p>
+
+<p>From the documentation itself, a decorator</p>
+
+<blockquote>
+Allows you to extend (carefully) or override (at your own peril) the stateBuilder
+object used internally by $stateProvider. This can be used to add custom functionality to
+ui-router, for example inferring templateUrl based on the state name.
+</blockquote>
+
+<p>The example the documentation gives is perfect, because that’s exactly what we’re going
+to implement.</p>
+
+<h2 id="getting-started">Getting started</h2>
+
+<p>We have a very simple app with 5 routes. One top-level abstract state, two second-level states,
+(Route1 and Route2), and two nested states showing an unordered list under each of the two second-level
+routes.</p>
+
+<p><img src="http://i.imgur.com/3ThVmav.gif" width="100%" /></p>
+
+<p>Since two of the five routes are duplicates, I’ll show three of them each demonstrating a different
+case to account for in terms of how the view is rendered.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nx">angular</span><span class="p">.</span><span class="nx">module</span><span class="p">(</span><span class="dl">'</span><span class="s1">app</span><span class="dl">'</span><span class="p">,</span> <span class="p">[</span><span class="dl">'</span><span class="s1">ui.router</span><span class="dl">'</span><span class="p">])</span>
+<span class="p">.</span><span class="nx">config</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">$stateProvider</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="nx">$stateProvider</span>
+  <span class="p">.</span><span class="nx">state</span><span class="p">(</span><span class="dl">'</span><span class="s1">app</span><span class="dl">'</span><span class="p">,</span> <span class="p">{</span>
+    <span class="na">abstract</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="na">url</span><span class="p">:</span> <span class="dl">''</span>
+  <span class="p">})</span>
+  <span class="p">.</span><span class="nx">state</span><span class="p">(</span><span class="dl">'</span><span class="s1">app.route1</span><span class="dl">'</span><span class="p">,</span> <span class="p">{</span>
+    <span class="na">url</span><span class="p">:</span> <span class="dl">'</span><span class="s1">/route1</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">templateUrl</span><span class="p">:</span> <span class="dl">'</span><span class="s1">route1.html</span><span class="dl">'</span>
+  <span class="p">})</span>
+  <span class="p">.</span><span class="nx">state</span><span class="p">(</span><span class="dl">'</span><span class="s1">app.route1.list</span><span class="dl">'</span><span class="p">,</span> <span class="p">{</span>
+    <span class="na">url</span><span class="p">:</span> <span class="dl">'</span><span class="s1">/list</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">views</span><span class="p">:</span> <span class="p">{</span>
+      <span class="dl">'</span><span class="s1">list@app.route1</span><span class="dl">'</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">templateUrl</span><span class="p">:</span> <span class="dl">'</span><span class="s1">route1.list.html</span><span class="dl">'</span><span class="p">,</span>
+        <span class="na">controller</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">$scope</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nx">$scope</span><span class="p">.</span><span class="nx">items</span> <span class="o">=</span> <span class="p">[</span><span class="dl">'</span><span class="s1">A</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">list</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">of</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">things</span><span class="dl">'</span><span class="p">];</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">})</span>
+  <span class="p">...</span>
+<span class="p">});</span></code></pre></figure>
+
+<p>The three types of states we have are</p>
+
+<ul>
+  <li>Abstract state with no view</li>
+  <li>A state with a `templateUrl`</li>
+  <li>A state with a nested `views` object</li>
+</ul>
+
+<h2 id="creating-the-decorator">Creating the decorator</h2>
+
+<p>Any decorators that are created need to be declared in the <code>config</code> block just as the state definitions are.
+We’ll be adding it before the state definitions. The basic skeleton looks like this:</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript">  <span class="nx">$stateProvider</span><span class="p">.</span><span class="nx">decorator</span><span class="p">(</span><span class="dl">'</span><span class="s1">templateUrl</span><span class="dl">'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// Implementation here</span>
+  <span class="p">});</span></code></pre></figure>
+
+<p>The <code>state</code> parameter is an object, containing information pertaining to the state. If we look at the <code>self</code>
+property on the <code>state</code> object, it will essentially look exactly like the state definition itself. For instance,
+if we look at the state</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript">  <span class="p">...</span>
+  <span class="p">.</span><span class="nx">state</span><span class="p">(</span><span class="dl">'</span><span class="s1">app.route1.list</span><span class="dl">'</span><span class="p">,</span> <span class="p">{</span>
+    <span class="na">url</span><span class="p">:</span> <span class="dl">'</span><span class="s1">/list</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">views</span><span class="p">:</span> <span class="p">{</span>
+      <span class="dl">'</span><span class="s1">list@app.route1</span><span class="dl">'</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">templateUrl</span><span class="p">:</span> <span class="dl">'</span><span class="s1">route1.list.html</span><span class="dl">'</span><span class="p">,</span>
+        <span class="na">controller</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">$scope</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nx">$scope</span><span class="p">.</span><span class="nx">items</span> <span class="o">=</span> <span class="p">[</span><span class="dl">'</span><span class="s1">A</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">list</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">of</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">things</span><span class="dl">'</span><span class="p">];</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">})</span>
+  <span class="p">...</span></code></pre></figure>
+
+<p>calling <code>state.self</code> would return</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript">  <span class="p">{</span>
+    <span class="nl">url</span><span class="p">:</span> <span class="dl">'</span><span class="s1">/list</span><span class="dl">'</span><span class="p">,</span>
+    <span class="nx">views</span><span class="p">:</span> <span class="p">{</span>
+      <span class="dl">'</span><span class="s1">list@app.route1</span><span class="dl">'</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nl">templateUrl</span><span class="p">:</span> <span class="dl">'</span><span class="s1">route1.list.html</span><span class="dl">'</span><span class="p">,</span>
+        <span class="nx">controller</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">$scope</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nx">$scope</span><span class="p">.</span><span class="nx">items</span> <span class="o">=</span> <span class="p">[</span><span class="dl">'</span><span class="s1">A</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">list</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">of</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">things</span><span class="dl">'</span><span class="p">];</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span></code></pre></figure>
+
+<p>which is just the object part of the <code>state</code> implementation. You can access the state name with,
+you guessed it, <code>state.name</code>. To interpolate the <code>templateUrl</code>, we’ll take the state name, remove
+the <code>app.</code> prefix, and append <code>.html</code> to the end. If you follow this convention, you shouldn’t need
+to explicitly define a <code>templateUrl</code> on a <code>state</code> object.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript">  <span class="nx">$stateProvider</span><span class="p">.</span><span class="nx">decorator</span><span class="p">(</span><span class="dl">'</span><span class="s1">templateUrl</span><span class="dl">'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// Separate the period-separated pieces of the state name</span>
+    <span class="kd">var</span> <span class="nx">stateName</span> <span class="o">=</span> <span class="nx">state</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="dl">'</span><span class="s1">.</span><span class="dl">'</span><span class="p">);</span>
+
+    <span class="c1">// Remove the first part of the state name, which is 'app'</span>
+    <span class="nx">stateName</span><span class="p">.</span><span class="nx">shift</span><span class="p">();</span>
+
+    <span class="c1">// Assemble the state name into a period-separated string again,</span>
+    <span class="c1">// with the HTML suffix appended</span>
+    <span class="k">return</span> <span class="nx">stateName</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="dl">'</span><span class="s1">html</span><span class="dl">'</span><span class="p">).</span><span class="nx">join</span><span class="p">(</span><span class="dl">'</span><span class="s1">.</span><span class="dl">'</span><span class="p">);</span>
+  <span class="p">});</span></code></pre></figure>
+
+<p>With the code above, a state named <code>app.foo.bar.baz</code> without a <code>templateUrl</code> would interpolate the URL
+as <code>foo.bar.baz.html</code>. However, when we reload the server and page with the new decorator defintion, we
+get this error in the console:</p>
+
+<blockquote>GET http://localhost:8000/html 404 (Not Found)</blockquote>
+
+<p>It looks like the abstract state has its <code>templateUrl</code> interpolated as just the <code>html</code> suffix, which makes
+sense since the state name is only <code>app</code>, so it gets removed during this process. For simplicity’s sake,
+let’s tell the decorator that if the state is abstract to just ignore any <code>templateUrl</code> interpolating.</p>
+
+<h2 id="restricting-the-decorator-scope">Restricting the decorator scope</h2>
+
+<p>Updating our decorator to ignore abstract states, we have</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript">  <span class="nx">$stateProvider</span><span class="p">.</span><span class="nx">decorator</span><span class="p">(</span><span class="dl">'</span><span class="s1">templateUrl</span><span class="dl">'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">angular</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nb">self</span><span class="p">),</span> <span class="nx">angular</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">key</span> <span class="o">===</span> <span class="dl">'</span><span class="s1">abstract</span><span class="dl">'</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}));</span>
+
+    <span class="c1">// Separate the period-separated pieces of the state name</span>
+    <span class="kd">var</span> <span class="nx">stateName</span> <span class="o">=</span> <span class="nx">state</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="dl">'</span><span class="s1">.</span><span class="dl">'</span><span class="p">);</span>
+
+    <span class="c1">// Remove the first part of the state name, which is 'app'</span>
+    <span class="nx">stateName</span><span class="p">.</span><span class="nx">shift</span><span class="p">();</span>
+
+    <span class="c1">// Assemble the state name into a period-separated string again,</span>
+    <span class="c1">// with the HTML suffix appended</span>
+    <span class="k">return</span> <span class="nx">stateName</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="dl">'</span><span class="s1">html</span><span class="dl">'</span><span class="p">).</span><span class="nx">join</span><span class="p">(</span><span class="dl">'</span><span class="s1">.</span><span class="dl">'</span><span class="p">);</span>
+  <span class="p">});</span></code></pre></figure>
+
+<p>Next up, let’s check out the <code>app.route</code> state:</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript">  <span class="p">...</span>
+  <span class="p">.</span><span class="nx">state</span><span class="p">(</span><span class="dl">'</span><span class="s1">app.route1</span><span class="dl">'</span><span class="p">,</span> <span class="p">{</span>
+    <span class="na">url</span><span class="p">:</span> <span class="dl">'</span><span class="s1">/route1</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">templateUrl</span><span class="p">:</span> <span class="dl">'</span><span class="s1">route1.html</span><span class="dl">'</span>
+  <span class="p">})</span>
+  <span class="p">...</span></code></pre></figure>
+
+<p>If we look at the <code>templateUrl</code>, we can verify that this is the URL for the HTML template that would
+get generated if the key was missing, so we can just remove <code>templateUrl</code>, confident that the decorator
+will find the right template. However, this brings up a good point, what if you <em>do</em> want to override
+the default functionality of the decorator and declare your own template name? In that case, we should
+probably tell the decorator to also fall back to default UI-Router functionality if a <code>templateUrl</code> is already
+defined, just like we’re doing for abstract states.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript">  <span class="nx">$stateProvider</span><span class="p">.</span><span class="nx">decorator</span><span class="p">(</span><span class="dl">'</span><span class="s1">templateUrl</span><span class="dl">'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">angular</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nb">self</span><span class="p">),</span> <span class="nx">angular</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">([</span><span class="dl">'</span><span class="s1">abstract</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">templateUrl</span><span class="dl">'</span><span class="p">].</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}));</span>
+
+    <span class="c1">// Separate the period-separated pieces of the state name</span>
+    <span class="kd">var</span> <span class="nx">stateName</span> <span class="o">=</span> <span class="nx">state</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="dl">'</span><span class="s1">.</span><span class="dl">'</span><span class="p">);</span>
+
+    <span class="c1">// Remove the first part of the state name, which is 'app'</span>
+    <span class="nx">stateName</span><span class="p">.</span><span class="nx">shift</span><span class="p">();</span>
+
+    <span class="c1">// Assemble the state name into a period-separated string again,</span>
+    <span class="c1">// with the HTML suffix appended</span>
+    <span class="k">return</span> <span class="nx">stateName</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="dl">'</span><span class="s1">html</span><span class="dl">'</span><span class="p">).</span><span class="nx">join</span><span class="p">(</span><span class="dl">'</span><span class="s1">.</span><span class="dl">'</span><span class="p">);</span>
+  <span class="p">});</span></code></pre></figure>
+
+<p>Since <code>templateUrl</code> isn’t the only way to declare a template in UI-Router, we should add <code>template</code> and <code>templateProvider</code>
+to the list of keys to ignore also.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript">  <span class="nx">$stateProvider</span><span class="p">.</span><span class="nx">decorator</span><span class="p">(</span><span class="dl">'</span><span class="s1">templateUrl</span><span class="dl">'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">angular</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nb">self</span><span class="p">),</span> <span class="nx">angular</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">([</span><span class="dl">'</span><span class="s1">abstract</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">templateUrl</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">template</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">templateProvider</span><span class="dl">'</span><span class="p">].</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}));</span>
+
+    <span class="c1">// Separate the period-separated pieces of the state name</span>
+    <span class="kd">var</span> <span class="nx">stateName</span> <span class="o">=</span> <span class="nx">state</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="dl">'</span><span class="s1">.</span><span class="dl">'</span><span class="p">);</span>
+
+    <span class="c1">// Remove the first part of the state name, which is 'app'</span>
+    <span class="nx">stateName</span><span class="p">.</span><span class="nx">shift</span><span class="p">();</span>
+
+    <span class="c1">// Assemble the state name into a period-separated string again,</span>
+    <span class="c1">// with the HTML suffix appended</span>
+    <span class="k">return</span> <span class="nx">stateName</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="dl">'</span><span class="s1">html</span><span class="dl">'</span><span class="p">).</span><span class="nx">join</span><span class="p">(</span><span class="dl">'</span><span class="s1">.</span><span class="dl">'</span><span class="p">);</span>
+  <span class="p">});</span></code></pre></figure>
+
+<p>Finally, we have the <code>views</code> object, which is its own nested declarations of keys related to rendering a view. Sure we can
+drill down into it and execute the same logic, but what template names do we fall back to if one of the template-related
+keys isn’t found? <code>list@app.route1.html</code> is pretty weird for a template name, so I guess we should leave out the <code>views</code>
+key from our decorator as well.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript">  <span class="nx">$stateProvider</span><span class="p">.</span><span class="nx">decorator</span><span class="p">(</span><span class="dl">'</span><span class="s1">templateUrl</span><span class="dl">'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">angular</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nb">self</span><span class="p">),</span> <span class="nx">angular</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">([</span><span class="dl">'</span><span class="s1">abstract</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">templateUrl</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">template</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">templateProvider</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">views</span><span class="dl">'</span><span class="p">].</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}));</span>
+
+    <span class="c1">// Separate the period-separated pieces of the state name</span>
+    <span class="kd">var</span> <span class="nx">stateName</span> <span class="o">=</span> <span class="nx">state</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="dl">'</span><span class="s1">.</span><span class="dl">'</span><span class="p">);</span>
+
+    <span class="c1">// Remove the first part of the state name, which is 'app'</span>
+    <span class="nx">stateName</span><span class="p">.</span><span class="nx">shift</span><span class="p">();</span>
+
+    <span class="c1">// Assemble the state name into a period-separated string again,</span>
+    <span class="c1">// with the HTML suffix appended</span>
+    <span class="k">return</span> <span class="nx">stateName</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="dl">'</span><span class="s1">html</span><span class="dl">'</span><span class="p">).</span><span class="nx">join</span><span class="p">(</span><span class="dl">'</span><span class="s1">.</span><span class="dl">'</span><span class="p">);</span>
+  <span class="p">});</span></code></pre></figure>
+
+<h2 id="that-was-a-lot-of-work-for-very-little-payoff">That was a lot of work for very little payoff…</h2>
+
+<p>Sadly, this is true. We could create another decorator specifically for the <code>views</code> object,
+<a href="https://ui-router.github.io/ng1/docs/0.3.1/index.html#/api/ui.router.state.$stateProvider">which they’ve actually done in the documentation</a>,
+but hiding away this default UI-Router functionallity can introduce problems of its own. Sometimes it’s just better
+to be explicit so as to not cause confusion and difficult debugging situations. As powerful as decorators are,
+it’s quickly apparent why the documentation states that you should add them “carefully” and “at your own peril”.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>I hope you enjoyed this deep dive into UI-Router functionality, and although what we created ended up not being
+that practically useful, it was a good exercise in learning more about the internals of how the third-party router works,
+and sometimes just tinkering with code that you don’t end up using can help tremendously in your understanding
+of a language, framework, or package. Ideally, you would use decorators to <em>extend</em> (again, carefully) functionality
+of UI-Router, as opposed to overriding functionality which already works very well. Good luck in your coding
+adventures!</p>
+:ET

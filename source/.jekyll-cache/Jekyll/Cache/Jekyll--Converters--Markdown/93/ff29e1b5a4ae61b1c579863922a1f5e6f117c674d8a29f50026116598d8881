@@ -1,0 +1,114 @@
+I"�-<p>I’ve been doing some work with internationalization and localization (mostly language translation) which
+I first addressed <a href="/10-mins-of-code/2018/03/07/fetching-translations-for-unit-testing-react-components/">here</a>.
+In my continuing work with using the <em>react-i18next</em> package, I ran into a few places where it wasn’t very easy
+to use the package’s <code>&lt;I18n /&gt;</code> component. This <em>I18n</em> component is significant because, as seen in the article
+from the link, it prevents the raw translation strings from being rendered until the translations themselves have been loaded.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="o">&lt;</span><span class="nx">I18n</span><span class="o">&gt;</span>
+<span class="p">{</span>
+  <span class="nx">t</span> <span class="o">=&gt;</span> <span class="p">(</span>
+    <span class="o">&lt;</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">{</span> <span class="nx">t</span><span class="p">(</span><span class="dl">'</span><span class="s1">foo.bar.baz</span><span class="dl">'</span><span class="p">)</span> <span class="p">}</span><span class="o">&lt;</span><span class="sr">/span</span><span class="err">&gt;
+</span>  <span class="p">)</span>
+<span class="p">}</span>
+<span class="o">&lt;</span><span class="sr">/I18n&gt;</span></code></pre></figure>
+
+<p>Now, for the majority of cases components can be refactored in such a way that the above implementation can be achieved. However,
+there were a few cases as I was going through and adding translations in which I couldn’t cleanly use the <code>&lt;I18n /&gt;</code> component provided
+through <em>react-i18next</em>.</p>
+
+<p>One such case was a utility function used in multiple places in the app. In a very simplified example, this function would either return
+a formatted date/time or “Today” based on the current timestamp.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript">  <span class="nx">formattedDateTime</span><span class="p">(</span><span class="nx">date</span><span class="p">,</span> <span class="nx">today</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">date</span><span class="p">.</span><span class="nx">isSame</span><span class="p">(</span><span class="nx">today</span><span class="p">))</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="dl">'</span><span class="s1">Today</span><span class="dl">'</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nx">date</span><span class="p">.</span><span class="nx">format</span><span class="p">(</span><span class="dl">'</span><span class="s1">YYY-MM-DD</span><span class="dl">'</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span></code></pre></figure>
+
+<p>Again, just watered down pseudo-code, but you get the point. Now imagine the logic being much more complicated and used in multiple places, and you’ll see
+why trying to get this called and translated correctly within the <em>I18n</em> component will start to get very difficult. I ended up having to fall back to the underlying
+JavaScript-only implementation of <em>i18next</em>.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript">  <span class="k">import</span> <span class="nx">i18n</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">./MyI18nConfig</span><span class="dl">'</span><span class="p">;</span>
+  <span class="p">...</span>
+  <span class="nx">formattedDateTime</span><span class="p">(</span><span class="nx">date</span><span class="p">,</span> <span class="nx">today</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">date</span><span class="p">.</span><span class="nx">isSame</span><span class="p">(</span><span class="nx">today</span><span class="p">))</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">i18n</span><span class="p">.</span><span class="nx">t</span><span class="p">(</span><span class="dl">'</span><span class="s1">date.today</span><span class="dl">'</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nx">date</span><span class="p">.</span><span class="nx">format</span><span class="p">(</span><span class="dl">'</span><span class="s1">YYY-MM-DD</span><span class="dl">'</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span></code></pre></figure>
+
+<p>This is pretty much all that needs to be done, since the <code>&lt;I18n /&gt;</code> component basically calls this exact function and configuration “under the covers”. Due to the asynchornous
+nature of loading the translation strings though (at least in my case since I’m using an XHR plugin to fetch the JSON files), if the <code>i18n.t('date.today')</code> statement was executed
+before the translations loaded, the string would be interpolated by React as “date.today” and be stuck that way, even after the translations loaded.</p>
+
+<p>After doing a little digging, I turned to <a href="https://reactjs.org/docs/higher-order-components.html">Higher-Order Components</a> to solve my problem. From the link,</p>
+
+<blockquote>
+A higher-order component (HOC) is a function that takes a component and returns a new component
+</blockquote>
+
+<p>That is essentially what the <code>&lt;I18n /&gt;</code> component was doing as well, except that component was taking its <a href="https://reactjs.org/docs/react-api.html#reactchildren">children</a> (already conveniently wrapped as a function) and passing the translation function into it once the
+translations had loaded. This works for most cases until you either want to share logic that provides translated strings, or the translations are nested in such a way that it would be too much of a pain or too messy to pass the
+<code>t()</code> function through a series of other functions once it becomes available.</p>
+
+<p>Luckily the underlying <em>i18next</em> package offers a <a href="https://www.i18next.com/api.html#onloaded">callback</a> when the translations are loaded. That way we can wrap any any component that uses the <code>i18n.t()</code> function without the
+<code>&lt;I18n /&gt;</code> component and hide it until the translations are loaded, thus mimicking the <code>&lt;I18n /&gt;</code> component while
+giving a more generic and flexible use-case.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="k">import</span> <span class="nx">React</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">react</span><span class="dl">'</span><span class="p">;</span>
+<span class="k">import</span> <span class="nx">i18n</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">../../I18n</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="nx">type</span> <span class="nx">I18nComponentStateType</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="na">i18nInitialized</span><span class="p">:</span> <span class="nx">boolean</span> <span class="c1">// flag triggered when translations loaded</span>
+<span class="p">};</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="kd">function</span> <span class="nx">I18nComponent</span><span class="p">(</span>
+  <span class="nx">WrappedComponent</span><span class="p">:</span> <span class="nx">React</span><span class="p">.</span><span class="nx">Element</span><span class="o">&lt;*&gt;</span>
+<span class="p">):</span> <span class="nx">React</span><span class="p">.</span><span class="nx">ComponentType</span><span class="o">&lt;*&gt;</span> <span class="p">{</span>
+
+  <span class="c1">// eslint-disable-next-line react/display-name</span>
+  <span class="k">return</span> <span class="kd">class</span> <span class="kd">extends</span> <span class="nx">React</span><span class="p">.</span><span class="nx">Component</span> <span class="p">{</span>
+    <span class="na">state</span><span class="p">:</span> <span class="nx">I18nComponentStateType</span><span class="p">;</span>
+
+    <span class="kd">constructor</span><span class="p">(</span><span class="na">props</span><span class="p">:</span> <span class="nb">Object</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">super</span><span class="p">(</span><span class="nx">props</span><span class="p">);</span>
+
+      <span class="c1">// setting initial state</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">state</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="na">i18nInitialized</span><span class="p">:</span> <span class="kc">false</span>
+      <span class="p">};</span>
+
+      <span class="nx">i18n</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="dl">'</span><span class="s1">loaded</span><span class="dl">'</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="c1">// update state after translations load, triggering a re-render</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">setState</span><span class="p">({</span> <span class="na">i18nInitialized</span><span class="p">:</span> <span class="kc">true</span> <span class="p">});</span>
+      <span class="p">});</span>
+    <span class="p">}</span>
+
+    <span class="nx">render</span><span class="p">():</span> <span class="nx">React</span><span class="p">.</span><span class="nx">Element</span><span class="o">&lt;*&gt;</span> <span class="p">{</span>
+      <span class="kd">const</span> <span class="p">{</span>
+        <span class="nx">i18nInitialized</span>
+      <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span><span class="p">;</span>
+
+      <span class="c1">// hide the wrapped component until translations loaded</span>
+      <span class="k">return</span> <span class="nx">i18nInitialized</span>
+        <span class="p">?</span> <span class="o">&lt;</span><span class="nx">WrappedComponent</span> <span class="o">/&gt;</span>
+        <span class="p">:</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">};</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Now when the component is exported, just wrap it in this HOC function and the wrapped component will re-render
+when the translations are loaded!</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="k">import</span> <span class="nx">I18nComponent</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">../I18nComponent</span><span class="dl">'</span><span class="p">;</span>
+<span class="p">...</span>
+<span class="kd">class</span> <span class="nx">MyComponent</span> <span class="kd">extends</span> <span class="nx">React</span><span class="p">.</span><span class="nx">Component</span> <span class="p">{</span>
+<span class="p">...</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="k">export</span> <span class="k">default</span> <span class="nx">I18nComponent</span><span class="p">(</span><span class="nx">MyComponent</span><span class="p">);</span></code></pre></figure>
+:ET

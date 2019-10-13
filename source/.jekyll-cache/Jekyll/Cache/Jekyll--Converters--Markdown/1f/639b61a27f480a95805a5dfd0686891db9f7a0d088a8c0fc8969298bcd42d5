@@ -1,0 +1,385 @@
+I"��<p>As a former Ruby on Rails developer, anything I stumble upon that can give me a ride on the nostalgia train with what I’m currently working on
+will definitely grab my attention. All joking aside, as I continue to build on my iOS development experience, I couldn’t help hearing that nagging
+voice in the back of my head that all Rails developers hear: <em>why aren’t you testing your code?!</em> As I’ve been getting more and more comfortable with
+common tasks like fetching data from the server with <code>URLSession</code>, parsing the JSON response into an <code>NSObject</code>-based model class, and displaying
+that data in various ways inside a <code>UIViewController</code>, I was getting flashbacks of times where, as an app I was working on scaled, it got scarier
+and scarier for former co-workers and I to make changes and updates, unsure of what unforeseen functionality or feature we might be breaking
+elsewhere due to missing code coverage.</p>
+
+<p>However, I didn’t get too far into my career before that quickly changed. Personal experience and being part of a test-centric community quickly
+found me (at the very least) writing unit tests to cover the various uses of my classes and methods. I got comfortable with the various steps of
+building code coverage like creating test data, how to write tests to handle differing class configurations, and making sure to construct test scenarios
+that would cover the multiple logical branching of my methods.</p>
+
+<h2 id="rails-unit-testing">Rails Unit Testing</h2>
+
+<p>Luckily, a Rails app by default generated an integrated test environment, and creating a group of tests is as simple as subclassing the built-in
+<code>ActiveSupport::TestCase</code> class. It was pretty simple to start building test cases for your classes, and Ruby being the beautiful language that
+it is (at least in terms of how closely the syntax can read as plain English, especially compared to a language like Java), it wasn’t too hard
+for even a novice Rubyist to read a test case and tell what it was doing. However, despite inheriting a clean syntax by way of the language itself,
+the way the test cases read still seemed slightly cryptic. Consider this straightforward example:</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">class</span> <span class="nc">ArticleTest</span> <span class="o">&lt;</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">TestCase</span>
+  <span class="o">...</span>
+  <span class="nb">test</span> <span class="s2">"should not save article without title"</span> <span class="k">do</span>
+    <span class="n">article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">new</span>
+    <span class="n">assert_not</span> <span class="n">article</span><span class="p">.</span><span class="nf">save</span><span class="p">,</span> <span class="s2">"Saved the article without a title"</span>
+  <span class="k">end</span>
+  <span class="o">...</span>
+<span class="k">end</span></code></pre></figure>
+
+<p>Test cases are evaluated by asserting that some value or method result is either a “truthy” or “falsy” expression, based on how the test data
+was being manipulated by the functionality you were testing against. In the scenario above, we are making sure that a new instance of the <code>Article</code>
+model will fail to be saved if it’s missing a title.</p>
+
+<p>Again, from the context we can tell what’s going on, even if you don’t really know any Ruby or you’re new to unit testing. However, when we
+actually break down the syntax, it’s still a little clunky. For example, what the heck does <code>assert_not article.save</code> actually mean? If I
+didn’t explain what exactly a unit test does it terms of assertions, it might be pretty confusing for a new developer. Additionally, what if
+we start having much more complex testing scenarios? The description portion of the <code>test “...” do</code> line may end up becoming very large and
+cumbersome to read. You may end up with a description like <code>new user saves without a name if created by a user with an account creation role</code>.
+Even if a long test description doesn’t bother you, testing similar scenarios may find you duplicating pieces of the description multiple times.</p>
+
+<h2 id="rspec-to-the-rescue">RSpec to the Rescue</h2>
+
+<p>Even before I started weighing the pros and cons of using the built-in testing framework versus something else, I had heard that RSpec was
+the go-to unit testing (and even functional testing) framework in Rails. Even though I had a predisposition to using RSpec, I definitely believe
+it was a wise piece of advice.</p>
+
+<p>RSpec, though accomplishing the same task as Rails’ generic test suite, does things just differently enough
+that it can make for a much more enjoyable and readable coding experience. Take for example our original assertion,
+<code>assert_not article.save</code>. With RSpec, you would handle the same logic using the code snippet <code>expect(article.save).to be false</code>
+(the <code>save</code> method will return <code>true</code> when the save was successful, and <code>false</code> when it was not). Just a small change
+like this can make what’s going on much more understandable, as it literally reads almost exactly like an English sentence.
+Probably the most important overarching idea though is that as test contexts and scenarios are constructed, they can be
+nested and “built up” as a story describing the behavior of the functionality you’re testing against. Once you become
+comfortable with this idea, you can start to realize how nice this change can really be.</p>
+
+<h2 id="i-thought-this-was-an-article-about-objective-c-and-swift">I Thought this was an Article About Objective-C and Swift?</h2>
+
+<p>Right you are, self. I had to remind myself of this as I started to delve deeper into the concepts behind
+“behavior-driven development”. Sure I can continue to explain the ins-and-outs of this testing style in RSpec,
+but I’d like to start using Swift (and a little bit of Objective-C) code examples as we start migrating our iOS/Cocoa
+unit test cases to a behavior-based implementation.</p>
+
+<p>Just to keep things from getting too complex, I think we can cover most of what I wanted to talk about by implementing
+a simplified and partial version of the <a href="https://developer.apple.com/documentation/swift/set">Set</a> data structure built into Swift. 
+Since this is much simpler, we’ll only cover the <code>insert</code> and <code>remove</code> functions.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">struct</span> <span class="kt">CustomSet</span><span class="o">&lt;</span><span class="kt">T</span><span class="p">:</span> <span class="kt">Comparable</span><span class="o">&gt;</span> <span class="p">{</span>
+    <span class="kd">fileprivate</span> <span class="k">var</span> <span class="nv">elements</span><span class="p">:</span> <span class="p">[</span><span class="kt">T</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kt">T</span><span class="p">]()</span>
+
+    <span class="k">mutating</span> <span class="kd">func</span> <span class="nf">insert</span><span class="p">(</span><span class="n">_</span> <span class="nv">element</span><span class="p">:</span> <span class="kt">T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">T</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="o">!</span><span class="n">elements</span><span class="o">.</span><span class="nf">contains</span><span class="p">(</span><span class="n">element</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">elements</span><span class="o">.</span><span class="nf">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">element</span>
+    <span class="p">}</span>
+
+    <span class="k">mutating</span> <span class="kd">func</span> <span class="nf">remove</span><span class="p">(</span><span class="n">_</span> <span class="nv">element</span><span class="p">:</span> <span class="kt">T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">T</span><span class="p">?</span> <span class="p">{</span>
+        <span class="k">guard</span> <span class="k">let</span> <span class="nv">index</span> <span class="o">=</span> <span class="n">elements</span><span class="o">.</span><span class="nf">index</span><span class="p">(</span><span class="nv">of</span><span class="p">:</span> <span class="n">element</span><span class="p">)</span> <span class="k">else</span> <span class="p">{</span>
+           <span class="k">return</span> <span class="kc">nil</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">elements</span><span class="o">.</span><span class="nf">remove</span><span class="p">(</span><span class="nv">at</span><span class="p">:</span> <span class="n">index</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Again, this is a <em>very</em> basic, stripped down implementation. Now for testing, we’d create a subclass of <code>XCTestCase</code>.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">class</span> <span class="kt">CustomSetXCTests</span><span class="p">:</span> <span class="kt">XCTestCase</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">set</span><span class="p">:</span> <span class="kt">CustomSet</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">&gt;</span> <span class="o">=</span> <span class="kt">CustomSet</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">&gt;</span><span class="p">()</span>
+
+    <span class="kd">func</span> <span class="nf">testCustomSet_insert_insertsNonExistingElement</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kt">XCTAssertNotNil</span><span class="p">(</span><span class="k">set</span><span class="o">.</span><span class="nf">insert</span><span class="p">(</span><span class="s">"foo"</span><span class="p">))</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">testCustomSet_insert_returnsInsertedElement</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">insertedValue</span> <span class="o">=</span> <span class="k">set</span><span class="o">.</span><span class="nf">insert</span><span class="p">(</span><span class="s">"foo"</span><span class="p">)</span>
+        <span class="kt">XCTAssertEqual</span><span class="p">(</span><span class="n">insertedValue</span><span class="p">,</span> <span class="k">set</span><span class="o">.</span><span class="nf">insert</span><span class="p">(</span><span class="s">"foo"</span><span class="p">))</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">testCustomSet_remove_returnsNilForNonExistingElement</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kt">XCTAssertNil</span><span class="p">(</span><span class="k">set</span><span class="o">.</span><span class="nf">remove</span><span class="p">(</span><span class="s">"bar"</span><span class="p">))</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">testCustomSet_remove_returnsRemovedElement</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">insertedValue</span> <span class="o">=</span> <span class="k">set</span><span class="o">.</span><span class="nf">insert</span><span class="p">(</span><span class="s">"bar"</span><span class="p">)</span>
+        <span class="kt">XCTAssertTrue</span><span class="p">(</span><span class="n">insertedValue</span> <span class="o">==</span> <span class="k">set</span><span class="o">.</span><span class="nf">remove</span><span class="p">(</span><span class="s">"bar"</span><span class="p">))</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Some test logic is duplicated, and some assertions are unnecessary, but I wanted to demonstrate a
+different assertion for every test case. They definitely get the job done, but just like our <code>assert_not article.save</code>
+expression in RSpec, it’s not very pretty, and maybe even a tiny bit cryptic to a beginner. Additionally, our function
+names can start to become very long and convoluted if we want to accuratelyand fully describe our test cases.
+Finally, this may be nitpicky, but when you’re trying to read a function name to understand what it does, having to
+read camel-cased and underscored syntax while at the same time trying to figure out exactly what a test is doing can be a bit of an annoyance.</p>
+
+<h2 id="discovering-quick">Discovering Quick</h2>
+
+<p>Naturally, when I stumbled upon <a href="https://github.com/Quick/Quick">Quick</a>, I jumped at the opportunity to be able to write
+similar behavior-based unit tests in XCode projects as RSpec offered to Ruby and Rails. If you use <a href="https://cocoapods.org/">CocoaPods</a>,
+it can easily be pulled into your project by adding these lines to the test target of your <code>Podfile</code>:</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">  <span class="n">pod</span> <span class="s1">'Quick'</span>
+  <span class="n">pod</span> <span class="s1">'Nimble'</span></code></pre></figure>
+
+<p><a href="https://github.com/Quick/Nimble">Nimble</a> comes together with Quick to offer the same <code>expect(...).to</code> assertion syntax that
+we saw in RSpec. Once we install our pair of CocoaPods, we can create a new test file and get started.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="kd">import</span> <span class="kt">Quick</span>
+<span class="kd">import</span> <span class="kt">Nimble</span>
+<span class="o">...</span>
+<span class="kd">class</span> <span class="kt">CustomSetQuickTests</span><span class="p">:</span> <span class="kt">QuickSpec</span> <span class="p">{</span>
+  <span class="k">override</span> <span class="kd">func</span> <span class="nf">spec</span><span class="p">()</span> <span class="p">{</span>
+    <span class="o">...</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>We need to build our tests inside the <code>spec()</code> function. From here, this is where it gets interesting. Like we saw in
+Rails unit tests with the <code>test "..." do</code> syntax, Quick leverages Swift <a href="https://developer.apple.com/library/content/documentation/Swift/Conceptual/Swift_Programming_Language/Closures.html">closures</a>
+to encapsulate our test functionality (or <a href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ProgrammingWithObjectiveC/WorkingwithBlocks/WorkingwithBlocks.html">blocks</a> in Objective-C).</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift">  <span class="o">...</span>
+  <span class="k">override</span> <span class="kd">func</span> <span class="nf">spec</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nf">describe</span><span class="p">(</span><span class="s">"CustomSet"</span><span class="p">)</span> <span class="p">{</span>
+      <span class="o">...</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="o">...</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Test cases are built up piece by piece by nesting our data setup and assertions within the closures of Quick’s domain-specific functions.</p>
+
+<h4 id="describe">Describe</h4>
+
+<p>Usually with unit tests that cover a single class, it’s best to start with a <code>describe</code> closure using the class name. Just a quick note,
+some of the instruction I’m giving are opinionated best practices pulled from <a href="http://www.betterspecs.org/">Better Specs</a> originally written
+for guidance in RSpec, but can absolutely be applied to Quick as well.</p>
+
+<p><code>describe</code> closures set up <em>example groups</em>, which are logical groups of examples. In our top-level case, the logical grouping is the class itself.
+From here, we use Quick to describe <em>how</em> our public interface should behave. In the context of a single class, that public interface is a series of
+functions and properties. Therefore, it would make sense that our nested <code>describe</code> closures should cover our instance and class functions for the most part.
+From the <em>Better Specs</em> site I mentioned above, it suggests that the description be the function name, prefixed with either a <code>.</code> for a class function, or
+<code>#</code> for an instance function. This concept comes from how Ruby documents instance and class methods, and I rather like it, so I do the same in Quick tests.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="o">...</span>
+<span class="k">override</span> <span class="kd">func</span> <span class="nf">spec</span><span class="p">()</span> <span class="p">{</span>
+  <span class="nf">describe</span><span class="p">(</span><span class="s">"CustomSet"</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nf">describe</span><span class="p">(</span><span class="s">"#insert"</span><span class="p">)</span> <span class="p">{</span>
+      <span class="o">...</span>
+    <span class="p">}</span>
+
+    <span class="nf">describe</span><span class="p">(</span><span class="s">"#remove"</span><span class="p">)</span> <span class="p">{</span>
+      <span class="o">...</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="o">...</span>
+<span class="p">}</span></code></pre></figure>
+
+<h4 id="context">context</h4>
+
+<p><code>context</code> closures can be nested within either a <code>describe</code> or another <code>context</code>. It accomplishes the same goal as a <code>describe</code>, and exists
+for the purpose of semantic clarity. In fact if you look at the source code for the function inside Quick, it’s just a wrapper function calling
+the <code>describe</code> function:</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift">  <span class="kd">internal</span> <span class="kd">func</span> <span class="nf">context</span><span class="p">(</span><span class="n">_</span> <span class="nv">description</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">flags</span><span class="p">:</span> <span class="kt">FilterFlags</span><span class="p">,</span> <span class="nv">closure</span><span class="p">:</span> <span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">guard</span> <span class="n">currentExampleMetadata</span> <span class="o">==</span> <span class="kc">nil</span> <span class="k">else</span> <span class="p">{</span>
+          <span class="nf">raiseError</span><span class="p">(</span><span class="s">"'context' cannot be used inside '</span><span class="se">\(</span><span class="n">currentPhase</span><span class="se">)</span><span class="s">', 'context' may only be used inside 'context' or 'describe'. "</span><span class="p">)</span>
+      <span class="p">}</span>
+      <span class="k">self</span><span class="o">.</span><span class="nf">describe</span><span class="p">(</span><span class="n">description</span><span class="p">,</span> <span class="nv">flags</span><span class="p">:</span> <span class="n">flags</span><span class="p">,</span> <span class="nv">closure</span><span class="p">:</span> <span class="n">closure</span><span class="p">)</span>
+  <span class="p">}</span></code></pre></figure>
+
+<p>I like to use these for setting up variations inside an example group where the same functionality is being tested under different conditions, for example
+with different test data. Using it for our <code>CustomSet</code> tests might look like this:</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift">  <span class="o">...</span>
+  <span class="k">override</span> <span class="kd">func</span> <span class="nf">spec</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nf">describe</span><span class="p">(</span><span class="s">"CustomSet"</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nf">describe</span><span class="p">(</span><span class="s">"#insert"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">context</span><span class="p">(</span><span class="s">"with a non-existing element"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="p">}</span>
+
+        <span class="nf">context</span><span class="p">(</span><span class="s">"with an existing element"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+
+      <span class="nf">describe</span><span class="p">(</span><span class="s">"#remove"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">context</span><span class="p">(</span><span class="s">"with a non-existing element"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="p">}</span>
+
+        <span class="nf">context</span><span class="p">(</span><span class="s">"with an existing element"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="o">...</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>These tests are simple so really a <code>context</code> block wouldn’t necessarily be needed, but if we had multiple tests per <code>context</code> and unique data just for that
+<code>context</code>, they can really be a powerful tool.</p>
+
+<h4 id="beforeeach">beforeEach</h4>
+
+<p>In <strong>XCTest</strong> we have a <code>setUp</code> function to handle any configuration of test data before a test is run. However, if we need to set up unique test data
+for every test, we might find ourselves building helper functions for the sole purpose of creating that data for a single test or group of tests.
+We may even find ourselves calling helper functions within helper functions, and that can get messy quickly. Adding a <code>beforeEach</code> closure inside a
+<code>describe</code> or <code>context</code> can accomplish the same goal as the <code>setUp</code> function, however they can be nested just like <code>describe</code> or <code>context</code>
+closures can. This gives us the ability to</p>
+
+<ul>
+  <li>Inherit setup configuration and data from parent <code>beforeEach</code> closures</li>
+  <li>Avoid writing helper functions that may need to call other helper functions</li>
+  <li>Keep the expressions around our assertions as minimal as possible (more on this in the next section)</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="o">...</span>
+  <span class="nf">describe</span><span class="p">(</span><span class="s">"CustomSet"</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">set</span><span class="p">:</span> <span class="kt">CustomSet</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">&gt;</span>
+
+    <span class="n">beforeEach</span> <span class="p">{</span>
+      <span class="k">set</span> <span class="o">=</span> <span class="kt">CustomSet</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">&gt;</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="nf">describe</span><span class="p">(</span><span class="s">"#insert"</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nf">context</span><span class="p">(</span><span class="s">"with a non-existing element"</span><span class="p">)</span> <span class="p">{</span>
+      <span class="p">}</span>
+
+      <span class="nf">context</span><span class="p">(</span><span class="s">"with an existing element"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">beforeEach</span> <span class="p">{</span>
+          <span class="k">set</span><span class="o">!.</span><span class="nf">insert</span><span class="p">(</span><span class="s">"foo"</span><span class="p">)</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="nf">describe</span><span class="p">(</span><span class="s">"#remove"</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nf">context</span><span class="p">(</span><span class="s">"with a non-existing element"</span><span class="p">)</span> <span class="p">{</span>
+      <span class="p">}</span>
+
+      <span class="nf">context</span><span class="p">(</span><span class="s">"with an existing element"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">beforeEach</span> <span class="p">{</span>
+          <span class="k">set</span><span class="o">!.</span><span class="nf">insert</span><span class="p">(</span><span class="s">"bar"</span><span class="p">)</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="o">...</span></code></pre></figure>
+
+<h4 id="it">it</h4>
+
+<p><code>it</code> closures are where the assertions are defined to demonstrate how code should behave. In other words, this is where our tests will “pass” or “fail”
+because our <code>expect(...).to</code> expressions are declared here. In our final step, let’s add our <code>it</code> closures with an accurate description and assertion.
+You are free to add as many lines of code as you want inside the <code>it</code>, however as mentioned in the last bullet point above, if you structure your scenarios
+and test data properly, many times you can end up with a one line expectation, like we see for each of our test cases.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="nf">describe</span><span class="p">(</span><span class="s">"CustomSet"</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">set</span><span class="p">:</span> <span class="kt">CustomSet</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">&gt;</span><span class="p">?</span>
+
+    <span class="n">beforeEach</span> <span class="p">{</span>
+        <span class="k">set</span> <span class="o">=</span> <span class="kt">CustomSet</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">&gt;</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="nf">describe</span><span class="p">(</span><span class="s">"#insert"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">context</span><span class="p">(</span><span class="s">"with a non-existing element"</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nf">it</span><span class="p">(</span><span class="s">"inserts the element"</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nf">expect</span><span class="p">(</span><span class="k">set</span><span class="o">!.</span><span class="nf">insert</span><span class="p">(</span><span class="s">"foo"</span><span class="p">))</span><span class="o">.</span><span class="nf">toNot</span><span class="p">(</span><span class="nf">beNil</span><span class="p">())</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="nf">context</span><span class="p">(</span><span class="s">"with an existing element"</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">beforeEach</span> <span class="p">{</span>
+                <span class="n">_</span> <span class="o">=</span> <span class="k">set</span><span class="o">!.</span><span class="nf">insert</span><span class="p">(</span><span class="s">"foo"</span><span class="p">)</span>
+            <span class="p">}</span>
+
+            <span class="nf">it</span><span class="p">(</span><span class="s">"returns the inserted element"</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nf">expect</span><span class="p">(</span><span class="k">set</span><span class="o">!.</span><span class="nf">insert</span><span class="p">(</span><span class="s">"foo"</span><span class="p">))</span><span class="o">.</span><span class="nf">to</span><span class="p">(</span><span class="nf">equal</span><span class="p">(</span><span class="s">"foo"</span><span class="p">))</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="nf">describe</span><span class="p">(</span><span class="s">"#remove"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">context</span><span class="p">(</span><span class="s">"with a non-existing element"</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nf">it</span><span class="p">(</span><span class="s">"returns nil"</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nf">expect</span><span class="p">(</span><span class="k">set</span><span class="o">!.</span><span class="nf">remove</span><span class="p">(</span><span class="s">"bar"</span><span class="p">))</span><span class="o">.</span><span class="nf">to</span><span class="p">(</span><span class="nf">beNil</span><span class="p">())</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="nf">context</span><span class="p">(</span><span class="s">"with an existing element"</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">var</span> <span class="nv">insertedValue</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span>
+
+            <span class="n">beforeEach</span> <span class="p">{</span>
+                <span class="n">insertedValue</span> <span class="o">=</span> <span class="k">set</span><span class="o">!.</span><span class="nf">insert</span><span class="p">(</span><span class="s">"bar"</span><span class="p">)</span>
+            <span class="p">}</span>
+
+            <span class="nf">it</span><span class="p">(</span><span class="s">"returns the removed element"</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nf">expect</span><span class="p">(</span><span class="k">set</span><span class="o">!.</span><span class="nf">remove</span><span class="p">(</span><span class="s">"bar"</span><span class="p">)</span> <span class="o">==</span> <span class="n">insertedValue</span><span class="p">)</span><span class="o">.</span><span class="nf">to</span><span class="p">(</span><span class="nf">beTrue</span><span class="p">())</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Like <strong>XCTest</strong> we still get assertion failure highlighting and messaging.</p>
+
+<p><img src="http://i.imgur.com/p5L7mFl.png" width="100%" /></p>
+
+<h2 id="quick-in-objective-c">Quick in Objective-C</h2>
+
+<p>Quick can be used in an Objective-C context (no pun intended) as well. Like I mentioned above, blocks would be substituted
+for closures. Also an important note, Swift stdlib will not be linked into your test target unless you have <em>at least one</em>
+Swift file in your test target.</p>
+
+<figure class="highlight"><pre><code class="language-objective-c" data-lang="objective-c">describe(@"AClass", ^{
+    beforeEach(^{
+      ...
+    });
+
+    describe(@"#aMethod", ^{
+        context(@"a context", ^{
+          it(@"has an assertion", ^{
+            ...
+          });
+        });
+    });
+    ...
+});</code></pre></figure>
+
+<p>Unfortunately we can’t test against our <code>CustomSet</code> struct for a few reasons</p>
+
+<ul>
+  <li>Objective-C doesn’t support structs</li>
+  <li>Objective-C doesn’t support generics, so we would have to remove the <code>&lt;T: Comparable&gt;</code> expression and stick
+with one type, like <code>String</code></li>
+  <li>Once converted to a class, <code>CustomSet</code> would also have to subclass an Objective-C type, like <code>NSObject</code></li>
+</ul>
+
+<p>Sorry about that! I guess I leveraged the power of Swift a litle bit too much for this article, but a quick
+Google search can help you find further examples of Quick with Objective-C if you’re interested in learning more.</p>
+
+<h2 id="final-thoughts">Final Thoughts</h2>
+
+<p>Now that we’ve described the <em>behavior</em> of the class, the <code>describe</code>, <code>context</code>, and <code>it</code> descriptions can be
+built up to read like full sentences</p>
+
+<blockquote>
+CustomSet#insert with a non-existing element inserts the element
+CustomSet#insert with an existing element returns the inserted element
+CustomSet#remove with a non-existing element returns nothing
+CustomSet#remove with an existing element returns the removed element
+</blockquote>
+
+<p>Reading these sentences like documentation can be especially helpful to a developer new to the project, or when
+a fellow team member encounters a class or functionality for the first time. Quick is also not limited to just unit
+tests, it’s a way to <em>structure</em> tests, not necessarily a DSL for only one type of test. This means you can build your
+functional and UI tests using Quick and Nimble, just like we have for unit tests.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>I’ve barely scratched the surface in terms of the versatility of Quick, and I only covered limited examples of the custom DSL.
+You can check out the full documentation <a href="https://github.com/Quick/Quick/blob/master/Documentation/en-us/README.md">here</a>, and
+a link to an XCode project with the code referenced in this post <a href="https://github.com/kfarst/XCodeTestingExample">here</a>. I hope
+you find delving into behavior-driven development and testing as enjoyable as I have. If you’re used to <strong>XCTest</strong>, it may take
+some time for you to see the benefit of it, but stick with it, give it an honest shot, and you might be surprised at how much you enjoy
+it. Good luck in your testing journey!</p>
+:ET

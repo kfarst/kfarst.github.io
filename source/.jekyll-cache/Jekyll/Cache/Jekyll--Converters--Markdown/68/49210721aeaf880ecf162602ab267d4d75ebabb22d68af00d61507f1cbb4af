@@ -1,0 +1,77 @@
+I")'<p>My team at work was recently tasked with exposing an endpoint externally for a third-party service. The project serves as our
+API microservice, which I had built out a unit testing suite for a few months ago. We’ve been slowly “fleshing out” out our test cases
+for various support classes within the project, and adding documentation for the endpoints themselves. However, now that we would start serving data to third-parties, I realized we needed to be testing our actual endpoints and their responses as well.</p>
+
+<p>A quick Google search landed me on the GitHub repository for <a href="https://github.com/visionmedia/supertest">SuperTest</a>, which is a</p>
+
+<blockquote>
+super-agent driven library for testing node.js HTTP servers using a fluent API
+</blockquote>
+
+<p>as laid out in the project’s description. In short, the testing package provides a framework for calling an endpoint and asserting its response matches the expectation based on the data provided to it.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript">  <span class="nx">describe</span><span class="p">(</span><span class="dl">'</span><span class="s1">GET /user</span><span class="dl">'</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nx">it</span><span class="p">(</span><span class="dl">'</span><span class="s1">respond with json</span><span class="dl">'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">request</span><span class="p">(</span><span class="nx">app</span><span class="p">)</span>
+        <span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="dl">'</span><span class="s1">/user</span><span class="dl">'</span><span class="p">)</span>
+        <span class="p">.</span><span class="kd">set</span><span class="p">(</span><span class="dl">'</span><span class="s1">Accept</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">application/json</span><span class="dl">'</span><span class="p">)</span>
+        <span class="p">.</span><span class="nx">expect</span><span class="p">(</span><span class="dl">'</span><span class="s1">Content-Type</span><span class="dl">'</span><span class="p">,</span> <span class="sr">/json/</span><span class="p">)</span>
+        <span class="p">.</span><span class="nx">expect</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="nx">done</span><span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">});</span></code></pre></figure>
+
+<p>Looking at this example from the docs, after setting up a request <em>SuperTest</em> allows you to modify request headers and bodies, specify complex query strings and other parameters, and validate a response’s headers, body, and status code. You might also notice the request setup and response assertions can be combined into a single or multiple chain of method calls. The project is based on <a href="https://github.com/visionmedia/superagent">SuperAgent</a>, the non-testing equivalent of setting up a Node.js HTTP client using the same API. <em>SuperTest</em> would then allow to you to set up your test cases with the same structure as an endpoint built with <em>SuperAgent</em>, integrating assertion validation into the response.</p>
+
+<p>Despite the influence of <em>SuperAgent</em> on <em>SuperTest</em>, one is not required for the other. I would still get the benefit of chainable assertions and easy-to-build test requests, even though the endpoints we were testing against were built with <a href="https://expressjs.com/">Express.js</a>. Following an example from the project, I pulled in the dependencies I would need for my test cases and set up the first assertions.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">request</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">supertest</span><span class="dl">'</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">express</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">express</span><span class="dl">'</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">controller</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">../../controllers/embed</span><span class="dl">'</span><span class="p">);</span>
+
+<span class="nx">describe</span><span class="p">(</span><span class="dl">'</span><span class="s1">/embed</span><span class="dl">'</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">app</span><span class="p">;</span>
+
+  <span class="nx">beforeEach</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="c1">// set up express app</span>
+    <span class="nx">app</span> <span class="o">=</span> <span class="nx">express</span><span class="p">();</span>
+    <span class="c1">// attach embed endpoints to express app</span>
+    <span class="nx">controller</span><span class="p">(</span><span class="nx">app</span><span class="p">);</span>
+  <span class="p">});</span>
+
+  <span class="nx">describe</span><span class="p">(</span><span class="dl">'</span><span class="s1">with a valid URL</span><span class="dl">'</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">it</span><span class="p">(</span><span class="dl">'</span><span class="s1">returns the correct response</span><span class="dl">'</span><span class="p">,</span> <span class="p">(</span><span class="nx">done</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="p">...</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+  <span class="p">...</span>
+<span class="p">});</span></code></pre></figure>
+
+<p>I originally tried to pass the application entrypoint (<code>app.js</code>) into the <em>Express</em> instance, but ended up being too much overhead trying to provide all the depencies the app needed to run within the test environment. Conveniently though the endpoints in our API microservice are grouped by similar responsibilities into “controller” modules that accept an <em>Express</em> application as a dependency.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">app</span><span class="p">)</span> <span class="p">{</span>
+  <span class="dl">"</span><span class="s2">use strict</span><span class="dl">"</span><span class="p">;</span>
+
+  <span class="nx">app</span><span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="dl">'</span><span class="s1">/embed</span><span class="dl">'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">...</span>
+  <span class="p">});</span>
+<span class="p">};</span></code></pre></figure>
+
+<p>Because of this, in the test setup I was able to require only the necessry controller module (<code>var controller = require('../../controllers/embed');</code>) and pass the <em>Express</em> instance into the endpoint module (<code>controller(app);</code>). From there I was able to build out my test cases and validate the correct request scenarios and responses.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="p">...</span>
+<span class="nx">it</span><span class="p">(</span><span class="dl">'</span><span class="s1">returns the correct response</span><span class="dl">'</span><span class="p">,</span> <span class="p">(</span><span class="nx">done</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">request</span><span class="p">(</span><span class="nx">app</span><span class="p">)</span>
+    <span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="dl">'</span><span class="s1">/embed</span><span class="dl">'</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">query</span><span class="p">({</span> <span class="p">...</span> <span class="p">})</span>
+    <span class="p">.</span><span class="nx">expect</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">res</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="nx">expect</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">).</span><span class="nx">toMatchObject</span><span class="p">({</span>
+        <span class="p">...</span>
+      <span class="p">});</span>
+
+      <span class="nx">done</span><span class="p">();</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">err</span> <span class="o">=&gt;</span> <span class="nx">done</span><span class="p">.</span><span class="nx">fail</span><span class="p">(</span><span class="nx">err</span><span class="p">));</span>
+<span class="p">});</span>
+<span class="p">...</span></code></pre></figure>
+:ET

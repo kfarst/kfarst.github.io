@@ -1,0 +1,272 @@
+I"�]<p>We’ve been doing some pretty cool stuff with JavaScript at my company, and I wanted to write about some of the tools we are using to “up JavaScript’s game”.
+Obviously JS has been exploding with all the new frameworks and packages to improve its versatility, and in terms of web one of the most popular
+frameworks is arguably React. While you can find React projects alive and well in many many startups, one thing that I feel doesn’t get covered enough
+are some of the new data fetching mechanisms that may not be your common server-side API endpoints, and the ability to bring static typing to JavaScript.</p>
+
+<p>Conveniently, this post happens to touch on both of those topics and the solution to those two items we use on our projects. This is by no means meant
+to be an exhaustive tutorial or introduction. However, I would strongly encourage you to learn about these topics first by checking out the documentation for
+<a href="https://graphql.org/">GraphQL</a> and <a href="https://flow.org/">Flow</a>. I wanted to briefly touch on how we combine these with React for a more pleasant development
+experience.</p>
+
+<h3 id="flow">Flow</h3>
+
+<p>From the docs I linked to above,</p>
+
+<blockquote>
+Flow is a static type checker for your JavaScript code. It does a lot of work to make you more productive. Making you code faster, smarter, more confidently, and to a bigger scale.
+Flow checks your code for errors through static type annotations. These types allow you to tell Flow how you want your code to work, and Flow will make sure it does work that way.
+</blockquote>
+
+<p>In short, Flow allows static typing in JavaScript similar to what you may have seen in Java or Swift. A couple of simple examples where this can really be helpful might include:</p>
+
+<ul>
+  <li>Ensuring functions are not only receiving arguments of the correct type, but also the object or primitive that is returned from the function is also of the correct type</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="c1">// @flow</span>
+<span class="kd">function</span> <span class="nx">square</span><span class="p">(</span><span class="nx">n</span><span class="p">:</span> <span class="nx">number</span><span class="p">):</span> <span class="nx">number</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nx">n</span> <span class="o">*</span> <span class="nx">n</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nx">square</span><span class="p">(</span><span class="dl">"</span><span class="s2">2</span><span class="dl">"</span><span class="p">);</span> <span class="c1">// Error!</span></code></pre></figure>
+
+<ul>
+  <li>Making sure objects have their expected properties, and those properties have the correct types</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="c1">// @flow</span>
+<span class="nx">type</span> <span class="nx">MyObject</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="na">foo</span><span class="p">:</span> <span class="nx">number</span><span class="p">,</span>
+  <span class="na">bar</span><span class="p">:</span> <span class="nx">boolean</span><span class="p">,</span>
+  <span class="na">baz</span><span class="p">:</span> <span class="nx">string</span><span class="p">,</span>
+<span class="p">};</span>
+
+<span class="kd">var</span> <span class="nx">val</span><span class="p">:</span> <span class="nx">MyObject</span> <span class="o">=</span> <span class="p">{</span> <span class="cm">/* ... */</span> <span class="p">};</span>
+<span class="kd">function</span> <span class="nx">method</span><span class="p">(</span><span class="nx">val</span><span class="p">:</span> <span class="nx">MyObject</span><span class="p">)</span> <span class="p">{</span> <span class="cm">/* ... */</span> <span class="p">}</span>
+<span class="kd">class</span> <span class="nx">Foo</span> <span class="p">{</span> <span class="kd">constructor</span><span class="p">(</span><span class="nx">val</span><span class="p">:</span> <span class="nx">MyObject</span><span class="p">)</span> <span class="p">{</span> <span class="cm">/* ... */</span> <span class="p">}</span> <span class="p">}</span></code></pre></figure>
+
+<p>Flow can then “compile” the code in your project from the command line and report on any errors of missing or incorrect types.
+This is really great for any custom objects or functions you create, but is also useful for <em>generated</em> types as well. Keep that
+in mind as you continue reading.</p>
+
+<h3 id="graphql">GraphQL</h3>
+
+<p>In keeping with our topic introductions, from GraphQL’s documentation above:</p>
+
+<blockquote>
+GraphQL is a query language for your API, and a server-side runtime for executing queries by using a type system you define for your data. GraphQL isn't tied to any specific database or storage engine and is instead backed by your existing code and data.
+</blockquote>
+
+<p>This is still accomplished through a POST request to an endpoint, however the queries to that endpoint can be MUCH more verbose and structured, as well as highly flexible in that you only need to fetch
+the data you need at that time, based on the schema definition. Again, I would <em>strongly</em> encourage you to read the docs as this definition does not
+even begin to scratch the surface, but for the puposes of this article an example might be:</p>
+
+<ul>
+  <li>A query constructed on the client side and sent to the GraphQL specific endpoint</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nx">query</span> <span class="nx">HeroNameAndFriends</span><span class="p">(</span><span class="nx">$episode</span><span class="p">:</span> <span class="nx">Episode</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">hero</span><span class="p">(</span><span class="nx">episode</span><span class="p">:</span> <span class="nx">$episode</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">name</span>
+    <span class="nx">friends</span> <span class="p">{</span>
+      <span class="nx">name</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<ul>
+  <li>Variables that are passed to the endpoint along with the query</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-json" data-lang="json"><span class="p">{</span><span class="w">
+  </span><span class="nl">"episode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"JEDI"</span><span class="w">
+</span><span class="p">}</span></code></pre></figure>
+
+<ul>
+  <li>A nicely-structured response matching the query structure that was sent to the server</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-json" data-lang="json"><span class="p">{</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"hero"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"R2-D2"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"friends"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Luke Skywalker"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Han Solo"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Leia Organa"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">]</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span></code></pre></figure>
+
+<p>I know it’s a lot to wrap your head around, but the important item that relates to what we are discussing comes in the next paragraph from
+the documentation I quoted above.</p>
+
+<blockquote>
+A GraphQL service is created by defining types and fields on those types, then providing functions for each field on each type.
+</blockquote>
+
+<p>Since Flow is all about defining types, it’s no suprise these two topics can easily go hand in hand. Let’s take a look at how they
+fit into the React ecosystem.</p>
+
+<h3 id="react-and-relay">React and Relay</h3>
+
+<p>Looking at the GraphQL query above, the nested nature makes it very similar to the nested and encapsulated functionality of a React component.
+Since data flows down through nested components, and a component should only know about the data it needs, a GraphQL query and schema can be
+structured in such a way that the nested objects returned in the results can be segregated and sent through the properties of components in
+a parent-child relationship. In that way, the data model and view model can more closely mimic one another and inherently become more manageable
+as they change and evolve together.</p>
+
+<p><a href="https://facebook.github.io/relay/docs/en/introduction-to-relay.html">Relay</a> is a framework that pairs with React and GraphQL to make that possible.
+A top level <code>&lt;QueryRenderer /&gt;</code> component is defined with a GraphQL query, and the subsequent response from the server is asynchronously loaded with
+the returned data passed down the property chain of nested components. To get a clear picture of what that high-level component looks like, here’s
+an example from the docs:</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="k">import</span> <span class="nx">React</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">react</span><span class="dl">'</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="nx">QueryRenderer</span><span class="p">,</span> <span class="nx">graphql</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">react-relay</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="kd">class</span> <span class="nx">Example</span> <span class="kd">extends</span> <span class="nx">React</span><span class="p">.</span><span class="nx">Component</span> <span class="p">{</span>
+  <span class="nx">render</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">(</span>
+      <span class="o">&lt;</span><span class="nx">QueryRenderer</span>
+        <span class="nx">environment</span><span class="o">=</span><span class="p">{</span><span class="nx">environment</span><span class="p">}</span>
+        <span class="nx">query</span><span class="o">=</span><span class="p">{</span><span class="nx">graphql</span><span class="s2">`
+          query ExampleQuery($pageID: ID!) {
+            page(id: $pageID) {
+              name
+            }
+          }
+        `</span><span class="p">}</span>
+        <span class="nx">variables</span><span class="o">=</span>
+        <span class="nx">render</span><span class="o">=</span><span class="p">{({</span><span class="nx">error</span><span class="p">,</span> <span class="nx">props</span><span class="p">})</span> <span class="o">=&gt;</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span><span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="o">&lt;</span><span class="nx">div</span><span class="o">&gt;</span><span class="p">{</span><span class="nx">error</span><span class="p">.</span><span class="nx">message</span><span class="p">}</span><span class="o">&lt;</span><span class="sr">/div&gt;</span><span class="err">;
+</span>          <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">props</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="o">&lt;</span><span class="nx">div</span><span class="o">&gt;</span><span class="p">{</span><span class="nx">props</span><span class="p">.</span><span class="nx">page</span><span class="p">.</span><span class="nx">name</span><span class="p">}</span> <span class="nx">is</span> <span class="nx">great</span><span class="o">!&lt;</span><span class="sr">/div&gt;</span><span class="err">;
+</span>          <span class="p">}</span>
+          <span class="k">return</span> <span class="o">&lt;</span><span class="nx">div</span><span class="o">&gt;</span><span class="nx">Loading</span><span class="o">&lt;</span><span class="sr">/div&gt;</span><span class="err">;
+</span>        <span class="p">}}</span>
+      <span class="sr">/</span><span class="err">&gt;
+</span>    <span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<h3 id="relay-and-fragment-containers">Relay and Fragment Containers</h3>
+
+<p>Relay is a pretty cool framework, but I think one of the features that makes it <em>very</em> powerful is its ability
+to allow React components to define the data they need, even nested components that do not directly own the
+<code>&lt;QueryRenderer /&gt;</code> component definition like we saw above.</p>
+
+<p>What this translates to is a higher-order component provided by Relay called a <a href="https://facebook.github.io/relay/docs/en/fragment-container.html">Fragment Container</a>.
+It relies on a named “piece” of a GraphQL query that is defined in a child component, then referenced in the parent GraphQL query.
+Relay is smart enough to assemble these query pieces before executing the query, then re-renders each component with <em>only</em> the data defined by
+the fragment it contains.</p>
+
+<p>Another example from the docs, if there is a top-level <code>&lt;TodoList /&gt;</code> component:</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">class</span> <span class="nx">TodoList</span> <span class="kd">extends</span> <span class="nx">React</span><span class="p">.</span><span class="nx">Component</span> <span class="p">{</span>
+  <span class="nx">render</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">(</span>
+      <span class="o">&lt;</span><span class="nx">QueryRenderer</span>
+        <span class="nx">environment</span><span class="o">=</span><span class="p">{</span><span class="nx">environment</span><span class="p">}</span>
+        <span class="nx">query</span><span class="o">=</span><span class="p">{</span><span class="nx">graphql</span><span class="s2">`
+          query TodoListQuery {
+            list {
+              # Specify any fields required by '&lt;TodoList&gt;' itself.
+              title
+              # Include a reference to the fragment from the child component.
+              todoItems {
+                ...TodoItem_item
+              }
+            }
+          }
+        `</span><span class="p">}</span>
+        <span class="nx">render</span><span class="o">=</span><span class="p">{({</span><span class="nx">error</span><span class="p">,</span> <span class="nx">props</span><span class="p">})</span> <span class="o">=&gt;</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span><span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
+            <span class="o">&lt;</span><span class="nx">div</span><span class="o">&gt;</span><span class="p">{</span><span class="nx">error</span><span class="p">.</span><span class="nx">message</span><span class="p">}</span><span class="o">&lt;</span><span class="sr">/div&gt;</span><span class="err">;
+</span>          <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">props</span><span class="p">)</span> <span class="p">{</span>
+            <span class="o">&lt;</span><span class="nx">Text</span><span class="o">&gt;</span><span class="p">{</span><span class="nx">props</span><span class="p">.</span><span class="nx">list</span><span class="p">.</span><span class="nx">title</span><span class="p">}</span><span class="o">&lt;</span><span class="sr">/Text</span><span class="err">&gt;
+</span>            <span class="p">{</span><span class="nx">props</span><span class="p">.</span><span class="nx">list</span><span class="p">.</span><span class="nx">todoItems</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">item</span> <span class="o">=&gt;</span> <span class="o">&lt;</span><span class="nx">TodoItem</span> <span class="nx">item</span><span class="o">=</span><span class="p">{</span><span class="nx">item</span><span class="p">}</span> <span class="sr">/&gt;</span><span class="se">)</span><span class="err">}
+</span>          <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="o">&lt;</span><span class="nx">div</span><span class="o">&gt;</span><span class="nx">Loading</span><span class="o">&lt;</span><span class="sr">/div&gt;</span><span class="err">;
+</span>          <span class="p">}</span>
+        <span class="p">}}</span>
+      <span class="sr">/</span><span class="err">&gt;
+</span>    <span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>The Fragment Container for the <code>&lt;TodoItem /&gt;</code> component would look like this:</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">class</span> <span class="nx">TodoItem</span> <span class="kd">extends</span> <span class="nx">React</span><span class="p">.</span><span class="nx">Component</span> <span class="p">{</span>
+  <span class="nx">render</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">item</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">props</span><span class="p">.</span><span class="nx">item</span><span class="p">;</span>
+    <span class="c1">// ...</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="nx">createFragmentContainer</span><span class="p">(</span>
+  <span class="nx">TodoItem</span><span class="p">,</span>
+  <span class="nx">item</span><span class="p">:</span> <span class="nx">graphql</span><span class="s2">`
+    # Fragment name uses underscore to denote property name
+    fragment TodoItem_item on Todo {
+      # Properties available on the item component property
+      text
+      isComplete
+    }
+  `</span><span class="p">,</span>
+<span class="p">);</span></code></pre></figure>
+
+<p>In short, even though data is still being passed down through the component chain, each component still defines
+<em>what</em> data it needs and <em>how</em> it is structured.</p>
+
+<h3 id="relay-and-flow">Relay and Flow</h3>
+
+<p>As mentioned in the Flow section above, Flow is great for validating and verifying both the custom types you create
+<em>and</em> generated types. If we apply that statement to GraphQL, Relay will be taking those request and returning
+actual objects in the shape of those queries and passing them as properties to components.</p>
+
+<p>You can imagine what a pain this would be manually adding these huge type definitions to match query definitions. Thankfully,
+the NPM package <a href="https://facebook.github.io/relay/docs/en/installation-and-setup.html#set-up-relay-compiler">relay-compiler</a>
+makes it almost automatic. When a query is updated, a simple command in the terminal can generate or update generated Flow types
+for these queries. How cool is that?!</p>
+
+<p>When the command is run the definitions are inserted into a <code>__generated__</code> folder nested within the folder that contains the component.
+If the <code>&lt;TodoList /&gt;</code> and <code>&lt;TodoItem /&gt;</code> components were in the folder <code>src/components/Todo/</code> you would find the generated type definitions
+within <code>src/components/Todo/__generated__</code>. A simple <strong>import</strong> statement will pull the definition in, and the type can be applied to the
+component’s <strong>props</strong> variable.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="k">import</span> <span class="nx">type</span> <span class="p">{</span> <span class="nx">TodoListQueryType</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">./__generated__/TodoListQueryType</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="kd">class</span> <span class="nx">TodoList</span> <span class="kd">extends</span> <span class="nx">React</span><span class="p">.</span><span class="nx">Component</span> <span class="p">{</span>
+  <span class="kd">constructor</span><span class="p">(</span><span class="nx">props</span><span class="p">:</span> <span class="nx">TodoListQueryType</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">...</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p><em>Viola!</em> One more neat little tidbit, if you are trying to access a nested type within a GraphQL query type, you can use a Flow Utility Type, <code>$PropertyType</code>
+to assign the nested type to a property.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="k">import</span> <span class="nx">type</span> <span class="p">{</span> <span class="nx">TodoListQueryType</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">./__generated__/TodoListQueryType</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="kd">class</span> <span class="nx">TodoList</span> <span class="kd">extends</span> <span class="nx">React</span><span class="p">.</span><span class="nx">Component</span> <span class="p">{</span>
+  <span class="nl">list</span><span class="p">:</span> <span class="nx">$PropertyType</span><span class="o">&lt;</span><span class="nx">TodoListQueryType</span><span class="p">,</span> <span class="dl">'</span><span class="s1">list</span><span class="dl">'</span><span class="o">&gt;</span>
+
+  <span class="kd">constructor</span><span class="p">(</span><span class="nx">props</span><span class="p">:</span> <span class="nx">TodoListQueryType</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">list</span> <span class="o">=</span> <span class="nx">props</span><span class="p">.</span><span class="nx">list</span>
+    <span class="p">...</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<h3 id="what-a-ride">What a ride!</h3>
+
+<p>Time to take a breath if you need it! I know we flew through a lot of information in only a few paragraphs, but I hope the topic sections and documentation links
+can help guide you through the lessons in more detail. We are doing a lot of exciting things where I work and I wanted to provide just a taste of some of the fantastic
+tools and technologies we’re using here. I hope you enjoyed reading this as much as I enjoyed writing it, and happy coding!</p>
+:ET

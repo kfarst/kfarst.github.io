@@ -1,0 +1,70 @@
+I"�<p>I’ve really been focusing on building programmatic views lately, and one way of avoiding the
+<a href="http://khanlou.com/2015/12/massive-view-controller/">Massive View Controller problem</a> is
+by creating a subclass of <code>UIView</code> and overriding the mechanism in which a <code>UIViewController</code>
+loads its view. In this way the subviews and constraints setup can be extracted out of the <code>UIViewController</code>.
+By overriding the <code>loadView</code> view controller lifecycle hook, you can initialize the view with a custom
+subclass.</p>
+
+<p>The Apple documentation does say you <a href="https://developer.apple.com/documentation/uikit/uiviewcontroller/1621454-loadview">shouldn’t do this</a>
+unless you are implementing a view manually, which is exactly what I’m doing. However, accomplishing this may not be that intiutive,
+so I’d like to demonstrate exactly how to do this.</p>
+
+<h3 id="defining-the-hook">Defining the hook</h3>
+
+<p>Keep in mind in Swift, since you are overriding a method in the parent class, you’ll need to prefix the hook with the <code>override</code> keyword.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">override</span> <span class="kd">func</span> <span class="nf">loadView</span><span class="p">()</span> <span class="p">{</span>
+  <span class="o">...</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>And in Objective-C we simply have:</p>
+
+<figure class="highlight"><pre><code class="language-objective-c" data-lang="objective-c">- (void)loadView {
+  ...
+}</code></pre></figure>
+
+<h3 id="initialize-and-assign-the-view">Initialize and Assign the View</h3>
+
+<p>You’ll need to provide the <code>frame</code> for your custom view, which we can grab from the <code>UIScreen.main</code> bounds.</p>
+
+<p>In Swift, you’ll notice that I used a <a href="http://mikebuss.com/2014/06/22/lazy-initialization-swift/">lazy property</a> to create my view
+before assigning it in <code>loadView</code>. This is because when interacting with the view after this, you’ll need to reference the <code>myCustomView</code>
+instance to avoid typecasting the <code>view</code> property every time you call it.</p>
+
+<figure class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">override</span> <span class="kd">func</span> <span class="nf">loadView</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">view</span> <span class="o">=</span> <span class="n">myCustomView</span>
+<span class="p">}</span>
+<span class="o">...</span>
+<span class="kd">lazy</span> <span class="kd">private(set)</span> <span class="nv">myCustomView</span><span class="p">:</span> <span class="kt">MyCustomView</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="kt">MyCustomView</span><span class="p">(</span><span class="nv">frame</span><span class="p">:</span> <span class="kt">UIScreen</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span>
+<span class="p">}()</span></code></pre></figure>
+
+<p>In Objective-C, you can accomplish the same thing by creating a property to override the parent <code>view</code> property. This will typecast
+the <code>view</code> property itself, so you can call it with <code>self.view</code> everywhere else you need to.</p>
+
+<figure class="highlight"><pre><code class="language-objective-c" data-lang="objective-c">@interface MyCustomViewController ()
+
+@property (nonatomic, strong) MyCustomView *view;
+
+@end
+
+@implementation ZZACalendarEntryPickerViewController
+...
+- (void)loadView {
+   self.view = [[MyCustomView alloc] initWithFrame: [UIScreen main].bounds];
+}
+...
+@end</code></pre></figure>
+
+<h3 id="dynamically-initializing-the-view">Dynamically Initializing the View</h3>
+
+<p>One final thing to note, in Objective-C you’ll see a warning on the <code>view</code> property declaration.</p>
+
+<blockquote>
+Auto property synthesis will not synthesize property 'view'; it will be implemented by its superclass, use @dynamic to acknowledge intention
+</blockquote>
+
+<p>Make sure inside your <code>@implementation</code> to add <code>@dynamic view;</code> to silence this warning.</p>
+
+<p>Thanks for reading, I hope this was useful!</p>
+:ET
