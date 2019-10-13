@@ -8,7 +8,7 @@ keywords: "ios,swift,vip,clean-swift,refactoring,design-patterns"
 categories:
 - iOS
 tags:
-- iO
+- iOS
 ---
 
 Welcome back! After taking a hiatus, let's wrap up this series on Clean Swift by implementing unit tests against the components in a *scene*. When I was first becoming familiar with the architecture by building sample apps for job interviews, cleaning up my massive view controllers and the ease of writing tests were two of the biggest benefits I noticed immediately. Coming from a Ruby on Rails background where testing is baked into the culture, I was delighted that Clean Swift was not only making my views and features easier to build and manage, but made writing unit tests a breeze.
