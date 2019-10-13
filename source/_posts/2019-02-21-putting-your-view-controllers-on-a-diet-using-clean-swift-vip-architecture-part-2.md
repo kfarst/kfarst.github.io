@@ -308,4 +308,4 @@ The additional routing logic that would normally be found in the **prepareForSeg
 
 ## What's Next?
 
-In the last two posts, we've covered the components that make up the VIP cycle in a scene, as well how those components communicate with each other and with other scenes. With all the tools laid out to start building a “cleaner” Swift app, it's important to also test that functionality. I'll be wrapping up this series in the next article, where we'll be doing just that. In the meantime, enjoy your work with Clean Swift!
+In the last two posts, we've covered the components that make up the VIP cycle in a scene, as well how those components communicate with each other and with other scenes. With all the tools laid out to start building a “cleaner” Swift app, it's important to also test that functionality. I'll be wrapping up this series in the [next](http://kfarst.github.io/ios/2019/10/03/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture-part-3/) article, where we'll be doing just that. In the meantime, enjoy your work with Clean Swift!
