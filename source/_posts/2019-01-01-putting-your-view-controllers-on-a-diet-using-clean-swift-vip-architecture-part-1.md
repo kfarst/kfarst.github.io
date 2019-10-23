@@ -29,7 +29,7 @@ that MVC actually stands for *Massive View Controller*, so you can see this is s
 ### It's Not Your Fault
 
 Before diving into one way of mitigating this situation, I wanted to take a second to talk about *how* and *why* this happens.
-Now, there are a countless number of reasons which leards to this antipattern, but I wanted to highlight 3 to briefly address: *definition*, *education*, and *experience*.
+Now, there are a countless number of reasons which leads to this antipattern, but I wanted to highlight 3 to briefly address: *definition*, *education*, and *experience*.
 
 ##### Definition
 
@@ -54,7 +54,7 @@ that the approach they are taking may not be using best practices, but this can 
 things in a less-than-ideal manner, especially if he or she is new to programming also.
 
 What's worse, these problems may start to become larger and larger "pain points" as the application grows, and usually at that point
-cleaning up the technical debt would require a large and time-consuming refactor. I don't disagree with keeping teaching material and documentation as straight forward as possible so as to not cause confusion the reader and "get right to the point" of helping to solve
+cleaning up the technical debt would require a large and time-consuming refactor. I don't disagree with keeping teaching material and documentation as straight forward as possible so as to not cause confusion in the reader and "get right to the point" of helping to solve
 a problem, however it can lead to an unfortunate and unintended side effect.
 
 ##### Experience
@@ -141,7 +141,7 @@ class OrderListViewController: ViewController {
 
 There are two important aspects of this refactor I'd like to point out:
 
-1. There is no longer a need to pass in and manage individual dependencies from the view controller since the interactor will be handling the events and actions coming from the view controller. In fact, you don't even need to pass the dependencies into the interactor either. Instead, one can also extract each unit of "work" along with its dependencies to worker classes that the interactor can call individually, but these will be discussed in part 2 of this post.
+1. There is no longer a need to pass in and manage individual dependencies from the view controller since the interactor will be handling the events and actions coming from the view controller. In fact, you don't even need to pass the dependencies into the interactor either. Instead, one can also extract each unit of "work" along with its dependencies to worker classes that the interactor can call individually, but these will be discussed in [part 2](http://kfarst.github.io/ios/2019/02/21/putting-your-view-controllers-on-a-diet-using-clean-swift-vip-architecture-part-2/) of this post.
 
 2. Having an interactor that conforms to a protocol makes mocking it for the sake of testing much easier. The mocked interactor class can be passed into the view controller, and validating that each method of the interactor is called by the view controller becomes trivial.
 
