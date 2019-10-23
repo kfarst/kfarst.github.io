@@ -1,0 +1,2 @@
+User-agent: *
+Sitemap: kfarst.github.io/sitemap.xml
